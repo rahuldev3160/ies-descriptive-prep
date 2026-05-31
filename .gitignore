@@ -1,5 +1,11 @@
-# Copyrighted PDF source material — never commit
+# Copyrighted PDF source material and large binaries — never commit
 pdfs/
+sources/
+data/audio/
+
+# Large data files not needed for app runtime
+data/upsc.db
+data/answers_batch.txt
 
 # SQLite WAL runtime files (generated at runtime, not committed)
 data/ies.db-shm
