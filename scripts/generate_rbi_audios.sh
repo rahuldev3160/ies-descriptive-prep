@@ -28,17 +28,25 @@ if [[ -z "$RBI_NB" ]]; then
 fi
 echo "Notebook ID: $RBI_NB"
 
-# ── Step 2: Add sources ──────────────────────────────────────────────────────
+# ── Step 2: Add sources (--type text avoids .md format rejection) ────────────
 echo ""
 echo "======================================"
 echo "STEP 2: Adding source documents"
 echo "======================================"
-$NLM source add -n "$RBI_NB" --type file "$ROOT/data/notebooklm/rbi_theory_mcq_source.md"
-echo "Added: rbi_theory_mcq_source.md"
-$NLM source add -n "$RBI_NB" --type file "$ROOT/data/notebooklm/rbi_current_data_formatted.md"
-echo "Added: rbi_current_data_formatted.md"
-echo "Waiting 60s for NotebookLM to process sources..."
-sleep 60
+SRC1=$($NLM source add -n "$RBI_NB" --type text \
+    "$(cat "$ROOT/data/notebooklm/rbi_theory_mcq_source.md")" \
+    --title "RBI Theory & MCQ Source" | grep -oE '[0-9a-f]{8}-[0-9a-f]{4}-[0-9a-f]{4}-[0-9a-f]{4}-[0-9a-f]{12}' | head -1)
+echo "Added theory source: $SRC1"
+
+SRC2=$($NLM source add -n "$RBI_NB" --type text \
+    "$(cat "$ROOT/data/notebooklm/rbi_current_data_formatted.md")" \
+    --title "RBI Current Data & Fiscal" | grep -oE '[0-9a-f]{8}-[0-9a-f]{4}-[0-9a-f]{4}-[0-9a-f]{4}-[0-9a-f]{12}' | head -1)
+echo "Added data source: $SRC2"
+
+echo "Waiting for sources to process..."
+$NLM source wait -n "$RBI_NB" "$SRC1" --timeout 300
+$NLM source wait -n "$RBI_NB" "$SRC2" --timeout 300
+echo "Sources ready."
 
 # ── Step 3: Generate 6 audios ────────────────────────────────────────────────
 generate_audio() {
