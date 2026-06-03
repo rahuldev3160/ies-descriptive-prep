@@ -333,6 +333,33 @@ EPISODES = {
         "tags": ["IES 2026 revision", "exam strategy", "Indian economy connections",
                  "GE-04 exam traps", "IES predictions 2026", "GE-04 synthesis"],
     },
+    # ── RBI DEPR 2026 ─────────────────────────────────────────────────────
+    "rbi_a1": {
+        "yt_title": "RBI DEPR 2026 | Monetary Policy & Banking | Audio Revision",
+        "topics": [
+            "MPC: 6-member, repo rate 5.25%, inflation target 4% ±2%",
+            "LAF corridor: SDF (floor), repo, MSF (ceiling)",
+            "CRR, SLR, OMO and forex swap — liquidity toolkit",
+            "Banking health: CRAR 9%, GNPA 2.6%, PSL 40%",
+            "Payment systems: UPI, RTGS, NEFT, IMPS",
+        ],
+        "tags": ["RBI DEPR", "RBI Grade B", "monetary policy India", "MPC",
+                 "repo rate", "LAF corridor", "SDF", "banking NPA", "CRAR",
+                 "priority sector lending", "UPI RTGS NEFT", "RBI exam 2026"],
+    },
+    "rbi_a2": {
+        "yt_title": "RBI DEPR 2026 | Indian Economy & Fiscal Policy | Audio Revision",
+        "topics": [
+            "GDP 7.6% FY26E, nominal growth 10% FY27",
+            "Fiscal deficit: 4.4% FY26 → 4.3% FY27, FRBM consolidation",
+            "Budget 2026-27: Rs 53.47 lakh crore expenditure, capex push",
+            "Disinvestment target Rs 80,000 crore FY27 — first increase in 5 years",
+            "Financial inclusion: 56 crore PMJDY, MUDRA, FI Index 67",
+        ],
+        "tags": ["RBI DEPR", "RBI Grade B", "Indian economy 2026", "fiscal deficit",
+                 "Union Budget 2026", "GDP growth India", "disinvestment",
+                 "FRBM Act", "financial inclusion", "PMJDY MUDRA", "RBI exam 2026"],
+    },
 }
 
 SERIES_OVERVIEW = """\
@@ -386,21 +413,69 @@ PAPER_TAGS = {
     "ge02": ["macroeconomics", "GE-02", "growth theory", "international economics", "development economics"],
     "ge03": ["public economics", "environmental economics", "industrial economics", "GE-03"],
     "ge04": ["Indian economy", "GE-04", "Indian economic policy", "India economics"],
+    "rbi":  ["RBI DEPR 2026", "RBI Grade B", "RBI exam preparation", "Reserve Bank of India"],
 }
 
 
 def stem_to_key(stem: str) -> str | None:
-    """Map MP3 stem like 'GE-01 _ A1a _ Topic' to key like 'ge01_a1a'."""
+    """Map MP3 stem to episode key.
+
+    GE stems: 'GE-01 _ A1a _ Topic'  → 'ge01_a1a'
+    RBI stems: 'RBI - A1 - Topic'     → 'rbi_a1'
+               'RBI_A1_topic'          → 'rbi_a1'
+    """
     m = re.match(r"GE-0?(\d)\s*_\s*(A\d+[a-z]?)", stem, re.IGNORECASE)
     if m:
         return f"ge0{m.group(1)}_{m.group(2).lower()}"
+    m = re.match(r"RBI[\s_-]+(A\d+[a-z]?)", stem, re.IGNORECASE)
+    if m:
+        return f"rbi_{m.group(1).lower()}"
     return None
+
+
+RBI_SERIES_OVERVIEW = """\
+━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━
+📚 RBI DEPR 2026 Audio Revision Series
+━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━
+A1 — Monetary Policy & Banking
+     MPC · LAF corridor · CRR/SLR/OMO · CRAR/NPA · PSL · Payment systems
+
+A2 — Indian Economy & Fiscal Policy
+     GDP growth · Fiscal deficit path · Budget 2026-27 · Disinvestment · Financial inclusion"""
 
 
 def build_description(key: str, ep: dict) -> str:
     topics_block = "\n".join(f"  • {t}" for t in ep["topics"])
-    paper_num = key[:4].upper().replace("GE0", "GE-0")  # ge01 → GE-01
 
+    if key.startswith("rbi"):
+        return f"""\
+🏦 RBI DEPR 2026 | Phase 1 Revision | Deep Dive Audio
+
+{ep['yt_title']}
+
+━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━
+📌 Topics covered in this episode
+━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━
+{topics_block}
+
+━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━
+🎯 Who is this for?
+━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━
+• RBI Grade B / DEPR 2026 aspirants (Phase 1 — Economics paper)
+• UPSC Economics Optional candidates
+• Anyone revising Indian macro, fiscal, and monetary policy with current data
+
+All numbers are sourced from Economic Survey 2025-26, Union Budget 2026-27, and RBI publications.
+Generated using NotebookLM (Google) with structured official source documents.
+
+{RBI_SERIES_OVERVIEW}
+
+━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━
+🔔 Subscribe for the complete series
+━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━
+#RBIDEPR2026 #RBIGradeB #RBIExam #MonetaryPolicy #IndianEconomy #FiscalPolicy #EconomicsRevision #DeepDiveAudio"""
+
+    paper_num = key[:4].upper().replace("GE0", "GE-0")  # ge01 → GE-01
     return f"""\
 🎓 IES 2026 General Economics | {paper_num} | Deep Dive Audio Lecture
 
@@ -476,12 +551,13 @@ def make_video(mp3_path: Path, thumbnail_path: Path) -> Path:
     if thumbnail_path and thumbnail_path.exists():
         cmd = [
             "ffmpeg", "-y", "-loglevel", "error",
-            "-loop", "1", "-i", str(thumbnail_path),
+            "-loop", "1", "-framerate", "1", "-i", str(thumbnail_path),
             "-i", str(mp3_path),
             "-c:v", "libx264", "-preset", "ultrafast", "-tune", "stillimage",
-            "-threads", "2",
+            "-r", "1", "-threads", "2",
             "-c:a", "aac", "-b:a", "192k",
             "-pix_fmt", "yuv420p",
+            "-max_muxing_queue_size", "9999",
             "-shortest",
             str(out),
         ]
@@ -491,8 +567,9 @@ def make_video(mp3_path: Path, thumbnail_path: Path) -> Path:
             "-f", "lavfi", "-i", "color=c=0d0920:s=1280x720:r=1",
             "-i", str(mp3_path),
             "-c:v", "libx264", "-preset", "ultrafast", "-tune", "stillimage",
-            "-threads", "2",
+            "-r", "1", "-threads", "2",
             "-c:a", "aac", "-b:a", "192k",
+            "-max_muxing_queue_size", "9999",
             "-shortest",
             str(out),
         ]
@@ -587,7 +664,7 @@ def delete_videos(youtube, video_ids: list[str]):
 
 def main():
     parser = argparse.ArgumentParser()
-    parser.add_argument("--paper",  choices=["ge01", "ge02", "ge03", "ge04"])
+    parser.add_argument("--paper",  choices=["ge01", "ge02", "ge03", "ge04", "rbi"])
     parser.add_argument("--all",    action="store_true")
     parser.add_argument("--file",   help="Upload a single MP3 file")
     parser.add_argument("--delete", nargs="+", metavar="VIDEO_ID",
@@ -623,10 +700,10 @@ def main():
         print("No MP3 files found.")
         return
 
-    # Clean up old .youtube.mp4 files so they rebuild with new thumbnails
+    # Clean up corrupted (small) .youtube.mp4 files so they rebuild; skip valid ones
     for mp3_path in mp3_files:
         old_mp4 = mp3_path.with_suffix(".youtube.mp4")
-        if old_mp4.exists():
+        if old_mp4.exists() and old_mp4.stat().st_size < 10_000_000:
             old_mp4.unlink()
 
     print(f"\nFound {len(mp3_files)} MP3 file(s) to upload.")

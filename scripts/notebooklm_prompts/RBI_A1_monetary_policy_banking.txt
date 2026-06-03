@@ -1,0 +1,27 @@
+Focus exclusively on Monetary Policy and Banking in India — for RBI DEPR Phase 1, June 14, 2026. This is a 15-minute deep-dive revision audio.
+
+Cover these specific topics in sequence:
+
+1. RBI's Monetary Policy Framework: MPC structure (6-member composition — 3 RBI, 3 external), inflation target of 4% ±2% (Urjit Patel Committee recommendation), the 5-year mandate review mechanism, and the February 2026 MPC decision to hold repo rate at 5.25% after a cumulative 125 bps cut since February 2025.
+
+2. The LAF Corridor: Repo rate (5.25%) as the borrowing anchor, SDF as the corridor floor replacing Fixed Rate Reverse Repo (no collateral), MSF as the ceiling. Why the SDF change matters: RBI absorbs liquidity without pledging collateral, giving it more flexibility. Explain the corridor logic — how banks park excess funds or borrow depending on their position.
+
+3. Reserve Requirements and OMOs: CRR as a non-interest-bearing reserve (₹2.5 lakh crore injected via CRR cuts in FY25-26); SLR as a liquid-assets buffer that earns returns; OMO as a durable liquidity tool (₹6.95 lakh crore injected); forex swaps (~$25 billion). Contrast: repo is temporary liquidity, OMO is permanent.
+
+4. Monetary Transmission: The chain from repo rate cut → call money rate → MCLR/external benchmark lending rate → credit demand → investment → output. Explain External Benchmark Lending Rate (EBLR) introduced October 2019 and why it speeds up transmission compared to older MCLR. Mention that declining sovereign 10-year yields act as a fiscal stimulus.
+
+5. Banking Health — CRAR and NPA: CRAR norm of 9% per RBI (above Basel III 8%); GNPA ratio at approximately 2.6% (multi-year low in FY26); IBC (Insolvency and Bankruptcy Code) as the resolution mechanism that drove NPA improvement. Brief on PCR (Provisioning Coverage Ratio) as the buffer indicator.
+
+6. Priority Sector Lending: 40% of ANBC must go to priority sectors. List the categories: Agriculture, MSMEs, Export Credit, Education, Housing, Social Infrastructure, Renewable Energy, Weaker Sections. Co-lending model (banks + NBFCs jointly originate). Credit-deposit ratio interpretation.
+
+7. Payment Systems Architecture: UPI (NPCI, real-time, used as a nowcasting indicator in Economic Survey), RTGS (high-value, real-time final settlement), NEFT (batch-mode, 24x7 since December 2019), IMPS (immediate, retail, 24x7). Why this matters for RBI DEPR: financial inclusion section.
+
+8. Exam-relevant numbers to memorise: Repo 5.25%, 125 bps cut, CRR injection ₹2.5 lakh crore, OMO ₹6.95 lakh crore, GNPA 2.6%, CRAR 9%, PSL 40%, PMJDY 56 crore beneficiaries, Financial Inclusion Index 67 (2025), Forex reserves >11 months import cover, Gold $102.3 billion.
+
+DO NOT cover: fiscal policy, GDP growth, budget numbers (that is RBI-A2); international trade theory; microeconomic theory; state finance.
+
+For every number or ratio: give it in plain spoken English first, then explain what it means economically. Example: "The GNPA ratio is two point six percent as of FY26 — meaning for every hundred rupees banks have lent out, two rupees sixty paise is classified as non-performing, which is the lowest this number has been in many years."
+
+Structure: Open with a 2–3 sentence exam framing — "What does RBI DEPR Phase 1 test here?" Then build concept by concept. End with the three most likely RBI DEPR question patterns: (1) explain the LAF corridor and how RBI uses it to manage liquidity, (2) what is the significance of SDF replacing the reverse repo rate, (3) distinguish CRAR from PCR and their roles in banking stability.
+
+Use Deep Dive format (two hosts discussing). Target length: 15 minutes.

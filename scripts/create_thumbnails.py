@@ -37,6 +37,7 @@ PAPER_COLOR = {
     "ge02": (46, 160, 100),    # growth green — Macroeconomics
     "ge03": (210, 155, 20),    # amber/gold — Public & Env Econ
     "ge04": (220, 80, 60),     # warm coral — Indian Economy
+    "rbi":  (200, 50, 50),     # RBI red — Monetary Policy & Economy
 }
 
 PAPER_LABEL = {
@@ -44,6 +45,7 @@ PAPER_LABEL = {
     "ge02": ("GE-02", "MACROECONOMICS"),
     "ge03": ("GE-03", "PUBLIC & ENV. ECONOMICS"),
     "ge04": ("GE-04", "INDIAN ECONOMY"),
+    "rbi":  ("RBI DEPR", "ECONOMICS PAPER"),
 }
 
 # ── Episode registry ────────────────────────────────────────────────────────
@@ -103,6 +105,13 @@ EPISODES = {
     "ge03_a4":  ("ge03", "State, Market", "& Development Planning",
                   ["Market Failures", "Planning Models", "Public Sector Role", "Washington Consensus"],
                   "Episode 7 of 7"),
+    # RBI DEPR 2026
+    "rbi_a1":  ("rbi", "Monetary Policy", "& Banking",
+                 ["MPC & Repo Rate 5.25%", "LAF Corridor (SDF/MSF)", "CRAR 9% · GNPA 2.6%", "UPI · RTGS · NEFT"],
+                 "Episode 1 of 2"),
+    "rbi_a2":  ("rbi", "Indian Economy", "& Fiscal Policy",
+                 ["GDP 7.6% FY26E", "Fiscal Deficit 4.4%→4.3%", "Budget 2026-27 Capex", "PMJDY · MUDRA"],
+                 "Episode 2 of 2"),
     # GE-04
     "ge04_a1a": ("ge04", "Agriculture", "& Rural Economy",
                   ["Green Revolution", "MSP Policy", "Agricultural Credit", "Farm Reforms"],
@@ -258,8 +267,8 @@ def create_thumbnail(key: str, episode: tuple, out_path: Path):
     draw = ImageDraw.Draw(canvas)
     PAD_L = 52
 
-    # IES 2026 badge (top)
-    badge_text = "IES 2026  ·  GENERAL ECONOMICS"
+    # Series badge (top)
+    badge_text = "RBI DEPR 2026  ·  PHASE 1" if paper_key == "rbi" else "IES 2026  ·  GENERAL ECONOMICS"
     draw.text((PAD_L, 46), badge_text, font=fonts["xs_reg"],
               fill=(*accent, 220))
 
@@ -303,7 +312,7 @@ def create_thumbnail(key: str, episode: tuple, out_path: Path):
 
 def main():
     parser = argparse.ArgumentParser()
-    parser.add_argument("--paper", choices=["ge01", "ge02", "ge03", "ge04"])
+    parser.add_argument("--paper", choices=["ge01", "ge02", "ge03", "ge04", "rbi"])
     parser.add_argument("--open", action="store_true", dest="preview",
                         help="Open the first generated thumbnail in Preview")
     args = parser.parse_args()

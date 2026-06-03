@@ -1,0 +1,31 @@
+Focus exclusively on the Indian Economy and Fiscal Policy — for RBI DEPR Phase 1, June 14, 2026. This is a 15-minute deep-dive revision audio.
+
+Cover these specific topics in sequence:
+
+1. GDP and Growth Outlook: Real GDP growth at approximately 7.6% in FY26E. Nominal GDP growth estimated at 10% for 2026-27 (in Budget). Key drivers: domestic demand, services resilience, capex push, moderation in inflation. Distinguish GDP from GVA (GVA = GDP − taxes on products + subsidies). Sectoral composition: Agriculture ~16-18%, Industry ~26-28%, Services ~55% of GVA.
+
+2. Price Indices and Measurement: CPI as the anchor for monetary policy (4% ±2% target). Headline vs. core vs. food CPI and why the distinction matters. WPI criticisms: double counting, excludes exports/imports, excludes services (55% of GDP) — and why India is moving to PPI (Producer Price Index). IIP as the industrial output tracker.
+
+3. Fiscal Deficit Framework and Numbers: FY25 actual fiscal deficit was 4.8% of GDP (better than 4.9% target); FY26 target 4.4%; FY27 Budget Estimate 4.3%. Revenue deficit FY27 target 1.5% of GDP. Primary deficit FY27 target 0.3% of GDP. Effective Revenue Deficit = Revenue Deficit minus grants for capital asset creation. Why the distinction matters: ERD better captures structural fiscal quality.
+
+4. FRBM Act 2003: Requires progressive reduction in fiscal deficit, revenue deficit, and outstanding liabilities with three-year rolling targets. The government promised in 2021 to reduce the Union fiscal deficit by more than half from its COVID peak — this is the consolidation story.
+
+5. Budget 2026-27 Key Numbers: Total expenditure Rs 53,47,315 crore (7.7% higher). Interest payments = 26% of total expenditure and 40% of revenue receipts (this is the debt servicing burden). Total receipts excluding borrowings Rs 36,51,547 crore (7.2% higher). Tax revenue growing 8%. Outstanding liabilities 55.6% of GDP (target: 50% by March 2031).
+
+6. Capital Expenditure and Disinvestment: Capex as the quality-of-spending indicator — roads, railways, airports, ports. SASCI scheme incentivises states to maintain their own capex. Disinvestment target FY27: Rs 80,000 crore — the first increase after five consecutive downward revisions. FY26 disinvestment target was Rs 47,000 crore; government achieved 71.9% of it.
+
+7. Tax Reforms (Budget 2026-27): No income tax slab change for AY 2026-27. Tax holiday until 2047 for global cloud services using Indian data centres. IFSC tax holiday extended from 10 to 20 years. STT increase on derivatives. MAT rate cut from 15% to 14%. TCS on education/medical remittances cut from 5% to 2%. Income Tax Act 2025 — codification and simplification.
+
+8. External Sector: Current Account Deficit at 0.8% of GDP in H1 FY26 (moderate). India runs a goods trade deficit, partially offset by services surplus and remittances. Forex reserves >11 months of import cover; ~94% of external debt. Gold reserves at $102.3 billion. Rupee underperformance despite strong fundamentals — structural savings-deficit economy.
+
+9. Financial Inclusion: PMJDY — 56 crore beneficiaries. MUDRA/PMMY — collateral-free loans, three tiers (Shishu, Kishore, Tarun). Financial Inclusion Index at 67 in 2025 (up 24.3%). Estimated poverty: 29.5% of population. UPI as both a payment system and a demand nowcasting tool.
+
+10. Exam-relevant connections: Fiscal deficit → bond market crowding out → higher interest rates → RBI LAF corridor squeeze. Revenue deficit → borrowing for consumption → lower capital formation → lower growth potential. Disinvestment shortfall → higher market borrowings → pressure on yields.
+
+DO NOT cover: monetary policy instruments (LAF, CRR, SLR — that is RBI-A1); banking prudential norms (CRAR, NPA — that is RBI-A1); payment systems architecture (covered in RBI-A1).
+
+For every number: speak it out plainly and then give the economic interpretation. Example: "The primary deficit target for FY27 is zero point three percent of GDP — compare this to two point eight percent in FY22-23. The primary deficit is what the government spends over and above its revenues excluding interest payments, so bringing it down to near zero means India is almost paying its way without borrowing — a major fiscal milestone."
+
+Structure: Open with 2–3 sentence exam framing — "What does RBI DEPR Phase 1 test here and how is it different from a General Studies fiscal question?" Then build topic by topic. End with three most likely RBI DEPR question patterns: (1) explain the components of the fiscal deficit and why India prioritises reducing the revenue deficit first, (2) evaluate India's disinvestment policy — targets versus achievement, (3) assess the role of financial inclusion schemes in reducing the credit-deposit gap in rural India.
+
+Use Deep Dive format (two hosts discussing). Target length: 15 minutes.

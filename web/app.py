@@ -11,7 +11,7 @@ sys.path.insert(0, str(Path(__file__).parent))
 
 import streamlit as st
 
-from db import EXAM_DATE, EXAM_ID, get_conn, get_user_id, init_user, get_topics, get_true_readiness, get_paper_coverage, set_topic_state
+from db import EXAM_DATE, EXAM_ID, get_conn, get_user_id, init_user, get_topics, get_true_readiness, get_paper_coverage, set_topic_state, is_crunch_mode
 from styles import apply_theme, badge, progress_bar
 
 st.set_page_config(
@@ -51,7 +51,7 @@ readiness = get_true_readiness(conn)
 h1, h2, h3, h4, h5, h6 = st.columns([3, 1, 1, 1, 1, 1])
 with h1:
     st.markdown("## 📚 IES 2026 Study Dashboard")
-    st.markdown(f'<span style="color:#9AA0A6;font-size:0.85rem;">Exam on 17 June 2026 · GE-01 to GE-04</span>', unsafe_allow_html=True)
+    st.markdown(f'<span style="color:#9AA0A6;font-size:0.85rem;">Exam 19-21 June 2026 · GE-01 to GE-04</span>', unsafe_allow_html=True)
 with h2:
     day_color = "#F28B82" if d <= 14 else "#8AB4F8"
     st.markdown(f"""<div class="gem-card" style="text-align:center;border-color:{day_color}33">
@@ -88,6 +88,12 @@ with h6:
     </div>""", unsafe_allow_html=True)
 
 st.markdown("<br>", unsafe_allow_html=True)
+
+if is_crunch_mode():
+    st.markdown("""<div style="background:#F28B8222;border:1px solid #F28B82;border-radius:8px;padding:10px 16px;margin-bottom:12px;">
+    <span style="color:#F28B82;font-weight:700;font-size:1rem;">⚡ CRUNCH MODE</span>
+    <span style="color:#9AA0A6;font-size:0.85rem;margin-left:8px;">≤7 days left — MCQ pass threshold lowered to 70%. Focus on top gaps only.</span>
+    </div>""", unsafe_allow_html=True)
 
 # ── Today's Focus ──────────────────────────────────────────────────────────────
 all_topics = get_topics(conn)

@@ -3,6 +3,7 @@ import json
 import os
 import re
 import sqlite3
+from datetime import datetime
 from pathlib import Path
 
 _PROMO = re.compile(
@@ -20,7 +21,12 @@ def clean_q(text: str) -> str:
 DB_PATH = Path(__file__).parent.parent / "data" / "ies.db"
 EXAM_ID = "ies_2026"
 USER_ID = os.environ.get("IES_USER_ID", "rahul")
-EXAM_DATE = "2026-06-17"
+EXAM_DATE = "2026-06-19"
+
+
+def is_crunch_mode() -> bool:
+    exam = datetime.strptime(EXAM_DATE, "%Y-%m-%d").date()
+    return (exam - datetime.today().date()).days <= 7
 
 
 def get_user_id() -> str:
@@ -410,6 +416,10 @@ def submit_return_quiz(conn, topic_id: str, answers: dict, session_id: str) -> d
     ).fetchone()
     verified_thresh = cfg["verified_quiz_threshold"] if cfg else 0.80
     partial_thresh = cfg["partial_quiz_threshold"] if cfg else 0.50
+
+    if is_crunch_mode():
+        verified_thresh = 0.70
+        partial_thresh = 0.45
 
     gap = conn.execute(
         "SELECT state, urgency_multiplier, attempt_count FROM gap_states WHERE user_id=? AND topic_id=? AND exam_id=?",

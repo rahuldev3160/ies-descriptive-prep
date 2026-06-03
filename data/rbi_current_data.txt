@@ -1,0 +1,500 @@
+======================================================================
+RBI DEPR DATA EXTRACT — from UPSC Economy PDFs
+======================================================================
+
+── REPO RATE ─────────────────────────────────────────
+  …declining by more than half (Chart I.22). Alongside a lower repo rate, these declining 25 25 Economic Survey 2025-26 yields, which serve as benchmarks for borrowing costs across the economy, will itself act as a fiscal stimulus. Credit…
+  …gh a cumulative reduction of 125 basis points in the policy repo rate since February 2025 (as inflationary pressures moderated), complemented by an injection of durable liquidity via cash reserve ratio cuts (₹ 2.5 lakh crore25), open market…
+  …t rate is not fixed and is decided by the market. o Reverse Repo Rate, the rate is fixed by RBI. Genesis: Began in 2019 by the RBI on behalf of the Government of India. Objective: To manage the maturity profile of public debt by replacing s…
+
+── SDF/REVERSE REPO ──────────────────────────────────
+  …without collateral. Features: o SDF replaced the Fixed Rate Reverse Repo as the Liquidity Adjustment Facility corridor’s floor. o SDF is an overnight liquidity absorption mechanism with the flexibility for the RBI to increase its duration.…
+  …interest rate is not fixed and is decided by the market. o Reverse Repo Rate, the rate is fixed by RBI. Genesis: Began in 2019 by the RBI on behalf of the Government of India. Objective: To manage the maturity profile of public debt by rep…
+  …RBI lends short-term funds to banks against collateral. • Reverse Repo Rate: Rate at which RBI absorbs liquidity from banks. The current mandate was effective until March 31, 2026. The Government renews the target every five years in con…
+
+── CRR ───────────────────────────────────────────────
+  …Short Palindromic Repeats CRP Community Resource Person CRR Cash Reserve Ratio CS Central Sector CSE Centre for Science and Environment CSS Centrally Sponsored Scheme CSS Code on Social Security 2020 CTE Consent to Establish…
+  …years in consultation with the RBI. • Cash Reserve Ratio (CRR): Portion of deposits banks must keep with RBI in cash. • Statutory Liquidity Ratio (SLR): Portion of deposits kept in liquid assets (gold, cash, securities). • Open Market…
+  …ted), complemented by an injection of durable liquidity via cash reserve ratio cuts (₹ 2.5 lakh crore25), open market operations (₹6.95 lakh crore26) and forex swap of around $25 billion. These measures have been effectively transmitted to…
+
+── SLR ───────────────────────────────────────────────
+  …), Bank's investments in non-statutory liquidity ratio (non-SLR) bonds, etc. Categories under Priority Sector: Agriculture; Micro, Small and Medium Enterprises; Export Credit; Education; Housing; Social Infrastructure; Renewable Energy; Oth…
+  …must keep with RBI in cash. • Statutory Liquidity Ratio (SLR): Portion of deposits kept in liquid assets (gold, cash, securities). • Open Market Operations (OMO): Buying/selling of government securities to control liquidity. • Margin…
+
+── MPC/INFLATION TARGET ──────────────────────────────
+  …n Organic Value Chain Development for North Eastern Region MPC Monetary Policy Committee MPCE Monthly Per Capita Expenditure MPI Multidimensional Poverty Index MRA Mutual Recognition Agreement MRO Maintenance, Repair, and Overhaul…
+  …India RBI’S MONETARY POLICY The Monetary Policy Committee (MPC) of the Reserve Bank of India (RBI) in February 2026 meeting has decided to keep the repo rate unchanged at 5.25%. Monetary Policy & MPC • Monetary policy refers to actions t…
+  …eting at 4% (±2%) (Suggested by Urjit Patel Committee). • MPC is a 6-member committee that decides the policy repo rate. It was constituted under the RBI Act, 1934 (amended in 2016).  Various instruments used by the RBI to control the m…
+
+── GDP GROWTH ────────────────────────────────────────
+  …riance Plot Behind the Nowcasting Model Actual vs Predicted GDP Growth Using Nowcasting Model Trends in CPI Inflation Components Declining Sovereign 10 yr. Yield Spread over U.S. Bonds Indicates Lower Risk Premium Sectoral Deployment of Cre…
+  …ons Reach All-Time Highs, Even as the Growth Tracks Nominal GDP Growth GST Collection Track Nominal GDP Growth Chart I.4 Chart I.5 Chart I.6 Chart I.7 Chart I.8 Chart I. 9 Chart I. 10 Chart I. 11 Chart I. 12 Chart I.13 Chart I. 14 Chart I.…
+  …esilience and Indispensability Nowcasting India’s Quarterly GDP Growth Strengthening India’s National Statistical System: From Data Generation to Data Readiness Reassessing India’s Medium-Term Potential Growth Nudging Compliance: How Data-D…
+
+── GVA ───────────────────────────────────────────────
+  …ork GT Gross Tonnage GTPA Global Trade Policy Activity GVA Gross Value Added GVC Global Value Chain GVO Gross Value Output GW Gigawatt GWH Gigawatt-Hours xxiv HAC heteroskedasticity and autocorrelation-consistent HAM Hybr…
+  …able Expansion in Allied Activities Growth in Manufacturing GVA Deflator has Remained Moderate Share of Manufacturing Remains Stable in Real Terms Sectoral Growth in H1:FY26 Higher than Pre-Pandemic Trends Sectoral Growth in H1:FY26 Higher…
+  …ce of the Agricultural Sector Performance Of Allied Sectors(GVA at Current Prices) Production of Foodgrains and Horticulture Annual Average Growth Rate Across Major Agricultural Economies Yield Difference Across Major Crops Yield (Rice) Yie…
+
+── CPI INFLATION ─────────────────────────────────────
+  …avirus Disease 2019 CPCB Central Pollution Control Board CPI Consumer Price Index CPR Common Property Resources CPSE Central Public Sector Enterprises CRAMS Contract Research And Manufacturing Services CRAR Capital-To-Risk-Weigh…
+  …al vs Predicted GDP Growth Using Nowcasting Model Trends in CPI Inflation Components Declining Sovereign 10 yr. Yield Spread over U.S. Bonds Indicates Lower Risk Premium Sectoral Deployment of Credit By SCBs Overall Flow of Financial Resour…
+  …n Major Economies Average Annual Headline Inflation Monthly CPI (Headline, Core and Food) Inflation Decrypting Core Inflation Base and Momentum Effect Components – CPI (Vegetables, Pulses & Spices) Reducing Volatility in Pulses’ Prices Comp…
+
+── WPI ───────────────────────────────────────────────
+  …ata System WIPO World Intellectual Property Organization WPI Wholesale Price Index WPR Worker Population Ratio WTO World Trade Organisation WUS Water User Society XIV-FC Fourteenth Finance Commission XV-FC Fifteenth Finance Co…
+  …ce Index (PPI) and suggest a roadmap for switching from the WPI to the PPI. About PPI • It measures the average change in the price a producer receives for his goods/services sold in the domestic market/ exports. Two types: o Output PPI: W…
+  …services enter the production process. • Need to replace WPI • • • WPI has inbuilt bias due to double/ multiple counting of same product. WPI doesn’t include exports and imports. WPI also excludes the service sector (about 55% of GDP).…
+
+── IIP ───────────────────────────────────────────────
+  …Industrial Land Bank IIM Indian Institute of Management IIP Index of Industrial Production IIPDF India Infrastructure Project Development Fund IIT Indian Institute of Technology ILO International Labour Organization IMC Indore…
+  …Index NIIF National Investment and Infrastructure Fund NIIP Net International Investment Position NIMHANS National Institute of Mental Health and Neuro-Sciences NIPUN National Initiative for Proficiency in Reading with Understandin…
+  …V.7 Chart V.8 Chart V.9 Chart V.10 Chart V.11 Chart V.12 NIIP - Major Net Creditors and Debtors to the World External Debt Position of Top 25 Debtor Countries External Debt Position of India Global Headline Inflation Global Food and Oil I…
+
+── FISCAL DEFICIT ────────────────────────────────────
+  …dget for fiscal year 2026 (FY26) in February. It achieved a fiscal deficit of 4.8% of GDP, against the budgeted 4.9%, and announced a target of 4.4% for FY26, fulfilling the promise made in 2021 to reduce the Union fiscal deficit by more th…
+  …ds in Deficit Indicators of the Centre Decomposition of the Fiscal Deficit of the Centre Gross GST Collections Reach All-Time Highs, Even as the Growth Tracks Nominal GDP Growth GST Collection Track Nominal GDP Growth Chart I.4 Chart I.5 C…
+  …the allocation of expenditures and the extent to which the fiscal deficit can be expanded and financed during a geopolitical crisis. Currently, for instance, European economies face the challenge of balancing demands for increased defence…
+
+── REVENUE DEFICIT ───────────────────────────────────
+  …t of capital expenditure by cash transfers, and the rise of revenue deficits in states have increased in recent times. The chapter emphasises that India’s fiscal credibility today rests on a deliberate shift toward capital formation and hum…
+  …to 4.0 per cent. Even as the states are overshooting their revenue deficit, the central government, through its Special Assistance to States for Capital Expenditure/Investment (SASCI), has successfully incentivised the States to maintain c…
+  …00 3 2 2.80 1.50 0.70 1 0.30 0 Fiscal Deficit 2022-23 Revenue Deficit 2023-24 2024-25 Primary Deficit 2025-26 RE Effective Revenue Deficit 2026-27 BE Page 15 Rupee Comes From Corporation Tax 18% Borrowings and Liabilities 24% N…
+
+── PRIMARY DEFICIT ───────────────────────────────────
+  …rt I.2 Chart I.3 Policy Rates in EMDEs Policy Rates in AEs Primary Deficits in Major Economies are Higher than PrePandemic Levels Sovereign 10 yr. Bond Yields of Major Economies Remain Elevated Global Policy Uncertainty Remains Elevated De…
+  …s in major economies stay expansionary. While the projected primary deficits for 2025 are 1 Aldasoro, I., Doerr, S., & Rees, D. (2026, January 7). Financing the AI boom: From cash flows to debt (BIS Bulletin No. 120). Bank for Internationa…
+  …yields (%) 4 UK Primary balance as % of GDP Chart I.3: Primary deficits in major economies are higher than pre-pandemic levels Source: Bloomberg 1.5. Global economic uncertainty remains elevated compared to historical trends (Chart I…
+
+── CAPITAL EXPENDITURE ───────────────────────────────
+  …sual, as concerns over fiscal populism, the crowding out of capital expenditure by cash transfers, and the rise of revenue deficits in states have increased in recent times. The chapter emphasises that India’s fiscal credibility today rests…
+  …Years 48 Table II.4 Revenue Expenditure 50 Table II.5 Capital Expenditure by the Centre 55 Table II.6 Details of Transfers from Centre to States 57 Table II.7 Disbursement of FC Grants in FY26 57 Table II.8 Total Amount Relea…
+  …perational High-Speed Corridors Average Annual Construction Capital Expenditure on Roads & Highways Average Commissioning of Railway Network per year Capital Expenditure on Railways Air Cargo Handling Passenger Traffic at All Airports Port…
+
+── DISINVESTMENT ─────────────────────────────────────
+  …Recoveries of Loans 24,617 29,000 30,190 38,397 27.2% Disinvestments 17,202 47,000 33,837 80,000 136.4% Total Receipts (excluding borrowings) 30,78,436 34,96,409 34,06,350 36,51,547 7.2% Revenue Deficit 5,64,296 5,23,846…
+  …: Budget at a Glance, Union Budget Documents 2026-27; PRS. Disinvestment is the government selling its stakes in Public Sector Undertakings (PSUs). In 2025-26, the government is estimated to meet 71.9% of its disinvestment target. The disi…
+  …-26 (Rs 47,000 crore). This marks the first increase in the disinvestment target after five consecutive years of downward revisions and shortfalls in achieving the targets. February 1, 2026 2,50,000 Disinvestments (in Rs crore) 2,00,000…
+
+── FRBM ──────────────────────────────────────────────
+  …FPOs Farmer Producer Organisation FPSs Fair Price Shops FRBM Fiscal Responsibility and Budget Management FRF Fiscal response function FRI Financial Fraud Risk Indicator FSI Floor space index xxiii FSR Financial Stability Repor…
+  …s and Debt The Fiscal Responsibility and Budget Management (FRBM) Act, 2003 requires the central government to progressively reduce its outstanding debt, revenue deficit and fiscal deficit, and to give three-year rolling targets for these.…
+  …_______13 2.1. Fiscal Responsibility and Budget Management (FRBM) Act_________________ 13 2.2. Indian Tax Structure _________________ 14 2.3. Income Tax Act 2025 _________________ 15 2.4. Other Development Related to Direct Tax 15 4.2. For…
+
+── CURRENT ACCOUNT DEFICIT ───────────────────────────
+  …ountries that are structurally savings-deficient (i.e., run current account deficits) and face enduring political incentives for fiscally accommodative policies. As a result, capital remains relatively expensive, and upstream producers find…
+  …ce CACP Commission for Agriculture Costs and Prices CAD Current Account Deficit CAG Comptroller and Auditor General of India CAGR Compound Annual Growth Rate CAM Credit Assessment Model CAPI Computer-Assisted Personal Interviewi…
+  …tance as a key source of external funding. As a result, the current account deficit remains moderate at 0.8 per cent of GDP in H1 FY26. Chart I.25: Current account balance remains stable 90 Services trade balance CAB as % of GDP (RHS) USD…
+
+── FOREX RESERVES ────────────────────────────────────
+  …a’s external sector is placed comfortably in the short run. Forex reserves cover over 11 months of imports as of 16 January 2026 and approximately 94.0 per cent of the external debt outstanding as of the end of September 2025, offering a co…
+  …Surplus Transfer to Centre ______________ 4 1.1.3. India’s Forex Reserves __________________ 5 1.1.4. Reserve Bank - Integrated Ombudsman Scheme, 2021 _____________________________ 5 1.1.5. Other Key Terms/Initiatives Related to RBI _ 6 1…
+  …ramework to be reviewed every 5 years. > • 1.1.3. INDIA’S FOREX RESERVES Why in the news? According to the Reserve Bank of India's (RBI) latest foreign exchange reserves data, gold reserves have reached to $102.3 billion. More on the news…
+
+── FDI ───────────────────────────────────────────────
+  …inants of currency strength or weakness, and the returns to FDI in India, reiterating the importance of pursuing Global Value Chains to establish their ecosystem in India. Currency strength, in general, or currency stability during crises,…
+  …oration of India FCSS Foreign Currency Settlement System FDI Foreign Direct Investment FER Foreign Exchange Reserves FHTC Functional Household Tap Connection FI Financial Inclusion FIDF Fisheries Infrastructure Development Fund…
+  …D Organisation for Economic Co-operation and Development OFDI Outward Foreign Direct Investment OFS Offer for Sale OMO/OMOs Open Market Operation(s) ONORC One Nation One Ration Card OPEC Organization of the Petroleum Exporting Co…
+
+── EXCHANGE RATE ─────────────────────────────────────
+  …victim of geopolitics and a strategic power gap The Indian rupee underperformed in 2025. India runs a trade deficit in goods. Its net trade surplus in services and remittances is not enough to offset it. India depends on foreign capital fl…
+  …aintain a healthy balance of payments. When they run drier, rupee stability becomes a casualty. vii Growth is good; the outlook remains favourable; inflation is contained; rainfall and agricultural prospects are supportive; external liabi…
+  …mism and purposeful governance reinforce this backdrop. The rupee’s valuation does not accurately reflect India’s stellar economic fundamentals. In other words, the rupee, therefore, is punching below its weight. Of course, it does not hurt…
+
+── TRADE ─────────────────────────────────────────────
+  …ditional penal tariff of 25% on most of India’s merchandise exports to the United States on top of the reciprocal tariff of 25% announced in April, it surprised many since India was expected to be one of the early winners in the new tariff…
+  …e, India needs to generate sufficient investor interest and export earnings in foreign currency to cover its rising import bill, as, regardless of the success of indigenisation efforts, rising imports will invariably accompany rising income…
+  …conomies that generate sustained external surpluses—through exports, productivity and financial depth—can finance investment cheaply and stably at home. India’s long-run challenge, therefore, is not merely to manage liquidity or credit cycl…
+
+── NPA ───────────────────────────────────────────────
+  …tem GJ/ton Gigajoules per ton GLC Ground Level Credit GNPA Gross Non-Performing Asset GP Gram Panchayat GPDP Gram Panchayat Development Plans GPI Gender Parity Index GPT Generative Pre-trained Transformer GPU Graphics Proces…
+  …Mission on Natural Farming NMR Neonatal Mortality Rate NNPA Net Non-Performing Asset NOCs No Objection Certificates NOSUIS National One Soil Unified Information System NPA Non-Performing Asset NPCI National Payments Corporati…
+  …e Money Multiplier Policy Corridor and Call Rate Trends in GNPAs of SCBs and CRAR Improvement in Performance Indicators of SCBs Outstanding Credit of SCBs Sectoral Deployment of Non-Food Credit of SCBs Overall Flow of Resources to the Comme…
+
+── CREDIT GROWTH ─────────────────────────────────────
+  …w; banks are healthy; liquidity conditions are comfortable; credit growth is respectable; corporate balance sheets are strong; and the overall flow of funds to the commercial sector is robust. Policy dynamism and purposeful governance reinf…
+  …BI Notes: NFC stands for Non Food credit FY21 0 0 FY20 Credit growth (%) 35 NFC Chart I.24: Overall flow of financial resources to commercial sector in India from non-bank sources April-Nov Source: RBI 25 Reserve Bank of India. (…
+  …re of deposits is being used for lending, reflecting higher credit growth but lower liquidity buffer. • A lower CD ratio indicates conservative lending and Co-lending Norms higher liquidity, but may signal inefficient use of deposits.…
+
+── CRAR ──────────────────────────────────────────────
+  …rises CRAMS Contract Research And Manufacturing Services CRAR Capital-To-Risk-Weighted-Asset Ratio CRIS Centre for Railway Information Systems CRISPR Clustered Regularly Interspaced Short Palindromic Repeats CRP Community Resource…
+  …r Policy Corridor and Call Rate Trends in GNPAs of SCBs and CRAR Improvement in Performance Indicators of SCBs Outstanding Credit of SCBs Sectoral Deployment of Non-Food Credit of SCBs Overall Flow of Resources to the Commercial Sector in I…
+  …). o Must maintain a Capital to Risk-Weighted Assets Ratio (CRAR) of 9%, as per RBI norms. © Vision IAS AHMEDABAD | BENGALURU | BHOPAL | CHANDIGARH | DELHI | GUWAHATI | HYDERABAD | JAIPUR | JODHPUR | LUCKNOW | PRAYAGRAJ | PUNE | RANCHI 8…
+
+── JAN DHAN ──────────────────────────────────────────
+  …i Janjati Adivasi Nyaya Maha Abhiyan PMJDY Pradhan Mantri Jan Dhan Yojana PMJJBY Pradhan Mantri Jeevan Jyoti Bima Yojana PMJVM Pradhan Mantri Janjatiya Vikas Mission PM-KISAN Pradhan Mantri Kisan Samman Nidhi PMKMY Pradhan Mantri…
+  …verdraft amount of ₹ 10,000 sanctioned under Pradhan Mantri Jan Dhan Yojana (PMJDY) has been also classified as MUDRA loans under PMMY. Key features of PMMY • • • Collateral free loan: No collateral security or any guarantor is required…
+  …Rural: `816/month • Nearly 56 crore beneficiaries under PM Jan Dhan Yojana.  Maternal Health • Financial Inclusion Index rose to 67 in 2025, a 24.3% adequate credit for vulnerable groups. Estimated poverty: 29.5% population India con…
+
+── MUDRA ─────────────────────────────────────────────
+  …MSW Municipal Solid Waste MTPA Million Tonnes Per Annum MUDRA Micro Units Development & Refinance Agency. MW Megawatt MWH Megawatt-Hours n.e.c. Not Elsewhere Classified NABARD National Bank for Agriculture and Rural Development…
+  …Pradhan Mantri Matru Vandana Yojana PMMY Pradhan Mantri Mudra Yojana PMSBY Pradhan Mantri Suraksha Bima Yojana PoP Professor of Practice PPE Personal Protective Equipment PPI Private Participation in Infrastructure PPIRP Pre-P…
+  …mpetition Commission of India ______ 58 8.2. Pradhan Mantri Mudra Yojana (PMMY) _ 58 8.3. Global Innovation Index (GII) 2025______ 59 8.4. Nobel Prize in Economic Sciences 2025 __ 60 9.2.1. National Road Safety Board ____________ 67 9.3.…
+
+── UPI ───────────────────────────────────────────────
+  …ions World Tourism Organisation UPF Ultra-processed Food UPI Unified Payments Interface UPS Unified Pension Scheme UR Unemployment Rate USA/US United States of America/United States USD United States Dollar UTs Union Territori…
+  …domestic demand (YoY growth, per cent) Sector Indicators UPI Transaction Urban FMCG Vol. Sales (Urban) Demand Passenger Vehicle Sales Domestic Air Passenger* FMCG Vol. Sales (Rural) Rural Two-wheeler Vehicle Sales Demand Three-wheeler Ve…
+  …ry Board ____________ 22 3.6.2. Unified Payments Interface (UPI) ________ 23 3.7. Other Key Developments _____________ 23 4. EXTERNAL SECTOR ___________________25 6.4. Mission for Aatmanirbharta in Pulses ___ 44 6.5. National Turmeric Bo…
+
+── EMPLOYMENT/UNEMPLOYMENT ───────────────────────────
+  …nt Assessment xxx PKVY Paramparagat Krishi Vikas Yojana PLFS Periodic Labour Force Survey PLI Production Linked Incentive PLISFPI Production Linked Incentive Scheme for Food Processing PM AJAY Pradhan Mantri Anusuchit Jaati Abhyu…
+  …le the sampling design of the Periodic Labour Force Survey (PLFS) has been revised to generate monthly and quarterly estimates. Broader coverage, through larger sample sizes and improved sample designs, has been introduced to enable distric…
+  …been introduced to enable district-level estimates for both PLFS and ASUSE by 2026. The Forward-looking CAPEX Survey (first conducted in October 2024) provides valuable policy insights into expected investments by enterprises over two conse…
+
+
+======================================================================
+BUDGET 2026 — FIRST 15 PAGES (for manual scan)
+======================================================================
+
+── Budget_Highlights_2026.pdf ──
+ºÉiªÉàÉä´É VÉªÉiÉä
+
+Key Features
+of
+Budget
+2026-2027
+February, 2026
+
+India’s economic trajectory
+Viksit Bharat, balancing ambition with inclusion
+Action Over
+Ambivalence
+
+AIM
+
+Reform Over Rhetoric
+
+People Over Populism
+
+STABILITY
+
+FISCAL
+DISCIPLINE
+
+SUSTAINED
+GROWTH
+
+MODERATE
+INFLATION
+
+• Transform aspiration
+into achievement
+• Potential into
+performance
+
+Energy security
+
+Domestic
+manufacturing
+capacity
+
+Citizens benefit
+from government
+actins
+
+Reduced critical
+import dependencies
+
+High growth rate
+of around 7%
+
+Strong thrust on
+public
+investment
+
+Far reaching
+structural
+reforms
+
+Fiscal prudence
+
+Monetary
+stability
+Page 1
+
+Yuva Shakti-driven Budget
+Government’s ‘Sankalp’
+To focus on poor, underprivileged and
+disadvantaged
+First
+Kartavya
+
+Second
+Kartavya
+
+Third
+Kartavya
+
+Accelerate and sustain
+economic growth
+
+Fulfil aspirations of our
+people
+
+Vision of Sabka Sath,
+Sabka Vikas
+
+•
+
+Enhancing productivity and
+competitiveness
+
+•
+
+Building resilience to volatile
+global dynamics
+
+continuous,
+adaptive,
+and
+forwardlooking
+
+•
+
+Build people’s capacity
+
+•
+
+Making them strong partners
+in India's path to prosperity
+
+ROBUST &
+RESILIENT
+FINANCIAL
+SECTOR
+
+SUSTAINING THE
+MOMENTUM OF
+STRUCTURAL
+REFORMS
+
+mobilising
+savings,
+allocating capital
+efficiently and
+managing risks
+
+•
+
+Ensure that every family,
+community, region and sector
+has access to resources,
+amenities and opportunities for
+meaningful participation
+
+force multipliers for
+better governance
+
+CUTTING-EDGE
+TECHNOLOGIES,
+INCLUDING AI
+APPLICATIONS
+
+India’s Reform Express
+• Government has undertaken comprehensive economic
+reforms towards creating employment, boosting
+productivity and accelerating growth.
+• Over 350 reforms have been rolled out, including GST
+simplification, notification of Labour Codes, and
+rationalisation of mandatory Quality Control Orders.
+• High Level Committees have been formed.
+
+• Central Government is working with the State Governments
+on deregulation and reducing compliance requirements.
+Page 2
+
+Pillars of Growth and Development
+
+Sustaining Economic
+Growth
+
+Strengthening the
+Foundations of Growth
+People-Centric
+Development
+
+Trust-based Governance
+
+Ease of Doing Business and
+Ease of Living
+
+Fiscal matters
+
+Page 3
+
+1. Sustaining Economic Growth
+1.1 Manufacturing - Strategic and
+Frontier Sectors
+Biopharma SHAKTI
+
+India Semiconductor
+Mission (ISM) 2.0
+Hi-Tech Tool Rooms in
+CPSEs
+Scheme for Rare
+Earth Permanent
+Magnets, research,
+mining, processing
+and manufacturing
+
+3 Dedicated
+Chemical Parks,
+enhancing
+domestic
+production
+
+Dedicated initiative
+for manufacturing
+of affordable Sports
+Goods
+
+Scheme to revive 200
+Scheme to revive 200
+legacy industrial
+legacy industrial
+clusters
+clusters
+
+Scheme for
+Container
+Manufacturing
+
+Integrated
+Programme for
+Textiles
+
+Electronics Components
+Manufacturing Scheme
+
+Strengthening
+Strengthening domestic
+domestic
+manufacturing
+manufacturing of
+of highhighvalue
+value and
+and technologicallytechnologicallyadvanced
+advanced Construction
+Construction and
+and
+Infrastructure
+Infrastructure Equipment
+Equipment
+
+Page 4
+
+Tax Reforms to boost Manufacturing Sector
+Exemption from income tax for five years to nonresidents providing capital goods, equipment or
+tooling, to any toll manufacturer in a bonded zone.
+
+Provision of safe harbour to non-residents for
+component warehousing in a bonded warehouse.
+
+Deferred duty payment window to trusted
+manufacturers.
+Increase the limit for duty-free imports of specified
+inputs used for processing seafood products for
+export, from the current 1 per cent to 3 per cent of
+the FOB value of the previous year’s export
+turnover.
+
+Duty-free imports of specified inputs extended to
+export of shoe uppers in addition to leather or
+synthetic footwear.
+Extension of time for the export of final product
+from the existing 6 months to 1 year, for exporters
+of leather or textile garments, leather and synthetic
+footwear.
+Exemption from basic customs duty on specified
+parts used in the manufacture of microwave ovens.
+
+Exemptio
+
+── Union_Budget_Analysis-2026-27.pdf ──
+Union Budget 2026-27 Analysis
+Budget Highlights
+▪
+
+Expenditure: The government is estimated to spend Rs 53,47,315 crore in 2026-27, 7.7% higher than the revised
+estimate of 2025-26. Interest payments account for 26% of the total expenditure, and 40% of revenue receipts.
+
+▪
+
+Receipts: The receipts (other than borrowings) in 2026-27 are estimated to be Rs 36,51,547 crore, about 7.2% higher
+than the revised estimate of 2025-26. Tax revenue which forms major part of the receipts is also expected to increase by
+8% over the revised estimate for 2025-26.
+
+▪
+
+GDP: The government has estimated a nominal GDP growth rate of 10% in 2026-27 (i.e., real growth plus inflation).
+
+▪
+
+Deficits: Revenue deficit in 2026-27 is targeted at 1.5% of GDP. This is similar to the revised estimate of 1.5% in 202526. Fiscal deficit in 2026-27 is targeted at 4.3% of GDP, lower than the revised estimate of 4.4% of GDP in 2025-26.
+
+▪
+
+Debt: The central government aims to reduce its outstanding liabilities to around 50% of GDP by March 2031. In 202627, outstanding liabilities are estimated to be 55.6% of the GDP.
+
+Main Tax Proposals in the Finance Bill
+▪
+
+No change in income tax slabs: Tax structure for assessment year 2026-27 remains unchanged from the previous year.
+
+▪
+
+Tax holidays: A tax holiday until 2047 has been granted to foreign companies providing global cloud services using
+Indian data centres, provided services to Indian customers are routed through an Indian reseller. Further, the tax holiday
+for units in International Financial Services Centre (IFSC) and Offshore Banking Units has been increased from 10 to 20
+years. Income of IFSC units will be taxed at 15% after this period.
+
+▪
+
+Tax on share buybacks: All share buybacks are proposed to be taxed as capital gains, with an additional buyback tax
+for promoters. This makes the effective rate 22% for corporate and 30% for non-corporate promoters.
+
+▪
+
+Increase in Securities Transaction Tax (STT): STT rates have been increased as follows: from 0.1% to 0.15% on
+options, from 0.125% to 0.15% on options exercised, and from 0.02% to 0.05% on futures.
+
+▪
+
+Deductions against income from mutual funds: No deduction shall be allowed for interest expenditure incurred in
+earning dividend income or income from mutual fund units. Such deduction was allowed previously up to 20% of gross
+dividend or income from mutual fund units.
+
+▪
+
+Minimum Alternate Tax (MAT): No credit accumulation shall be available for MAT from April 1, 2026. MAT rate is
+being reduced from 15% to 14%. MAT credits can be set off up to 25% of the tax liability only in the new tax regime.
+
+▪
+
+Foreign Assets of Small Taxpayers – Disclosure Scheme, 2026: A timebound scheme for disclosure of foreign assets
+by certain small taxpayers such as returning non-residents has been introduced. It provides graded relief, including
+immunity from penalty and prosecution, subject to payment of tax, additional levy, or a fixed fee, depending on the
+category of non-disclosure.
+
+▪
+
+Relaxations for non-residents: These include: (i) a five-year income tax exemption for supplying capital goods to
+electronics manufacturers, (ii) exemption of global income for expert non-residents working in India for up to five years
+under notified schemes, and (iii) MAT exemption has been extended to more categories of non-residents.
+
+▪
+
+Rationalisation of penalty and prosecution: Several offences have been decriminalised, or entail a maximum
+imprisonment of two years.
+
+▪
+
+Tax collected at source (TCS): TCS on remittance of more than Rs 10 lakh for the purposes of education or medical
+treatment has been reduced from 5% to 2%. TCS on sale of overseas tour package, including expenses for travel or hotel
+stay, has been reduced from 5% and 20% (depending on the amount) to 2%.
+
+Policy Highlights
+▪
+
+Finance and Economy: A ‘High Level Committee on Banking for Viksit Bharat’ will be set up to review the
+sector. The Foreign Exchange Management (Non-debt Instruments) Rules will be reviewed to sim
