@@ -7,7 +7,7 @@ sys.path.insert(0, str(Path(__file__).parent.parent))
 import pandas as pd
 import streamlit as st
 
-from db import EXAM_ID, get_user_id, get_attempts, get_attempt_summary, get_conn, get_topics
+from db import EXAM_ID, get_user_id, get_attempts, get_attempt_summary, get_conn, get_topics, track_page_time, get_time_breakdown
 from auth import require_user
 from styles import apply_theme, chip, score_color
 
@@ -16,6 +16,7 @@ apply_theme()
 
 conn = get_conn()
 user_id = require_user(conn)
+track_page_time(conn, "My Progress")
 
 st.markdown("## 📈 My Progress")
 st.markdown('<div style="color:#9AA0A6;font-size:0.88rem;margin-bottom:1rem">Track your quiz attempts and score improvements over time.</div>', unsafe_allow_html=True)
@@ -36,6 +37,56 @@ for col, (label, val, color) in zip([m1, m2, m3, m4], metrics):
             <div style="font-size:1.6rem;font-weight:700;color:{color}">{val}</div>
             <div style="font-size:0.7rem;color:#9AA0A6;text-transform:uppercase;letter-spacing:.06em">{label}</div>
         </div>""", unsafe_allow_html=True)
+
+st.markdown("<br>", unsafe_allow_html=True)
+
+# ── Time Tracker ───────────────────────────────────────────────────────────────
+_t1, _t7 = st.columns(2)
+with _t1:
+    st.markdown('<div class="section-header">Today\'s Time</div>', unsafe_allow_html=True)
+    _today_time = get_time_breakdown(conn, user_id, days=1)
+    if _today_time:
+        _max_s = max(r["total_seconds"] for r in _today_time) or 1
+        for r in _today_time:
+            _mins = r["total_seconds"] // 60
+            _secs = r["total_seconds"] % 60
+            _pct  = r["total_seconds"] / _max_s
+            _label = f"{_mins}m {_secs:02d}s" if _mins else f"{_secs}s"
+            st.markdown(
+                f'<div style="display:flex;align-items:center;gap:10px;margin-bottom:6px">'
+                f'<div style="color:#E8EAED;font-size:0.85rem;min-width:110px">{r["page_name"]}</div>'
+                f'<div style="flex:1;background:#2A2F3A;border-radius:4px;height:8px">'
+                f'<div style="background:#8AB4F8;height:8px;border-radius:4px;width:{int(_pct*100)}%"></div>'
+                f'</div>'
+                f'<div style="color:#9AA0A6;font-size:0.78rem;min-width:48px;text-align:right">{_label}</div>'
+                f'</div>',
+                unsafe_allow_html=True,
+            )
+    else:
+        st.markdown('<div style="color:#9AA0A6;font-size:0.85rem">No time logged today yet.</div>',
+                    unsafe_allow_html=True)
+
+with _t7:
+    st.markdown('<div class="section-header">Last 7 Days</div>', unsafe_allow_html=True)
+    _week_time = get_time_breakdown(conn, user_id, days=7)
+    if _week_time:
+        _max_s7 = max(r["total_seconds"] for r in _week_time) or 1
+        for r in _week_time:
+            _total_m = r["total_seconds"] // 60
+            _pct7 = r["total_seconds"] / _max_s7
+            st.markdown(
+                f'<div style="display:flex;align-items:center;gap:10px;margin-bottom:6px">'
+                f'<div style="color:#E8EAED;font-size:0.85rem;min-width:110px">{r["page_name"]}</div>'
+                f'<div style="flex:1;background:#2A2F3A;border-radius:4px;height:8px">'
+                f'<div style="background:#81C995;height:8px;border-radius:4px;width:{int(_pct7*100)}%"></div>'
+                f'</div>'
+                f'<div style="color:#9AA0A6;font-size:0.78rem;min-width:48px;text-align:right">{_total_m}m</div>'
+                f'</div>',
+                unsafe_allow_html=True,
+            )
+    else:
+        st.markdown('<div style="color:#9AA0A6;font-size:0.85rem">No time logged this week yet.</div>',
+                    unsafe_allow_html=True)
 
 st.markdown("<br>", unsafe_allow_html=True)
 

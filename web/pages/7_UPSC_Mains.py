@@ -9,6 +9,7 @@ sys.path.insert(0, str(Path(__file__).parent.parent))
 
 import streamlit as st
 
+from db import get_conn as _get_ies_conn, track_page_time as _track_time
 from styles import apply_theme, chip
 
 st.set_page_config(page_title="UPSC Eco Optional · Model Answers", layout="wide", page_icon="🎓")
@@ -180,6 +181,10 @@ if not _DB_PATH.exists():
         "Please reload the home page first or contact support."
     )
     st.stop()
+
+_tc = _get_ies_conn()
+_track_time(_tc, "UPSC Mains")
+_tc.close()
 
 conn = sqlite3.connect(_DB_PATH, check_same_thread=False)
 conn.row_factory = sqlite3.Row

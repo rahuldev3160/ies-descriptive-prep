@@ -10,7 +10,7 @@ from pathlib import Path
 sys.path.insert(0, str(Path(__file__).parent.parent))
 
 import streamlit as st
-from db import get_conn as _get_ies_conn, get_user_id, log_event
+from db import get_conn as _get_ies_conn, get_user_id, log_event, track_page_time
 from auth import require_user
 from styles import apply_theme
 
@@ -20,6 +20,7 @@ apply_theme()
 # ── Auth (validates session against ies.db, then releases that connection) ─────
 _ies_conn = _get_ies_conn()
 user_id = require_user(_ies_conn)
+track_page_time(_ies_conn, "RBI Prep")
 _ies_conn.close()
 
 RBI_DATE = "2026-06-14"

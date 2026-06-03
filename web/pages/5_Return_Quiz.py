@@ -8,7 +8,7 @@ import streamlit as st
 
 from db import (
     get_conn, get_user_id, init_user, get_topics,
-    get_mcq_questions, submit_return_quiz, get_true_readiness, log_event, EXAM_ID,
+    get_mcq_questions, submit_return_quiz, get_true_readiness, log_event, track_page_time, EXAM_ID,
 )
 from auth import require_user
 from styles import apply_theme, badge, chip, progress_bar
@@ -40,6 +40,7 @@ for key, default in [
 # ── DB ────────────────────────────────────────────────────────────────────────
 conn = get_conn()
 user_id = require_user(conn)
+track_page_time(conn, "Return Quiz")
 init_user(conn, user_id)
 
 # ── SIDEBAR ───────────────────────────────────────────────────────────────────

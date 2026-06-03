@@ -10,7 +10,7 @@ sys.path.insert(0, str(Path(__file__).parent))
 
 import streamlit as st
 
-from db import EXAM_DATE, EXAM_ID, get_conn, get_user_id, init_user, get_topics, get_true_readiness, get_paper_coverage, set_topic_state, is_crunch_mode
+from db import EXAM_DATE, EXAM_ID, get_conn, get_user_id, init_user, get_topics, get_true_readiness, get_paper_coverage, set_topic_state, is_crunch_mode, get_study_path, track_page_time
 from auth import require_user
 from styles import apply_theme, badge, progress_bar
 
@@ -52,6 +52,17 @@ _boot_db("upsc")
 conn = get_conn()
 user_id = require_user(conn)
 init_user(conn, user_id)
+
+# Redirect first-time users to onboarding
+_onb = conn.execute(
+    "SELECT onboarding_completed FROM users WHERE user_id=?", (user_id,)
+).fetchone()
+if _onb and not _onb["onboarding_completed"]:
+    conn.close()
+    st.switch_page("pages/8_My_Setup.py")
+    st.stop()
+
+track_page_time(conn, "Dashboard")
 
 
 def days_left() -> int:
@@ -118,6 +129,28 @@ if is_crunch_mode():
     <span style="color:#F28B82;font-weight:700;font-size:1rem;">⚡ CRUNCH MODE</span>
     <span style="color:#9AA0A6;font-size:0.85rem;margin-left:8px;">≤7 days left — MCQ pass threshold lowered to 70%. Focus on top gaps only.</span>
     </div>""", unsafe_allow_html=True)
+
+# ── Your Study Path banner ─────────────────────────────────────────────────────
+_path = get_study_path(conn, user_id)
+if _path:
+    _phase = _path.get("current_phase", "")
+    _today = _path.get("today_action", "")
+    if _phase or _today:
+        _pc, _lc = st.columns([5, 1])
+        with _pc:
+            st.markdown(
+                f'<div style="background:#1C2B3A;border:1px solid #8AB4F833;border-radius:8px;'
+                f'padding:11px 16px">'
+                f'<span style="color:#8AB4F8;font-weight:700;font-size:0.8rem;'
+                f'text-transform:uppercase;letter-spacing:.07em">🎯 {_phase}</span>'
+                f'<span style="color:#9AA0A6;font-size:0.82rem;margin-left:10px">Today: </span>'
+                f'<span style="color:#E8EAED;font-size:0.88rem">{_today}</span>'
+                f'</div>',
+                unsafe_allow_html=True,
+            )
+        with _lc:
+            st.page_link("pages/8_My_Setup.py", label="Update plan", use_container_width=True)
+        st.markdown("<br>", unsafe_allow_html=True)
 
 # ── Today's Focus ──────────────────────────────────────────────────────────────
 all_topics = get_topics(conn)

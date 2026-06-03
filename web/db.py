@@ -103,6 +103,75 @@ def log_event(conn, event_type: str, entity_type: str | None = None,
         pass  # Never crash the app over logging
 
 
+def track_page_time(conn, page_name: str) -> None:
+    """Call after auth on each page. Logs exit time of previous page. Safe without auth."""
+    try:
+        import streamlit as st
+        from datetime import datetime, timezone
+        if not st.session_state.get("user_id"):
+            return
+        now = datetime.now(timezone.utc)
+        prev = st.session_state.get("_active_page")
+        if prev and prev != page_name:
+            entry = st.session_state.get("_page_entry_time")
+            if entry:
+                duration_s = int((now - entry).total_seconds())
+                if 5 < duration_s < 14400:
+                    log_event(conn, "page_time", "page", prev,
+                             payload={"duration_s": duration_s})
+        if st.session_state.get("_active_page") != page_name:
+            st.session_state._active_page = page_name
+            st.session_state._page_entry_time = now
+    except Exception:
+        pass
+
+
+def get_study_path(conn, user_id: str) -> dict | None:
+    """Return the user's AI-generated study path, or None if onboarding not done."""
+    try:
+        row = conn.execute(
+            "SELECT study_path, onboarding_completed FROM users WHERE user_id=?",
+            (user_id,)
+        ).fetchone()
+        if row and row["study_path"]:
+            return json.loads(row["study_path"])
+        return None
+    except Exception:
+        return None
+
+
+def save_onboarding(conn, user_id: str, exam_focus: list, exam_date: str,
+                    prep_level: str, study_mode: str, study_path: dict) -> None:
+    """Persist onboarding answers and AI-generated study path; mark onboarding complete."""
+    conn.execute(
+        """UPDATE users SET
+           exam_focus=?, exam_date=?, prep_level=?, study_mode=?,
+           study_path=?, onboarding_completed=1
+           WHERE user_id=?""",
+        (json.dumps(exam_focus), exam_date, prep_level, study_mode,
+         json.dumps(study_path), user_id)
+    )
+    conn.commit()
+
+
+def get_time_breakdown(conn, user_id: str, days: int = 1) -> list[dict]:
+    """Time-per-page for the last N days, ordered by total seconds descending."""
+    try:
+        rows = conn.execute(
+            """SELECT entity_id AS page_name,
+                      SUM(CAST(json_extract(payload, '$.duration_s') AS INTEGER)) AS total_seconds
+               FROM user_events
+               WHERE user_id=? AND event_type='page_time'
+                 AND date(created_at) >= date('now', ?)
+               GROUP BY entity_id
+               ORDER BY total_seconds DESC""",
+            (user_id, f"-{days} days")
+        ).fetchall()
+        return [dict(r) for r in rows]
+    except Exception:
+        return []
+
+
 def load_api_key() -> str:
     key = os.environ.get("ANTHROPIC_API_KEY")
     if key:

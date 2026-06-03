@@ -12,7 +12,7 @@ sys.path.insert(0, str(Path(__file__).parent.parent))
 import anthropic
 import streamlit as st
 
-from db import EXAM_ID, get_answer, get_conn, get_questions, get_topics, get_user_id, jl, load_api_key, set_topic_state
+from db import EXAM_ID, get_answer, get_conn, get_questions, get_topics, get_user_id, jl, load_api_key, set_topic_state, track_page_time
 from auth import require_user
 from styles import apply_theme, badge, chip, score_card_html
 
@@ -21,6 +21,7 @@ apply_theme()
 
 conn = get_conn()
 user_id = require_user(conn)
+track_page_time(conn, "Quiz")
 
 import os
 if not os.environ.get("ANTHROPIC_API_KEY"):

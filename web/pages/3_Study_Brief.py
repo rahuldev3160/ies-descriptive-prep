@@ -4,7 +4,7 @@ from pathlib import Path
 sys.path.insert(0, str(Path(__file__).parent.parent))
 
 import streamlit as st
-from db import get_conn, get_topics, get_study_brief, log_event, EXAM_ID
+from db import get_conn, get_topics, get_study_brief, log_event, track_page_time, EXAM_ID
 from auth import require_user
 from styles import apply_theme, chip
 
@@ -13,6 +13,7 @@ apply_theme()
 
 conn = get_conn()
 user_id = require_user(conn)
+track_page_time(conn, "Study Brief")
 
 st.markdown("## 🗂️ Study Brief")
 st.markdown(

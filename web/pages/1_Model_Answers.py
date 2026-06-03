@@ -8,7 +8,7 @@ sys.path.insert(0, str(Path(__file__).parent.parent))
 import matplotlib.pyplot as plt
 import streamlit as st
 
-from db import get_answer, get_conn, get_questions, get_topics, jl
+from db import get_answer, get_conn, get_questions, get_topics, jl, track_page_time
 from diagrams import COVERED_TYPES, get_standard_diagram
 from styles import apply_theme, chip
 from table_renderer import render_table
@@ -253,6 +253,7 @@ def _render_data_tab(ans: dict) -> None:
 # ── Page layout ────────────────────────────────────────────────────────────────
 
 conn = get_conn()
+track_page_time(conn, "Model Answers")
 
 with st.sidebar:
     st.markdown("## 📖 Model Answers")

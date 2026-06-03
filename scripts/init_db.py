@@ -338,15 +338,22 @@ def create_tables(conn: sqlite3.Connection) -> None:
     -- USERS (Google OAuth)
     -- ─────────────────────────────────────────────
     CREATE TABLE IF NOT EXISTS users (
-        user_id         TEXT PRIMARY KEY,           -- internal UUID
-        google_sub      TEXT UNIQUE NOT NULL,       -- Google's subject ID
-        email           TEXT NOT NULL,
-        display_name    TEXT,
-        avatar_url      TEXT,
-        daily_api_calls INTEGER DEFAULT 0,
-        quota_resets_at TEXT,                       -- ISO-8601; NULL = never reset
-        created_at      TEXT DEFAULT (datetime('now')),
-        last_seen_at    TEXT DEFAULT (datetime('now'))
+        user_id              TEXT PRIMARY KEY,
+        google_sub           TEXT UNIQUE NOT NULL,
+        email                TEXT NOT NULL,
+        display_name         TEXT,
+        avatar_url           TEXT,
+        daily_api_calls      INTEGER DEFAULT 0,
+        quota_resets_at      TEXT,
+        exam_focus           TEXT,                  -- JSON array: ['ies','rbi','upsc']
+        exam_date            TEXT,                  -- ISO date of primary exam
+        prep_level           TEXT,                  -- 'fresh'|'foundation'|'revision'
+        study_mode           TEXT,                  -- 'answers_only'|'full_prep'|'mcq_drill'|'mixed'
+        study_path           TEXT,                  -- JSON blob: AI-generated plan
+        onboarding_completed INTEGER DEFAULT 0,
+        subscription_tier    TEXT DEFAULT 'free',   -- 'free'|'pro'
+        created_at           TEXT DEFAULT (datetime('now')),
+        last_seen_at         TEXT DEFAULT (datetime('now'))
     );
 
     -- ─────────────────────────────────────────────
