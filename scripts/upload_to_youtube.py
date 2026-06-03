@@ -333,32 +333,84 @@ EPISODES = {
         "tags": ["IES 2026 revision", "exam strategy", "Indian economy connections",
                  "GE-04 exam traps", "IES predictions 2026", "GE-04 synthesis"],
     },
-    # ── RBI DEPR 2026 ─────────────────────────────────────────────────────
+    # ── RBI DEPR 2026 — 6-episode MCQ audio series ───────────────────────
     "rbi_a1": {
-        "yt_title": "RBI DEPR 2026 | Monetary Policy & Banking | Audio Revision",
+        "yt_title": "RBI DEPR 2026 | A1: Macro MCQ — IS-LM, AD-AS, Phillips Curve | Audio Revision",
         "topics": [
-            "MPC: 6-member, repo rate 5.25%, inflation target 4% ±2%",
-            "LAF corridor: SDF (floor), repo, MSF (ceiling)",
-            "CRR, SLR, OMO and forex swap — liquidity toolkit",
-            "Banking health: CRAR 9%, GNPA 2.6%, PSL 40%",
-            "Payment systems: UPI, RTGS, NEFT, IMPS",
+            "IS-LM: what shifts LM vs IS and why — MCQ trap explained",
+            "AD-AS: stagflation, supply shocks, price level effects",
+            "Phillips Curve: short-run trade-off vs long-run vertical LRPC",
+            "Monetarist vs Keynesian policy debate — exam distractor patterns",
+            "Monetary transmission: repo → lending → investment chain & friction points",
         ],
-        "tags": ["RBI DEPR", "RBI Grade B", "monetary policy India", "MPC",
-                 "repo rate", "LAF corridor", "SDF", "banking NPA", "CRAR",
-                 "priority sector lending", "UPI RTGS NEFT", "RBI exam 2026"],
+        "tags": ["RBI DEPR", "RBI Grade B", "IS-LM model", "AD-AS model",
+                 "Phillips curve", "macroeconomics MCQ", "monetary transmission",
+                 "Keynesian vs monetarist", "RBI exam 2026", "macro revision"],
     },
     "rbi_a2": {
-        "yt_title": "RBI DEPR 2026 | Indian Economy & Fiscal Policy | Audio Revision",
+        "yt_title": "RBI DEPR 2026 | A2: Growth, Development & Quant Methods | Audio Revision",
         "topics": [
-            "GDP 7.6% FY26E, nominal growth 10% FY27",
-            "Fiscal deficit: 4.4% FY26 → 4.3% FY27, FRBM consolidation",
-            "Budget 2026-27: Rs 53.47 lakh crore expenditure, capex push",
-            "Disinvestment target Rs 80,000 crore FY27 — first increase in 5 years",
-            "Financial inclusion: 56 crore PMJDY, MUDRA, FI Index 67",
+            "Harrod-Domar: s/v formula, warranted vs natural rate, instability knife-edge",
+            "Solow: steady state, convergence, Golden Rule — higher savings trap",
+            "Endogenous growth: AK model, why TFP is the residual",
+            "Sen capability approach vs GDP — HDI geometric mean since 2010",
+            "OLS BLUE conditions (Gauss-Markov), Type I/II errors, Laspeyres vs Paasche bias",
         ],
-        "tags": ["RBI DEPR", "RBI Grade B", "Indian economy 2026", "fiscal deficit",
-                 "Union Budget 2026", "GDP growth India", "disinvestment",
-                 "FRBM Act", "financial inclusion", "PMJDY MUDRA", "RBI exam 2026"],
+        "tags": ["RBI DEPR", "RBI Grade B", "Harrod Domar model", "Solow growth model",
+                 "endogenous growth", "Sen capability approach", "OLS econometrics",
+                 "index numbers", "HDI", "growth theory MCQ", "RBI exam 2026"],
+    },
+    "rbi_a3": {
+        "yt_title": "RBI DEPR 2026 | A3: Micro + International Trade + Public Finance | Audio",
+        "topics": [
+            "Slutsky: income vs substitution effect directions — Giffen good conditions",
+            "Market structures: monopoly DWL, Nash equilibrium, Bertrand vs Cournot",
+            "Comparative advantage (opportunity cost) vs HO factor endowment theorem",
+            "J-curve: trade balance worsens first, Marshall-Lerner condition for improvement",
+            "Wagner's law, Laffer curve, 15th Finance Commission 41% vertical devolution",
+        ],
+        "tags": ["RBI DEPR", "RBI Grade B", "Slutsky equation", "Giffen goods",
+                 "comparative advantage", "J-curve BOP", "Marshall Lerner",
+                 "Wagner's law", "Laffer curve", "Finance Commission", "RBI exam 2026"],
+    },
+    "rbi_a4": {
+        "yt_title": "RBI DEPR 2026 | A4: RBI Instruments & Monetary Transmission | Audio Revision",
+        "topics": [
+            "LAF corridor: exact rates — SDF (floor), Repo 5.25%, MSF (ceiling)",
+            "Cumulative 125 bps cut since Feb 2025 — CRR cut ₹2.5L cr, OMO ₹6.95L cr",
+            "MPC: 6 members (3 RBI + 3 external), 4% target ±2%, Governor casting vote",
+            "SDF replaced Fixed Rate Reverse Repo as corridor floor in 2022",
+            "Transmission channels: bank lending, asset price, exchange rate, expectations",
+        ],
+        "tags": ["RBI DEPR", "RBI Grade B", "LAF corridor", "SDF rate", "MSF rate",
+                 "repo rate 5.25%", "MPC India", "monetary transmission", "CRR cut",
+                 "OMO RBI", "inflation targeting India", "RBI exam 2026"],
+    },
+    "rbi_a5": {
+        "yt_title": "RBI DEPR 2026 | A5: Banking Regulation & Payment Systems | Audio Revision",
+        "topics": [
+            "Basel III: CET1, Tier 1, CRAR — India mandates 9% vs Basel 8% minimum",
+            "Asset quality: GNPA 2.6%, Net NPA 0.6%, PCR ~76% — NPA improving trend",
+            "IBC resolution: 180-day admission, 330-day timeline, NCLT haircuts 40–60%",
+            "Payment systems: RTGS ≥₹2L, NEFT 24×7 (not batch anymore), IMPS ≤₹5L",
+            "UPI cross-border (UAE/Singapore/UK), ₹2L verified limit; CBDC retail vs wholesale",
+        ],
+        "tags": ["RBI DEPR", "RBI Grade B", "Basel III CRAR", "NPA India",
+                 "IBC insolvency", "SARFAESI", "UPI cross border", "CBDC India",
+                 "RTGS NEFT IMPS", "banking regulation", "RBI exam 2026"],
+    },
+    "rbi_a6": {
+        "yt_title": "RBI DEPR 2026 | A6: Indian Economy Current Data — Budget & Survey | Audio",
+        "topics": [
+            "GDP 7.6% FY26E (2nd advance estimate) — sectoral GVA breakdown",
+            "CPI inflation declining toward 4% target; WPI divergence from CPI",
+            "Fiscal path: GFD 4.8% FY25 → 4.4% FY26 → 4.3% FY27 — FRBM credibility",
+            "Budget 2026-27: ₹53.47L cr total expenditure, ₹80,000 cr disinvestment",
+            "Forex reserves >11 months import cover; Economic Survey 2025-26 key themes",
+        ],
+        "tags": ["RBI DEPR", "RBI Grade B", "GDP India 2026", "CPI inflation India",
+                 "fiscal deficit India", "Union Budget 2026-27", "Economic Survey 2026",
+                 "forex reserves India", "disinvestment target", "RBI exam 2026"],
     },
 }
 
@@ -435,13 +487,14 @@ def stem_to_key(stem: str) -> str | None:
 
 RBI_SERIES_OVERVIEW = """\
 ━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━
-📚 RBI DEPR 2026 Audio Revision Series
+📚 RBI DEPR 2026 — MCQ Audio Revision Series (6 episodes × ~20 min)
 ━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━
-A1 — Monetary Policy & Banking
-     MPC · LAF corridor · CRR/SLR/OMO · CRAR/NPA · PSL · Payment systems
-
-A2 — Indian Economy & Fiscal Policy
-     GDP growth · Fiscal deficit path · Budget 2026-27 · Disinvestment · Financial inclusion"""
+A1 — Macro MCQ: IS-LM · AD-AS · Phillips Curve · Monetary Transmission
+A2 — Growth, Development & Quant: Harrod-Domar · Solow · Sen · OLS
+A3 — Micro + International + Public Finance: Slutsky · J-curve · Wagner
+A4 — RBI Instruments: LAF corridor · Repo 5.25% · MPC · CRR/SLR/OMO
+A5 — Banking & Payments: Basel III · CRAR 9% · NPA 2.6% · UPI · CBDC
+A6 — Indian Economy Current: GDP 7.6% · Fiscal 4.4% · Budget 2026-27"""
 
 
 def build_description(key: str, ep: dict) -> str:

@@ -1,0 +1,25 @@
+You are creating a 20-minute RBI DEPR Phase 1 revision podcast. The listener has a DSE masters background and needs to crack MCQs fast — not understand theory deeply. Every minute must earn marks. Skip derivations. Emphasise what the MCQ will test, what trap it sets, and what the correct answer logic is.
+
+Cover these topic blocks in order:
+
+1. Harrod-Domar Model — MCQ lens: Growth rate g = s/v where s is the savings rate and v is the capital-output ratio. Three rates: warranted rate (gw = s/v, planned), natural rate (gn = population growth + technical progress), actual rate (ga). Instability theorem: if ga > gw, economy accelerates away (cumulative expansion); if ga < gw, recession accelerates. Harrod's knife-edge: equilibrium is unstable — any deviation amplifies. MCQ trap: "higher savings raises long-run growth rate in Harrod-Domar" — true here, unlike Solow.
+
+2. Solow Growth Model — MCQ lens: Steady state: investment equals depreciation (sf(k) = δk). In steady state, growth rate of output per worker is zero — capital per worker is constant. TFP (Total Factor Productivity) is the Solow residual — the part of growth unexplained by capital and labour. Golden Rule savings rate: maximises steady-state consumption per worker (MPK = δ). Convergence: poor countries grow faster toward steady state (conditional convergence). Trap: "higher savings rate raises the long-run growth rate in Solow" — wrong, it only raises the steady-state level, not the rate. Growth rate in long run equals only population growth plus TFP growth.
+
+3. Endogenous Growth Theory — MCQ lens: AK model: Y = AK, no diminishing returns to capital. Growth is sustained without exogenous TFP because A captures technology, human capital, ideas. Arrow learning-by-doing, Romer product variety, Lucas human capital — all remove diminishing returns problem. Why this matters for policy: endogenous growth justifies government investment in R&D, education, infrastructure (unlike Solow where policy only affects levels).
+
+4. Development Theories — MCQ lens: Sen capability approach — development is expansion of freedoms and capabilities, not just income. GDP is an inadequate measure of welfare. HDI components: life expectancy, mean and expected years of schooling, GNI per capita. Since 2010 HDI uses geometric mean — this is an MCQ fact, old papers said arithmetic mean. Lewis dual-sector model: unlimited labour supply from subsistence agriculture to modern sector; wage is fixed at subsistence until labour surplus is absorbed; development is about structural transformation.
+
+5. Econometrics MCQ Essentials — OLS is BLUE (Best Linear Unbiased Estimator) only if Gauss-Markov conditions hold: zero mean error, homoscedasticity, no autocorrelation, no perfect multicollinearity, error uncorrelated with regressors. Multicollinearity: high correlation among regressors — inflates standard errors, makes coefficients imprecise but unbiased; detected via VIF. Heteroscedasticity: error variance is not constant — OLS coefficients remain unbiased but standard errors are wrong (use White's robust SE). Type I error: reject true null (false positive, controlled by α). Type II error: fail to reject false null (false negative, controlled by power). Trap: "multicollinearity makes OLS biased" — wrong, OLS is still unbiased; the problem is inefficiency and imprecision.
+
+6. Index Numbers — MCQ lens: Laspeyres uses base-period quantities as weights → overstates inflation (consumers substitute away from expensive goods but Laspeyres ignores this). Paasche uses current-period quantities → understates inflation. Fisher Ideal Index = geometric mean of Laspeyres and Paasche — satisfies time-reversal test. WPI uses Laspeyres. CPI uses Laspeyres structure. Trap: "Paasche overstates inflation" — wrong, Paasche understates it; Laspeyres overstates.
+
+7. Quick Concept Drill — hosts verify 6 key numbers and distinctions: (a) Solow residual = TFP — the unexplained growth. (b) HDI geometric mean since 2010, not arithmetic. (c) Lewis model wage — fixed at subsistence until surplus absorbed. (d) Type I vs II — Type I is false positive. (e) Laspeyres overstates, Paasche understates. (f) AK model removes diminishing returns by treating human capital + technology as capital.
+
+Key exam traps and things to emphasise:
+- Higher savings rate raises steady-state income level in Solow, NOT the long-run growth rate — confusing level effects with rate effects is the single most common Solow error.
+- OLS is BLUE only if Gauss-Markov holds — heteroscedasticity and autocorrelation break the efficiency condition, NOT the unbiasedness condition.
+- HDI has used geometric mean since the 2010 revision — old-format answers citing arithmetic mean are wrong and will cost marks.
+- Laspeyres overstates inflation, Paasche understates — reverse this and the MCQ answer flips entirely.
+
+Use Deep Dive format (two hosts discussing). Target length: 20 minutes. This is MCQ exam revision, not a theory lecture — prioritise exam-useful conclusions over explanations.

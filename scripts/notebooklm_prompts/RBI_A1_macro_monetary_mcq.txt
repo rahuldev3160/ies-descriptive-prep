@@ -1,0 +1,23 @@
+You are creating a 20-minute RBI DEPR Phase 1 revision podcast. The listener has a DSE masters background and needs to crack MCQs fast — not understand theory deeply. Every minute must earn marks. Skip derivations. Emphasise what the MCQ will test, what trap it sets, and what the correct answer logic is.
+
+Cover these topic blocks in order:
+
+1. IS-LM Framework — MCQ lens: What shifts IS versus what shifts LM? IS shifts on autonomous spending changes (fiscal policy, investment sentiment, exports). LM shifts ONLY when money supply or money demand changes — not when income changes (income moves you along LM). What happens to equilibrium Y and r when the government cuts taxes (IS right → both Y and r rise) versus when the RBI cuts repo rate (LM right → Y rises, r falls). Hosts must name the trap: "income cannot shift LM — that is the most common wrong answer in this section."
+
+2. AD-AS Model — MCQ lens: Distinguish supply shocks from demand shocks. Demand shock: AD shifts, P and Y move same direction. Supply shock: AS shifts, P and Y move opposite directions — that is stagflation. A negative supply shock (oil price spike) raises P and lowers Y simultaneously. MCQ trap: "a sudden rise in oil prices shifts AD to the left" is wrong — it shifts AS left, not AD. Short-run versus long-run AS: LRAS is vertical at potential output.
+
+3. Phillips Curve — MCQ lens: Short-run Phillips Curve shows inflation-unemployment trade-off. Long-run Phillips Curve is vertical at NAIRU — no trade-off. Friedman-Phelps expectation-augmented Phillips Curve: attempts to exploit the trade-off only generate inflation, unemployment returns to natural rate. NAIRU is supply-side, not policy-controllable. Trap: "the Phillips Curve proves monetary policy can permanently lower unemployment" — wrong, only in the short run.
+
+4. Monetarist vs Keynesian — MCQ lens: Keynesians say fiscal multiplier works when liquidity trap holds (LM flat). Monetarists say velocity is stable, MV = PY, money supply is the only effective lever. Crowding out is the Keynesian failure point: fiscal expansion raises r and reduces private investment. Monetary rule vs discretion: Friedman's k-percent rule vs activist policy. MCQ trap: "crowding out is complete under vertical LM" — this is the classical/monetarist position.
+
+5. Monetary Transmission Mechanism — MCQ lens: Chain is repo rate → call money rate → MCLR/EBLR → bank lending rate → credit demand → investment → GDP. Where does it break? High NPAs reduce bank willingness to lend regardless of rate. Low animal spirits suppress investment demand even with cheap credit. MCQ trap: "a repo rate cut always raises investment and GDP" — wrong, transmission can break at multiple points. EBLR (external benchmark, introduced October 2019) transmits faster than MCLR.
+
+6. Quick MCQ Review Round — hosts fire 8 rapid questions: (a) What happens to LM when money demand rises? Shifts left, r rises. (b) Which shock causes stagflation? Negative supply shock. (c) NAIRU stands for? Non-accelerating inflation rate of unemployment. (d) Who proposed k-percent rule? Milton Friedman. (e) What is the Keynesian liquidity trap? r so low money demand is perfectly elastic, LM is horizontal, monetary policy ineffective. (f) Crowding out occurs when? Fiscal expansion raises r, reducing private investment. (g) Long-run Phillips Curve is? Vertical. (h) EBLR is better than MCLR because? Directly linked to repo rate, adjusts faster.
+
+Key exam traps and things to emphasise:
+- LM shifts when money supply changes, NOT when income changes — income moves you along the existing LM curve.
+- The Phillips Curve trade-off disappears in the long run — NAIRU is a constraint, not a policy choice.
+- Monetary transmission depends on bank risk appetite and credit demand, not just repo rate — the chain can break at any link.
+- Stagflation is always a supply-side story — if P and Y move in opposite directions, the shock hit the AS curve, not the AD curve.
+
+Use Deep Dive format (two hosts discussing). Target length: 20 minutes. This is MCQ exam revision, not a theory lecture — prioritise exam-useful conclusions over explanations.

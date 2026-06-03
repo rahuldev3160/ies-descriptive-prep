@@ -1,95 +1,142 @@
 #!/bin/bash
-# NotebookLM Audio Generation Script — RBI DEPR 2026
-# Usage: ./generate_rbi_audios.sh
-#
-# MANUAL STEP REQUIRED BEFORE RUNNING:
-# The notebooklm CLI does not support 'create notebook' — you must create notebooks
-# manually at notebooklm.google.com and paste the IDs below.
-#
-# Steps:
-# 1. Go to notebooklm.google.com
-# 2. Create notebook: "RBI DEPR - Monetary Policy & Banking"
-#    → Upload source: data/notebooklm/rbi_01_monetary_banking_source.md
-#    → Copy the notebook ID from the URL (format: xxxxxxxx-xxxx-xxxx-xxxx-xxxxxxxxxxxx)
-#    → Paste below as RBI01
-# 3. Create notebook: "RBI DEPR - Indian Economy & Fiscal"
-#    → Upload source: data/notebooklm/rbi_02_economy_fiscal_source.md
-#    → Copy the notebook ID from the URL
-#    → Paste below as RBI02
-# 4. Run: chmod +x scripts/generate_rbi_audios.sh && ./scripts/generate_rbi_audios.sh
+# RBI DEPR 2026 — Full audio pipeline (fully automated)
+# Creates 1 notebook, adds 2 sources, generates 6 × 20-min audios, uploads to YouTube.
+# Usage: bash scripts/generate_rbi_audios.sh [--skip-upload]
 
 set -euo pipefail
 
 SCRIPT_DIR="$(cd "$(dirname "${BASH_SOURCE[0]}")" && pwd)"
+ROOT="$SCRIPT_DIR/.."
 PROMPTS_DIR="$SCRIPT_DIR/notebooklm_prompts"
-AUDIO_OUT="$SCRIPT_DIR/../data/audio"
+AUDIO_OUT="$ROOT/data/audio/rbi"
 NLM="notebooklm"
+SKIP_UPLOAD="${1:-}"
 
-# PASTE NOTEBOOK IDs HERE after creating manually on notebooklm.google.com
-RBI01="REPLACE_WITH_RBI01_NOTEBOOK_ID"
-RBI02="REPLACE_WITH_RBI02_NOTEBOOK_ID"
+mkdir -p "$AUDIO_OUT"
 
-mkdir -p "$AUDIO_OUT/rbi"
+# ── Step 1: Create notebook ──────────────────────────────────────────────────
+echo ""
+echo "======================================"
+echo "STEP 1: Creating RBI DEPR notebook"
+echo "======================================"
+CREATE_OUT=$($NLM create "RBI DEPR 2026 — MCQ Audio Series")
+echo "$CREATE_OUT"
+RBI_NB=$(echo "$CREATE_OUT" | grep -oE '[0-9a-f]{8}-[0-9a-f]{4}-[0-9a-f]{4}-[0-9a-f]{4}-[0-9a-f]{12}' | head -1)
+if [[ -z "$RBI_NB" ]]; then
+    echo "ERROR: Could not parse notebook ID from create output."
+    exit 1
+fi
+echo "Notebook ID: $RBI_NB"
 
+# ── Step 2: Add sources ──────────────────────────────────────────────────────
+echo ""
+echo "======================================"
+echo "STEP 2: Adding source documents"
+echo "======================================"
+$NLM source add -n "$RBI_NB" --type file "$ROOT/data/notebooklm/rbi_theory_mcq_source.md"
+echo "Added: rbi_theory_mcq_source.md"
+$NLM source add -n "$RBI_NB" --type file "$ROOT/data/notebooklm/rbi_current_data_formatted.md"
+echo "Added: rbi_current_data_formatted.md"
+echo "Waiting 60s for NotebookLM to process sources..."
+sleep 60
+
+# ── Step 3: Generate 6 audios ────────────────────────────────────────────────
 generate_audio() {
-    local notebook_id="$1"
-    local prompt_file="$2"
-    local audio_title="$3"
-    local out_dir="$4"
+    local prompt_file="$1"
+    local audio_title="$2"
 
     echo ""
-    echo "======================================"
+    echo "--------------------------------------"
     echo "Generating: $audio_title"
-    echo "Notebook:   $notebook_id"
-    echo "======================================"
+    echo "--------------------------------------"
 
     $NLM generate audio \
-        -n "$notebook_id" \
+        -n "$RBI_NB" \
         --prompt-file "$prompt_file" \
         --format deep-dive \
-        --length medium \
+        --length default \
         --wait \
         --timeout 900
 
-    echo "Generation complete. Downloading..."
+    echo "Downloading..."
     $NLM download audio \
-        -n "$notebook_id" \
+        -n "$RBI_NB" \
         --latest \
-        "$out_dir/${audio_title}.mp4"
+        "$AUDIO_OUT/${audio_title}.mp4"
 
-    echo "Saved: $out_dir/${audio_title}.mp4"
-    echo "Waiting 30 seconds before next audio..."
+    echo "Saved: $AUDIO_OUT/${audio_title}.mp4"
+    echo "Waiting 30s before next episode..."
     sleep 30
 }
 
-if [[ "$RBI01" == "REPLACE_WITH_RBI01_NOTEBOOK_ID" ]]; then
-    echo "ERROR: Paste your RBI01 notebook ID into this script first."
-    exit 1
+echo ""
+echo "======================================"
+echo "STEP 3: Generating 6 audio episodes"
+echo "======================================"
+
+generate_audio "$PROMPTS_DIR/RBI_A1_macro_monetary_mcq.txt" \
+    "RBI_A1_macro_monetary_mcq"
+
+generate_audio "$PROMPTS_DIR/RBI_A2_growth_development_quant.txt" \
+    "RBI_A2_growth_development_quant"
+
+generate_audio "$PROMPTS_DIR/RBI_A3_micro_international_pf.txt" \
+    "RBI_A3_micro_international_pf"
+
+generate_audio "$PROMPTS_DIR/RBI_A4_rbi_instruments_monetary.txt" \
+    "RBI_A4_rbi_instruments_monetary"
+
+generate_audio "$PROMPTS_DIR/RBI_A5_banking_regulation_payments.txt" \
+    "RBI_A5_banking_regulation_payments"
+
+generate_audio "$PROMPTS_DIR/RBI_A6_indian_economy_current.txt" \
+    "RBI_A6_indian_economy_current"
+
+# ── Step 4: Convert mp4 → mp3 ────────────────────────────────────────────────
+echo ""
+echo "======================================"
+echo "STEP 4: Converting mp4 → mp3"
+echo "======================================"
+
+declare -A TITLES=(
+    ["RBI_A1_macro_monetary_mcq"]="RBI - A1 - Macro & Monetary MCQ"
+    ["RBI_A2_growth_development_quant"]="RBI - A2 - Growth Development & Quant"
+    ["RBI_A3_micro_international_pf"]="RBI - A3 - Micro International & Public Finance"
+    ["RBI_A4_rbi_instruments_monetary"]="RBI - A4 - RBI Instruments & Monetary Transmission"
+    ["RBI_A5_banking_regulation_payments"]="RBI - A5 - Banking Regulation & Payment Systems"
+    ["RBI_A6_indian_economy_current"]="RBI - A6 - Indian Economy Current Data"
+)
+
+for stem in "${!TITLES[@]}"; do
+    mp4="$AUDIO_OUT/${stem}.mp4"
+    mp3="$AUDIO_OUT/${TITLES[$stem]}.mp3"
+    if [[ -f "$mp4" ]]; then
+        ffmpeg -y -i "$mp4" -vn -acodec libmp3lame -q:a 2 "$mp3"
+        echo "Converted: ${TITLES[$stem]}.mp3"
+    else
+        echo "WARNING: $mp4 not found — skipping"
+    fi
+done
+
+# ── Step 5: Thumbnails + upload ───────────────────────────────────────────────
+if [[ "$SKIP_UPLOAD" != "--skip-upload" ]]; then
+    echo ""
+    echo "======================================"
+    echo "STEP 5: Generating thumbnails"
+    echo "======================================"
+    python3.11 "$SCRIPT_DIR/create_thumbnails.py" --paper rbi
+
+    echo ""
+    echo "======================================"
+    echo "STEP 6: Uploading to YouTube"
+    echo "======================================"
+    python3.11 "$SCRIPT_DIR/upload_to_youtube.py" --paper rbi
 fi
 
-if [[ "$RBI02" == "REPLACE_WITH_RBI02_NOTEBOOK_ID" ]]; then
-    echo "ERROR: Paste your RBI02 notebook ID into this script first."
-    exit 1
-fi
-
-echo "=== RBI DEPR 2026: 2 audio episodes ==="
-
-generate_audio "$RBI01" "$PROMPTS_DIR/RBI_A1_monetary_policy_banking.txt" \
-    "RBI_A1_monetary_policy_banking" "$AUDIO_OUT/rbi"
-
-generate_audio "$RBI02" "$PROMPTS_DIR/RBI_A2_economy_fiscal_budget.txt" \
-    "RBI_A2_economy_fiscal_budget" "$AUDIO_OUT/rbi"
-
 echo ""
-echo "=== Audio generation complete ==="
-echo ""
-echo "Next steps:"
-echo "1. Convert mp4 → mp3:"
-echo "   ffmpeg -i \"$AUDIO_OUT/rbi/RBI_A1_monetary_policy_banking.mp4\" -vn -acodec libmp3lame -q:a 2 \"$AUDIO_OUT/rbi/RBI - A1 - Monetary Policy & Banking.mp3\""
-echo "   ffmpeg -i \"$AUDIO_OUT/rbi/RBI_A2_economy_fiscal_budget.mp4\" -vn -acodec libmp3lame -q:a 2 \"$AUDIO_OUT/rbi/RBI - A2 - Economy & Fiscal.mp3\""
-echo ""
-echo "2. Generate thumbnails:"
-echo "   python3.11 scripts/create_thumbnails.py --paper rbi"
-echo ""
-echo "3. Upload to YouTube:"
-echo "   python3.11 scripts/upload_to_youtube.py --paper rbi"
+echo "======================================"
+echo "DONE — RBI DEPR 2026 audio series"
+echo "6 episodes generated and uploaded."
+echo "Notebook ID: $RBI_NB"
+echo "(Save this ID if you need to regenerate)"
+echo "======================================"
