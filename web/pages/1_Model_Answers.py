@@ -252,7 +252,11 @@ def _render_data_tab(ans: dict) -> None:
 
 # ── Page layout ────────────────────────────────────────────────────────────────
 
-conn = get_conn()
+@st.cache_resource
+def _get_conn():
+    return get_conn()
+
+conn = _get_conn()
 
 with st.sidebar:
     st.markdown("## 📖 Model Answers")
@@ -335,7 +339,6 @@ st.markdown(
 
 if not filtered_qs:
     st.info("No questions match the current selection.")
-    conn.close()
     st.stop()
 
 # ── Question cards ─────────────────────────────────────────────────────────────
@@ -397,5 +400,3 @@ for qi, q in enumerate(filtered_qs):
         '<div style="margin:8px 0 16px;border-top:1px solid rgba(255,255,255,0.06)"></div>',
         unsafe_allow_html=True,
     )
-
-conn.close()

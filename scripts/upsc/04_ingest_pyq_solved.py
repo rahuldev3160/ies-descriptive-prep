@@ -158,7 +158,7 @@ def parse_format_a(text: str) -> list[dict]:
     def get_section(start: int, end: int) -> str:
         return text[start:end]
 
-    sections: list[tuple[int | None, str]] = []
+    sections: list[tuple] = []
     if not year_positions:
         # No year headers — treat entire text as one section with year=None
         sections.append((None, text))

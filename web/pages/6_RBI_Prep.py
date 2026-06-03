@@ -153,7 +153,7 @@ def get_progress_data(conn: sqlite3.Connection) -> dict:
                for r in conn.execute("SELECT topic, base_weight FROM rbi_topic_weights").fetchall()}
 
     mastery_rows = conn.execute(
-        "SELECT topic, subject, mastery_score, coverage_pct, flag_impact, gap_state "
+        "SELECT topic, subject, attempts, mastery_score, coverage_pct, flag_impact, gap_state "
         "FROM rbi_topic_mastery WHERE user_id=?", (USER_ID,)
     ).fetchall()
 
@@ -468,6 +468,138 @@ BUCKETS = {
              "exp": "PLFS by MoSPI replaced the NSSO Employment-Unemployment Survey. Provides quarterly LFPR, WPR, UR for urban; annual for rural+urban combined."},
         ],
     },
+    "external_sector": {
+        "label": "External Sector & BoP", "icon": "🌐",
+        "qs": [
+            {"id": "es_1", "q": "The Balance of Payments (BoP) is divided into:",
+             "opts": ["A) Trade Account and Financial Account",
+                      "B) Current Account, Capital Account, and Financial Account",
+                      "C) Revenue Account and Capital Account",
+                      "D) Merchandise Account and Services Account"],
+             "correct": "B) Current Account, Capital Account, and Financial Account",
+             "exp": "BoP = Current Account (goods, services, income, transfers) + Capital Account (capital transfers, non-produced asset transactions) + Financial Account (FDI, FPI, ECB, forex reserves). A surplus in one component must be offset by a deficit in another — BoP always balances."},
+            {"id": "es_2", "q": "India's Current Account Deficit (CAD) is primarily driven by:",
+             "opts": ["A) Services trade deficit",
+                      "B) High merchandise deficit led by oil and gold imports",
+                      "C) Large outflows of foreign portfolio investment",
+                      "D) External commercial borrowing repayments"],
+             "correct": "B) High merchandise deficit led by oil and gold imports",
+             "exp": "India runs a structural merchandise trade deficit driven by oil (energy import dependence) and gold (strong structural demand). This is partially offset by a services surplus (IT/BPO exports) and remittances. India's services account is actually a surplus — the CAD pressure comes from the goods side."},
+            {"id": "es_3", "q": "The Real Effective Exchange Rate (REER) measures:",
+             "opts": ["A) The nominal exchange rate of rupee against a single currency (USD)",
+                      "B) The bilateral exchange rate adjusted for gold prices",
+                      "C) The trade-weighted nominal exchange rate adjusted for relative inflation differentials",
+                      "D) The interest rate differential between India and its trading partners"],
+             "correct": "C) The trade-weighted nominal exchange rate adjusted for relative inflation differentials",
+             "exp": "REER = NEER (trade-weighted nominal rate) adjusted for relative price levels (inflation differentials). REER > 100 implies currency overvaluation vs base year; < 100 implies undervaluation. RBI publishes both 6-currency and 40-currency REER indices. NEER alone ignores competitiveness changes from inflation."},
+            {"id": "es_4", "q": "India's foreign exchange reserves are managed by:",
+             "opts": ["A) Ministry of Finance through a sovereign wealth fund",
+                      "B) SEBI, as they include equity and bond holdings",
+                      "C) RBI, under the Foreign Exchange Management Act (FEMA) 1999",
+                      "D) EXIM Bank as India's official reserve manager"],
+             "correct": "C) RBI, under the Foreign Exchange Management Act (FEMA) 1999",
+             "exp": "RBI manages India's forex reserves under FEMA 1999. Reserves comprise: foreign currency assets (largest component, ~90%), gold, SDRs allocated by IMF, and reserve tranche position in IMF. India's reserves stood around $650–690 billion in early 2026, among the top 5 globally."},
+            {"id": "es_5", "q": "Foreign Portfolio Investment (FPI) differs from Foreign Direct Investment (FDI) primarily because:",
+             "opts": ["A) FPI is regulated by RBI while FDI is regulated by SEBI",
+                      "B) FDI involves ownership/management control (≥10% stake); FPI is passive portfolio investment",
+                      "C) FPI can only be made in government securities; FDI is in equity only",
+                      "D) FDI requires prior government approval; FPI does not in any case"],
+             "correct": "B) FDI involves ownership/management control (≥10% stake); FPI is passive portfolio investment",
+             "exp": "FDI: ≥10% stake with management control, long-term, in real/unlisted sector. FPI: <10% stake, passive, liquid, in listed securities (equity/debt). Regulation: FDI under DPIIT/FEMA; FPI under SEBI registration. Both notified to RBI. FPI flows are more volatile ('hot money') than FDI."},
+            {"id": "es_6", "q": "External Commercial Borrowings (ECB) are regulated by:",
+             "opts": ["A) SEBI under the SEBI (FPI) Regulations 2019",
+                      "B) Ministry of Finance under the FRBM Act",
+                      "C) RBI under FEMA, with specified end-use restrictions and eligible borrower categories",
+                      "D) EXIM Bank as part of its trade finance mandate"],
+             "correct": "C) RBI under FEMA, with specified end-use restrictions and eligible borrower categories",
+             "exp": "ECB = overseas borrowings by eligible Indian entities (corporates, PSUs, NBFCs etc.) in foreign currency. Regulated by RBI under FEMA. Key rules: minimum average maturity period, end-use restrictions (cannot use for real estate investment, equity in India, repayment of rupee loans — in most tracks). Two routes: automatic and approval. Cheap foreign financing but exposes borrower to currency risk."},
+        ],
+    },
+    "nbfc_regulation": {
+        "label": "NBFC & Regulatory Framework", "icon": "🏢",
+        "qs": [
+            {"id": "nr_1", "q": "The defining regulatory distinction between an NBFC and a commercial bank is that an NBFC:",
+             "opts": ["A) Cannot accept any form of deposits whatsoever",
+                      "B) Cannot accept demand deposits and is not part of the payment & settlement system",
+                      "C) Is regulated by SEBI instead of RBI",
+                      "D) Can only lend to other NBFCs and microfinance institutions"],
+             "correct": "B) Cannot accept demand deposits and is not part of the payment & settlement system",
+             "exp": "NBFCs cannot: (1) accept demand deposits (current/savings accounts payable on demand), (2) issue cheques drawn on themselves, (3) access DICGC deposit insurance. Some NBFC categories (NBFC-D) can accept public time deposits (fixed deposits). CRR/SLR norms do not apply to most NBFCs. These three exclusions define the NBFC-bank regulatory difference."},
+            {"id": "nr_2", "q": "Under RBI's Scale-Based Regulation (SBR) for NBFCs, the 'Upper Layer' consists of:",
+             "opts": ["A) All NBFCs with total assets exceeding ₹10,000 crore",
+                      "B) Specifically identified NBFCs by RBI using a scoring methodology — typically top ~10",
+                      "C) All deposit-taking NBFCs irrespective of asset size",
+                      "D) NBFCs operating in more than 5 states"],
+             "correct": "B) Specifically identified NBFCs by RBI using a scoring methodology — typically top ~10",
+             "exp": "SBR (effective Oct 2022) layers: Base Layer (small NBFCs, <₹1000 cr ND), Middle Layer (≥₹1000 cr ND + all NBFC-D + IFCs + HFCs etc.), Upper Layer (top ~10 by RBI scoring — near-bank regulation applies: CRAR, large exposure limits), Top Layer (empty by design). Upper Layer ≠ simply the largest — it's scored on size + interconnectedness + complexity."},
+            {"id": "nr_3", "q": "Regulation of Housing Finance Companies (HFCs) was transferred from NHB to RBI in:",
+             "opts": ["A) 2016 — following demonetisation",
+                      "B) 2019 — via the National Housing Bank (Amendment) Act",
+                      "C) 2021 — following IL&FS systemic crisis resolution",
+                      "D) 2023 — as part of HDFC-HDFC Bank merger regulatory harmonisation"],
+             "correct": "B) 2019 — via the National Housing Bank (Amendment) Act",
+             "exp": "The NHB (Amendment) Act 2019 transferred HFC registration and regulation to RBI. NHB continues as a refinance institution for housing. The transfer was accelerated by the IL&FS/DHFL crisis (2018-19) that exposed regulatory arbitrage and gaps in NBFC/HFC oversight. HFCs now fall under RBI's SBR framework."},
+            {"id": "nr_4", "q": "NBFC-Peer to Peer (P2P) lending platforms are characterised as:",
+             "opts": ["A) Banks under the Banking Regulation Act 1949",
+                      "B) NBFC intermediaries regulated by RBI — they connect borrowers and lenders but do not lend from their own books",
+                      "C) Payment System Operators under the Payment and Settlement Systems Act",
+                      "D) Unregulated fintech platforms under Ministry of Corporate Affairs"],
+             "correct": "B) NBFC intermediaries regulated by RBI — they connect borrowers and lenders but do not lend from their own books",
+             "exp": "P2P platforms classified as NBFC-P2P under RBI's 2017 Master Directions. They are pure intermediaries — cannot use their own funds to lend. Key limits: aggregate lender exposure ≤ ₹50 lakh across all P2P platforms; max loan tenure 36 months; platforms cannot guarantee returns or provide credit enhancement."},
+            {"id": "nr_5", "q": "The Account Aggregator (AA) framework in India is primarily designed to:",
+             "opts": ["A) Aggregate non-performing assets of banks for centralised RBI resolution",
+                      "B) Enable consent-based, encrypted sharing of financial data between regulated entities",
+                      "C) Consolidate foreign exchange accounts of NRIs under one RBI portal",
+                      "D) Track GST compliance across multiple business entities via GSTN"],
+             "correct": "B) Enable consent-based, encrypted sharing of financial data between regulated entities",
+             "exp": "AAs are NBFC-AAs regulated by RBI. They act as data intermediaries — enabling consent-based sharing of financial information from Financial Information Providers (FIPs: banks, NBFCs, MFs, insurers) to Financial Information Users (FIUs: lenders, wealth managers). AAs cannot read or store the data — it flows encrypted. Enables instant credit underwriting and digital lending."},
+            {"id": "nr_6", "q": "RBI's minimum Net Owned Funds (NOF) requirement for registering a new NBFC (general category) was revised to _____ effective 2021:",
+             "opts": ["A) ₹2 crore", "B) ₹5 crore", "C) ₹10 crore", "D) ₹25 crore"],
+             "correct": "C) ₹10 crore",
+             "exp": "RBI raised the minimum NOF for NBFC registration from ₹2 crore to ₹10 crore in October 2021 (for new registrations). Existing NBFCs with ₹2–₹10 crore NOF were given a glide-path. Intermediary NBFCs like NBFC-AA and NBFC-P2P have separate lower thresholds (₹2 crore). The hike ensures only adequately capitalised entities enter the NBFC space, reducing registration of shell or under-capitalised entities."},
+        ],
+    },
+    "intl_finance": {
+        "label": "International Finance & Institutions", "icon": "🏛",
+        "qs": [
+            {"id": "if_1", "q": "The Bank for International Settlements (BIS), which issues Basel norms through the BCBS, is headquartered in:",
+             "opts": ["A) Washington D.C., USA", "B) Geneva, Switzerland", "C) Basel, Switzerland", "D) Frankfurt, Germany"],
+             "correct": "C) Basel, Switzerland",
+             "exp": "BIS (est. 1930) is headquartered in Basel, Switzerland — which is why global bank capital standards are called 'Basel norms.' It serves as a bank for central banks and hosts the Basel Committee on Banking Supervision (BCBS), which produced Basel I (1988), Basel II (2004), and Basel III (2010 onwards). RBI implements Basel III in India."},
+            {"id": "if_2", "q": "The IMF's Special Drawing Rights (SDR) basket currently comprises:",
+             "opts": ["A) Gold, USD, EUR, GBP, JPY",
+                      "B) USD, EUR, CNY, JPY, GBP",
+                      "C) USD, EUR, GBP, CHF, JPY",
+                      "D) USD, EUR, CNY, INR, GBP"],
+             "correct": "B) USD, EUR, CNY, JPY, GBP",
+             "exp": "SDR basket (post-2022 review): USD (~43.4%), EUR (~29.3%), CNY (~12.3%), JPY (~7.6%), GBP (~7.4%). Chinese Yuan (CNY/Renminbi) was added in October 2016. India's rupee is NOT an SDR basket currency. SDRs are not a currency — they are reserve assets allocated to IMF members proportional to quota, usable for exchanging freely usable currencies."},
+            {"id": "if_3", "q": "Within the World Bank Group, concessional long-term loans to the world's poorest countries are provided by:",
+             "opts": ["A) IBRD (International Bank for Reconstruction & Development)",
+                      "B) IFC (International Finance Corporation)",
+                      "C) MIGA (Multilateral Investment Guarantee Agency)",
+                      "D) IDA (International Development Association)"],
+             "correct": "D) IDA (International Development Association)",
+             "exp": "IDA provides interest-free or near-zero interest loans and grants to countries with GNI per capita below ~$1,335. IBRD lends to middle-income and creditworthy low-income countries at near-market rates. IFC is the private sector arm (equity + loans). MIGA provides investment guarantees against non-commercial risk. India has graduated from IDA eligibility but was historically a major IDA borrower."},
+            {"id": "if_4", "q": "The Financial Stability Board (FSB) was established in response to:",
+             "opts": ["A) The 1997 Asian Financial Crisis",
+                      "B) The 2001 dot-com bubble burst",
+                      "C) The 2007–08 Global Financial Crisis",
+                      "D) The 2013 Fed Taper Tantrum"],
+             "correct": "C) The 2007–08 Global Financial Crisis",
+             "exp": "FSB was established in April 2009 at the G20 London Summit to replace the Financial Stability Forum (FSF, est. 1999 after Asian crisis). FSB monitors global financial vulnerabilities, identifies Global Systemically Important Banks (G-SIBs) and Insurers (G-SIIs), and coordinates regulatory reforms. Headquartered in Basel, secretariat hosted by BIS."},
+            {"id": "if_5", "q": "The New Development Bank (NDB), established by BRICS nations in 2014, is headquartered in:",
+             "opts": ["A) New Delhi, India", "B) Beijing, China", "C) Shanghai, China", "D) Moscow, Russia"],
+             "correct": "C) Shanghai, China",
+             "exp": "NDB (Fortaleza Declaration, 2014) is headquartered in Shanghai, China. Authorised capital: $100 billion. India is a founding member and major shareholder. NDB focuses on infrastructure and sustainable development finance in emerging markets and developing countries. New members admitted since 2021: Bangladesh, UAE, Egypt, Uruguay, Ethiopia."},
+            {"id": "if_6", "q": "IMF financial assistance is typically conditional on recipient countries agreeing to:",
+             "opts": ["A) Pegging their currency to the USD or a currency basket",
+                      "B) Structural adjustment / economic reform programs (IMF conditionality)",
+                      "C) Transferring a portion of central bank reserves to IMF custody",
+                      "D) Achieving a minimum real GDP growth target of 3% per annum"],
+             "correct": "B) Structural adjustment / economic reform programs (IMF conditionality)",
+             "exp": "IMF conditionality: borrowing countries must implement agreed macroeconomic policies — fiscal consolidation, exchange rate adjustment, structural reforms — in exchange for financial support. This is central to IMF's crisis resolution role. India accessed IMF credit in 1991 BoP crisis, which triggered landmark liberalisation under Narasimha Rao/Manmohan Singh. The 1991 episode is a recurring DEPR exam reference."},
+        ],
+    },
 }
 
 BUCKET_KEYS = list(BUCKETS.keys())
@@ -625,18 +757,28 @@ with tab2:
                         st.markdown(
                             f'<div class="score-card" style="border-color:{c_col}33;margin-bottom:16px">'
                             f'<div class="score-num" style="color:{c_col}">{correct}/{total_r}</div>'
-                            f'<div class="score-label">{int(pct * 100)}% — Session complete</div>'
+                            f'<div class="score-label">Phase 1 Drill — {int(pct * 100)}% correct</div>'
                             f'</div>',
                             unsafe_allow_html=True,
                         )
-                        # Per-question results
-                        with st.expander("View question-by-question breakdown"):
-                            for i, r in enumerate(results):
-                                icon_r = "✅" if r["is_correct"] else "❌"
-                                st.markdown(f"**{icon_r} Q{i+1}.** {r['question'][:90]}…")
-                                if not r["is_correct"]:
-                                    st.caption(f"Your answer: {r['answer_given']} · Correct: {r['correct_option']}")
-                                    st.caption(f"💡 {r['explanation'][:200]}")
+                        # Per-question results — Tier 2 style with option highlighting
+                        st.markdown("#### Question-by-question breakdown")
+                        for i, r in enumerate(results):
+                            q_preview = r["question"]
+                            q_label = (q_preview[:80] + "…") if len(q_preview) > 80 else q_preview
+                            with st.expander(f"{'✅' if r['is_correct'] else '❌'} Q{i+1}  ·  {q_label}"):
+                                for opt in r.get("options", []):
+                                    is_opt_correct = opt.strip() == r.get("correct_option_full", "").strip()
+                                    is_opt_chosen = opt.strip() == r["answer_given"].strip()
+                                    if is_opt_correct and is_opt_chosen:
+                                        st.markdown(f"**✓ {opt}** ← your answer ✅")
+                                    elif is_opt_correct:
+                                        st.markdown(f"**✓ {opt}** ← correct answer")
+                                    elif is_opt_chosen:
+                                        st.markdown(f"~~{opt}~~ ← your answer ❌")
+                                    else:
+                                        st.markdown(f"  {opt}")
+                                st.info(f"**Why:** {r['explanation']}")
 
                 col_start, col_n = st.columns([2, 1])
                 with col_n:
@@ -733,10 +875,13 @@ with tab2:
                             is_correct = letter == q["correct_option"]
                             save_attempt(conn, q["id"], letter, is_correct, session_id,
                                          q["topic"], q["subject"])
+                            correct_key = f"option_{q['correct_option'].lower()}"
                             results.append({
                                 "question": q["question"],
                                 "answer_given": chosen_letter,
                                 "correct_option": q["correct_option"],
+                                "correct_option_full": q[correct_key],
+                                "options": [q["option_a"], q["option_b"], q["option_c"], q["option_d"]],
                                 "explanation": q["explanation"],
                                 "is_correct": is_correct,
                             })
@@ -974,7 +1119,7 @@ with tab4:
                 st.markdown(
                     f'<div class="gem-card" style="text-align:center;border-color:{fc}33">'
                     f'<div style="font-size:1.8rem;font-weight:700;color:{fc}">{int(formula_pct*100)}%</div>'
-                    f'<div style="font-size:0.72rem;color:#9AA0A6;text-transform:uppercase;letter-spacing:.06em">Formula Readiness</div>'
+                    f'<div style="font-size:0.72rem;color:#9AA0A6;text-transform:uppercase;letter-spacing:.06em">Mastery Score (weighted avg)</div>'
                     f'</div>',
                     unsafe_allow_html=True,
                 )
@@ -983,7 +1128,7 @@ with tab4:
                 st.markdown(
                     f'<div class="gem-card" style="text-align:center;border-color:{tc}33">'
                     f'<div style="font-size:1.8rem;font-weight:700;color:{tc}">{int(true_pct*100)}%</div>'
-                    f'<div style="font-size:0.72rem;color:#9AA0A6;text-transform:uppercase;letter-spacing:.06em">True Readiness</div>'
+                    f'<div style="font-size:0.72rem;color:#9AA0A6;text-transform:uppercase;letter-spacing:.06em">Exam Readiness (gap-adjusted)</div>'
                     f'</div>',
                     unsafe_allow_html=True,
                 )

@@ -395,28 +395,26 @@ def submit_return_quiz(conn, topic_id: str, answers: dict, session_id: str) -> d
     if not questions:
         return {"score": 0.0, "correct": 0, "total": 0, "new_state": "UNVISITED", "from_state": "UNVISITED", "new_mastery": 0.0}
 
+    # Grade answers
     correct = 0
     total = len(questions)
+    graded_rows = []
     for q in questions:
         qid = q["question_id"]
         user_ans = (answers.get(qid) or "").strip()
         is_correct = 1 if user_ans == (q["correct_answer"] or "").strip() else 0
         correct += is_correct
-        conn.execute("""
-            INSERT INTO return_quiz_attempts
-                (user_id, topic_id, exam_id, question_id, user_answer, is_correct, session_id, created_at)
-            VALUES (?, ?, ?, ?, ?, ?, ?, datetime('now'))
-        """, (uid, topic_id, EXAM_ID, qid, user_ans, is_correct, session_id))
+        graded_rows.append((uid, topic_id, EXAM_ID, qid, user_ans, is_correct, session_id))
 
     score = correct / total
 
+    # Read all config before entering transaction
     cfg = conn.execute(
         "SELECT verified_quiz_threshold, partial_quiz_threshold FROM exam_configurations WHERE exam_id=?",
         (EXAM_ID,)
     ).fetchone()
     verified_thresh = cfg["verified_quiz_threshold"] if cfg else 0.80
     partial_thresh = cfg["partial_quiz_threshold"] if cfg else 0.50
-
     if is_crunch_mode():
         verified_thresh = 0.70
         partial_thresh = 0.45
@@ -429,37 +427,6 @@ def submit_return_quiz(conn, topic_id: str, answers: dict, session_id: str) -> d
     urgency = gap["urgency_multiplier"] if gap else 1.0
     attempt_count = (gap["attempt_count"] or 0) + 1
 
-    if score >= verified_thresh:
-        new_state = "VERIFIED"
-        conn.execute("""
-            UPDATE gap_states SET state=?, last_return_quiz_score=?, urgency_multiplier=?,
-                last_verified_at=datetime('now'), next_review_at=datetime('now','+14 days'),
-                last_active_at=datetime('now'), attempt_count=?, stuck_flag=0
-            WHERE user_id=? AND topic_id=? AND exam_id=?
-        """, (new_state, score, urgency, attempt_count, uid, topic_id, EXAM_ID))
-    elif score >= partial_thresh:
-        new_state = "PARTIAL"
-        conn.execute("""
-            UPDATE gap_states SET state=?, last_return_quiz_score=?,
-                last_active_at=datetime('now'), attempt_count=?
-            WHERE user_id=? AND topic_id=? AND exam_id=?
-        """, (new_state, score, attempt_count, uid, topic_id, EXAM_ID))
-    else:
-        new_state = "FLAGGED"
-        new_urgency = min(urgency + 0.3, 2.0)
-        stuck = 1 if attempt_count >= 3 else 0
-        conn.execute("""
-            UPDATE gap_states SET state=?, last_return_quiz_score=?, urgency_multiplier=?,
-                last_active_at=datetime('now'), attempt_count=?, stuck_flag=?
-            WHERE user_id=? AND topic_id=? AND exam_id=?
-        """, (new_state, score, new_urgency, attempt_count, stuck, uid, topic_id, EXAM_ID))
-
-    conn.execute("""
-        INSERT INTO gap_state_events
-            (user_id, topic_id, exam_id, from_state, to_state, trigger, quiz_score, created_at)
-        VALUES (?, ?, ?, ?, ?, 'mcq_quiz', ?, datetime('now'))
-    """, (uid, topic_id, EXAM_ID, from_state, new_state, score))
-
     existing = conn.execute(
         "SELECT mastery_level, quiz_attempt_count FROM user_mastery WHERE user_id=? AND topic_id=? AND exam_id=?",
         (uid, topic_id, EXAM_ID)
@@ -468,29 +435,77 @@ def submit_return_quiz(conn, topic_id: str, answers: dict, session_id: str) -> d
     old_count = existing["quiz_attempt_count"] if existing else 0
     new_mastery = (old_mastery * old_count + score) / (old_count + 1)
 
-    conn.execute("""
-        UPDATE user_mastery SET mastery_level=?, last_quiz_score=?,
-            quiz_attempt_count=?, last_tested_at=datetime('now')
-        WHERE user_id=? AND topic_id=? AND exam_id=?
-    """, (new_mastery, score, old_count + 1, uid, topic_id, EXAM_ID))
-
     base_row = conn.execute(
         "SELECT base_priority_score FROM topic_base_scores WHERE topic_id=? AND exam_id=?",
         (topic_id, EXAM_ID)
     ).fetchone()
     base_priority = base_row["base_priority_score"] if base_row else 0.5
 
-    conn.execute("""
-        UPDATE topic_attempt_summary SET
-            total_attempts = total_attempts + 1,
-            correct_attempts = correct_attempts + ?,
-            coverage_pct = ?,
-            flag_impact_score = ?,
-            last_updated = datetime('now')
-        WHERE user_id=? AND topic_id=? AND exam_id=?
-    """, (correct, score, base_priority * (1 - score), uid, topic_id, EXAM_ID))
+    # Compute new gap state
+    if score >= verified_thresh:
+        new_state = "VERIFIED"
+    elif score >= partial_thresh:
+        new_state = "PARTIAL"
+    else:
+        new_state = "FLAGGED"
+    new_urgency = min(urgency + 0.3, 2.0) if new_state == "FLAGGED" else urgency
+    stuck = 1 if new_state == "FLAGGED" and attempt_count >= 3 else 0
 
-    conn.commit()
+    # Write all changes atomically
+    with conn:
+        for row in graded_rows:
+            conn.execute("""
+                INSERT INTO return_quiz_attempts
+                    (user_id, topic_id, exam_id, question_id, user_answer, is_correct, session_id, created_at)
+                VALUES (?, ?, ?, ?, ?, ?, ?, datetime('now'))
+            """, row)
+
+        if new_state == "VERIFIED":
+            conn.execute("""
+                UPDATE gap_states SET state=?, last_return_quiz_score=?, urgency_multiplier=?,
+                    last_verified_at=datetime('now'), next_review_at=datetime('now','+14 days'),
+                    last_active_at=datetime('now'), attempt_count=?, stuck_flag=0
+                WHERE user_id=? AND topic_id=? AND exam_id=?
+            """, (new_state, score, urgency, attempt_count, uid, topic_id, EXAM_ID))
+        elif new_state == "PARTIAL":
+            conn.execute("""
+                UPDATE gap_states SET state=?, last_return_quiz_score=?,
+                    last_active_at=datetime('now'), attempt_count=?
+                WHERE user_id=? AND topic_id=? AND exam_id=?
+            """, (new_state, score, attempt_count, uid, topic_id, EXAM_ID))
+        else:
+            conn.execute("""
+                UPDATE gap_states SET state=?, last_return_quiz_score=?, urgency_multiplier=?,
+                    last_active_at=datetime('now'), attempt_count=?, stuck_flag=?
+                WHERE user_id=? AND topic_id=? AND exam_id=?
+            """, (new_state, score, new_urgency, attempt_count, stuck, uid, topic_id, EXAM_ID))
+
+        conn.execute("""
+            INSERT INTO gap_state_events
+                (user_id, topic_id, exam_id, from_state, to_state, trigger, quiz_score, created_at)
+            VALUES (?, ?, ?, ?, ?, 'mcq_quiz', ?, datetime('now'))
+        """, (uid, topic_id, EXAM_ID, from_state, new_state, score))
+
+        # INSERT OR IGNORE ensures first attempt creates the row; UPDATE fills it in
+        conn.execute("""
+            INSERT OR IGNORE INTO user_mastery (user_id, topic_id, exam_id) VALUES (?, ?, ?)
+        """, (uid, topic_id, EXAM_ID))
+        conn.execute("""
+            UPDATE user_mastery SET mastery_level=?, last_quiz_score=?,
+                quiz_attempt_count=?, last_tested_at=datetime('now')
+            WHERE user_id=? AND topic_id=? AND exam_id=?
+        """, (new_mastery, score, old_count + 1, uid, topic_id, EXAM_ID))
+
+        conn.execute("""
+            UPDATE topic_attempt_summary SET
+                total_attempts = total_attempts + 1,
+                correct_attempts = correct_attempts + ?,
+                coverage_pct = ?,
+                flag_impact_score = ?,
+                last_updated = datetime('now')
+            WHERE user_id=? AND topic_id=? AND exam_id=?
+        """, (correct, score, base_priority * (1 - score), uid, topic_id, EXAM_ID))
+
     return {
         "score": score,
         "correct": correct,

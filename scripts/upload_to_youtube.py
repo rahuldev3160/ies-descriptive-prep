@@ -469,7 +469,7 @@ PAPER_TAGS = {
 }
 
 
-def stem_to_key(stem: str) -> str | None:
+def stem_to_key(stem: str):
     """Map MP3 stem to episode key.
 
     GE stems: 'GE-01 _ A1a _ Topic'  → 'ge01_a1a'

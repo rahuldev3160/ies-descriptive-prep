@@ -10,7 +10,11 @@ from styles import apply_theme, chip
 st.set_page_config(page_title="Study Brief · IES 2026", layout="wide", page_icon="🗂️")
 apply_theme()
 
-conn = get_conn()
+@st.cache_resource
+def _get_conn():
+    return get_conn()
+
+conn = _get_conn()
 
 st.markdown("## 🗂️ Study Brief")
 st.markdown(
@@ -43,7 +47,6 @@ with col_t:
 brief = get_study_brief(conn, topic_choice)
 if not brief["topic"]:
     st.warning("Topic not found.")
-    conn.close()
     st.stop()
 
 t  = brief["topic"]
@@ -176,5 +179,3 @@ with st.expander("📋 Copy plain text — paste into Claude.ai for deep study")
         if q["diagram_expected"]:
             lines.append(f"   Diagram: {q['diagram_type'] or 'relevant diagram'}")
     st.text_area("", value="\n".join(lines), height=300)
-
-conn.close()

@@ -1,7 +1,17 @@
 # Descriptive Exams — Session Handoff
 
 ## Last Updated
-2026-06-03 (Session 6)
+2026-06-03 (Session 8)
+
+---
+
+## Watch For — Active Gotchas (read before writing any code)
+
+| Gotcha | Symptom | Correct action |
+|---|---|---|
+| **Wrong Python runtime** | `TypeError: unsupported operand type(s) for \|` on any page | Do NOT remove the annotation. Run `/opt/homebrew/bin/streamlit --version` to confirm runtime is Python 3.11. Never use `/Library/Python/3.9/bin/streamlit`. |
+| **RBI page hardcoded user** | ALL RBI drill attempts saved as "rahul" — any user gets Rahul's RBI data | `6_RBI_Prep.py:21` has `USER_ID = "rahul"` with no env var. Fix is item #1 in the MVMU list before going public. |
+| **@st.cache_resource is single-user only** | Data corruption / OperationalError under concurrent users | All 5 IES pages now use `@st.cache_resource` — correct for single-user (fixes per-rerun leak), but WRONG for multi-user (shared connection object is not thread-safe). MUST revert to per-request connections before launch. See DECIDE-08. |
 
 ---
 
@@ -15,6 +25,155 @@ Backend: 1219 PYQs + rubrics + model answers + 150 MCQs. Web app live on :8501.
 
 ### RBI DEPR 2026 — MCQ BANK BUILT ✅ | UI rebuilt ✅
 New `data/rbi.db` with 303 questions. `6_RBI_Prep.py` fully rewritten. See below.
+
+---
+
+## Session 8 Summary (2026-06-03)
+
+### What was done this session
+
+**1. matplotlib installed — Model Answers page unblocked**
+
+`ModuleNotFoundError: No module named 'matplotlib'` on `1_Model_Answers.py:8`. Root cause: matplotlib was installed in system Python 3.9 but Streamlit runs on Homebrew Python 3.11. Fixed by installing into the correct interpreter:
+```bash
+/opt/homebrew/opt/python@3.11/bin/python3.11 -m pip install matplotlib numpy
+```
+
+**2. All Critical + High IES bugs fixed**
+
+| Bug | File | Fix |
+|---|---|---|
+| Connection leak (CRITICAL) | All 5 IES pages | `@st.cache_resource` on `_get_conn()` in each page; removed all `conn.close()` calls |
+| Silent DB save failure (CRITICAL) | `2_Quiz.py:532` | `except: pass` → `st.toast(f"Could not save attempt: {err}", icon="⚠️")` |
+| Mastery not written on first attempt (HIGH) | `db.py` `submit_return_quiz` | Added `INSERT OR IGNORE INTO user_mastery` before `UPDATE` — ensures row always exists |
+| No transaction in `submit_return_quiz` (HIGH) | `db.py` | Refactored: all reads moved before writes, all writes wrapped in `with conn:` atomic block |
+| FD leak in `@st.cache_data` (HIGH) | `2_Quiz.py:92` | Added `try/finally c.close()` in `_load_all_questions` |
+| Option sort scramble (MEDIUM) | `5_Return_Quiz.py:149,204` | `key=lambda x: x[0]` → `sorted()` on full string |
+
+**3. Smoke test: 11/11 PASS** (up from 10/11 last session — Model Answers now fixed)
+
+**4. Multi-user architecture planned (parallel agents)**
+
+Full plan in `memory/project_multiuser_plan.md`. Key outputs:
+- 16 DECIDE items, 9 ASSUME items, scale failure sequence
+- MVMU = 6 changes, 5–7 focused days, safe to launch after that
+- Discovered RISK-02: `6_RBI_Prep.py:21` `USER_ID = "rahul"` is a live bug even now
+- Discovered DECIDE-08: `@st.cache_resource` is correct for single-user but wrong for multi-user
+
+---
+
+## Session 7 Summary (2026-06-03)
+
+### What was done this session
+
+**1. RBI Prep — 5 bugs fixed in `web/pages/6_RBI_Prep.py`**
+
+| Bug | Root Cause | Fix |
+|---|---|---|
+| `KeyError: 'attempts'` crash on My Progress tab | `get_progress_data()` SELECT at line 156 listed 6 columns but excluded `attempts`; line 194 accessed `m["attempts"]` | Added `attempts` to SELECT |
+| Phase 1 Drill explanations only shown for wrong answers; capped at 200 chars | `if not r["is_correct"]:` guard on explanation render; `[:200]` truncation | Removed guard, removed truncation |
+| Phase 1 results view: single flat expander for all questions | Used one `st.expander("View breakdown")` containing plain text per question | Replaced with per-question expanders (Tier 2 style): option highlighting + full `Why:` for every question |
+| Vague score card label `X% — Session complete` | Hardcoded copy | Changed to `Phase 1 Drill — X% correct` |
+| Progress tab jargon labels `Formula Readiness` / `True Readiness` | Not self-explanatory to user | Changed to `Mastery Score (weighted avg)` / `Exam Readiness (gap-adjusted)` |
+
+**2. Tier 2 Quiz — expanded from 36 to 54 questions (6 → 9 buckets)**
+
+Three new buckets added to `BUCKETS` dict in `6_RBI_Prep.py`:
+
+| Bucket | Key topics |
+|---|---|
+| 🌐 External Sector & BoP | BoP structure, CAD drivers, REER vs NEER, forex reserves, FDI vs FPI, ECB |
+| 🏢 NBFC & Regulatory Framework | NBFC vs bank, SBR Upper Layer, HFC transfer to RBI (2019), P2P, Account Aggregator, NOF |
+| 🏛 International Finance & Institutions | BIS/Basel, SDR basket, World Bank IDA vs IBRD, FSB, NDB (Shanghai), IMF conditionality |
+
+Sufficiency analysis: 54 is the stopping point. Capital Markets and Agricultural Finance (NABARD) are low-weight in Phase 1 MCQ; better addressed in Phase 2 descriptive prep. Phase 1 DB (267 Qs) covers the theory gap.
+
+**3. Streamlit testing — solved for entire model**
+
+Root cause: Streamlit's React layer CSS-hides native `<input type="radio">` and custom-renders dropdowns. Native Playwright locators fail silently.
+
+- Created `scripts/streamlit_test_utils.py` — reusable helpers for all pages: `answer_radio_groups()`, `click_tab()`, `submit_form()`, `check_for_errors()`, `run_smoke_test()`
+- Created `.claude/skills/run-app/SKILL.md` — project skill documenting server start, all 7 pages, Playwright patterns, known IES bugs
+- Confirmed working: `python3 scripts/streamlit_test_utils.py` runs smoke test across all 7 pages (10/11 PASS; Model Answers fails on pre-existing db.py:44 bug)
+
+**4. All changes verified live**
+
+Smoke test results:
+```
+✅ app, Quiz, Study Brief, My Progress, Return Quiz, RBI Prep
+✅ RBI/Key Data, RBI/Phase 1 Drill, RBI/Tier 2 Quiz, RBI/My Progress
+❌ Model Answers — pre-existing db.py:44 connection bug (not this session)
+```
+
+**5. Memory + skills updated**
+- `memory/project_ies_exam_prep.md` — session 7 patch notes, Tier 2 count updated
+- `memory/feedback_streamlit_testing.md` — NEW: full Playwright patterns for Streamlit
+- `memory/MEMORY.md` — index updated
+- `SKILL_REGISTRY.md` — run-app skill added
+- `development-workflow` skill — L-DEV-28 added (Streamlit testing pattern)
+
+---
+
+## Exact Next Steps (from Session 8)
+
+### STUDY (before June 14 RBI exam):
+All bugs are fixed. App is 11/11 smoke test passing. **Use the app.**
+- RBI Phase 1 Drill → Smart Serve daily (IS-LM first, highest flag_impact)
+- Return Quiz for IES topic verification
+- Mundell-Fleming top-up still pending: `scripts/rbi/06_topup_questions.py` (only 7 Qs, need ~13 more)
+
+### MVMU — MINIMUM VIABLE MULTI-USER (post-exam, 5–7 days, do in order):
+
+Full plan: `memory/project_multiuser_plan.md` — 16 DECIDE items.
+
+**Step 1 — Fix live RBI data corruption (30 min) ← DO FIRST**
+`6_RBI_Prep.py:21`: `USER_ID = "rahul"` hardcoded. All RBI attempts from any user save as "rahul".
+Fix: replace with `get_user_id()` from `db.py`.
+
+**Step 2 — Revert @st.cache_resource → per-request connections (1 hour)**
+All 5 IES pages currently use `@st.cache_resource` for DB connections — correct for single-user,
+wrong for multi-user (Python sqlite3 not thread-safe at connection-object level). Replace with:
+```python
+conn = get_conn()
+try:
+    # page logic
+finally:
+    conn.close()
+```
+Also enable WAL mode in `get_conn()`: `conn.execute("PRAGMA journal_mode=WAL"); conn.execute("PRAGMA busy_timeout=5000")`
+
+**Step 3 — Add users + sessions tables + Google OAuth (2–3 days)**
+- `migrations/002_add_users_sessions.py` — schema from `memory/project_multiuser_plan.md`
+- `pages/0_Login.py` — Google OAuth via `authlib`
+- `web/auth.py` — `require_user()`, `validate_session_cookie()`, `create_session()`
+
+**Step 4 — Auth gate on every page (half day)**
+Replace `conn = get_conn()` at top of every page with `uid = require_user()` (hard-stops to login if unauthenticated). Remove fallback-to-"rahul" from `get_user_id()`.
+
+**Step 5 — Rate limiting (half day)**
+Add `daily_api_calls` + `quota_resets_at` to `users` table. Implement `check_and_increment_quota()` in `db.py`. Wire into `2_Quiz.py` before every AI call. Limit: 20 calls/day ($1.80/user/month max).
+
+**Step 6 — Remove .env fallback from load_api_key() (15 min)**
+Delete the path fallback in `db.py:83`. Hard `raise ValueError` if `ANTHROPIC_API_KEY` env var not set.
+
+**Step 7 — Add composite indexes (15 min)**
+```sql
+CREATE INDEX idx_da_user_exam     ON descriptive_attempts(user_id, exam_id, created_at DESC);
+CREATE INDEX idx_gse_user_topic   ON gap_state_events(user_id, topic_id, exam_id, created_at DESC);
+CREATE INDEX idx_rqa_user_topic   ON return_quiz_attempts(user_id, topic_id, exam_id, created_at DESC);
+CREATE INDEX idx_um_user_exam     ON user_mastery(user_id, exam_id);
+CREATE INDEX idx_gs_user_exam_st  ON gap_states(user_id, exam_id, state);
+CREATE INDEX idx_tas_user_exam    ON topic_attempt_summary(user_id, exam_id);
+```
+
+**Step 8 — Deploy on Hetzner CX21 (~€4.5/mo) or Railway ($5/mo)**
+Single-process Streamlit + SQLite WAL. Set `ANTHROPIC_API_KEY` + Google OAuth credentials as env vars. Enable HTTPS (Caddy). Smoke test with 2 separate Google accounts.
+
+### DEFERRED (after exams + MVMU):
+- UPSC Mains web tab (`7_UPSC_Mains.py` + `8_UPSC_Model_Answers.py`)
+- `user_events` universal audit log (DECIDE-15)
+- `schema_versions` migration tracking (DECIDE-16)
+- Migrate to PostgreSQL at 500 users (DECIDE-14)
 
 ---
 
@@ -168,9 +327,11 @@ Push to GitHub + set `ANTHROPIC_API_KEY` secret on share.streamlit.io.
 
 ## To Start App
 ```bash
-/Users/rahulsingh/Library/Python/3.9/bin/streamlit run web/app.py
+/opt/homebrew/bin/streamlit run web/app.py
 ```
 Opens at http://localhost:8501
+
+**Python:** 3.11.15 via Homebrew (`/opt/homebrew/bin/python3.11`). Do NOT use the system 3.9 path (`/Library/Python/3.9/bin/`) — pip is broken there and it doesn't support `X | Y` union type syntax.
 
 ---
 

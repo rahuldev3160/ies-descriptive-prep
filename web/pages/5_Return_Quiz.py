@@ -37,7 +37,11 @@ for key, default in [
         st.session_state[key] = default
 
 # ── DB ────────────────────────────────────────────────────────────────────────
-conn = get_conn()
+@st.cache_resource
+def _get_conn():
+    return get_conn()
+
+conn = _get_conn()
 init_user(conn, get_user_id())
 
 # ── SIDEBAR ───────────────────────────────────────────────────────────────────
@@ -60,7 +64,6 @@ with st.sidebar:
 
     if not topics_sorted:
         st.info("No topics found.")
-        conn.close()
         st.stop()
 
     topic_ids_list = [t["topic_id"] for t in topics_sorted]
@@ -93,7 +96,6 @@ questions = get_mcq_questions(conn, topic_id)
 
 if not topic_info or not questions:
     st.warning("No MCQ questions available for this topic yet.")
-    conn.close()
     st.stop()
 
 state = topic_info["state"]
@@ -146,7 +148,7 @@ if last_result and last_result.get("topic_id") == topic_id:
         icon = "✅" if is_correct else "❌"
         with st.expander(f"{icon} Q{i + 1}  ·  {q['question_text'][:90]}{'…' if len(q['question_text']) > 90 else ''}"):
             opts = [q["correct_answer"], q.get("option_b"), q.get("option_c"), q.get("option_d")]
-            opts = sorted([o for o in opts if o], key=lambda x: x[0] if x else "Z")
+            opts = sorted([o for o in opts if o])
             for opt in opts:
                 is_opt_correct = opt.strip() == (q["correct_answer"] or "").strip()
                 is_opt_chosen = opt.strip() == user_ans.strip()
@@ -180,7 +182,6 @@ if last_result and last_result.get("topic_id") == topic_id:
             st.session_state.rq_session_id = str(uuid.uuid4())
             st.rerun()
 
-    conn.close()
     st.stop()
 
 # ── QUIZ FORM ─────────────────────────────────────────────────────────────────
@@ -201,7 +202,7 @@ with st.form(form_key):
         st.caption(f"Difficulty: {diff_label} · Focus: {dim}")
 
         opts = [q["correct_answer"], q.get("option_b"), q.get("option_c"), q.get("option_d")]
-        opts = sorted([o for o in opts if o], key=lambda x: x[0] if x else "Z")
+        opts = sorted([o for o in opts if o])
 
         chosen = st.radio(
             "",
@@ -231,5 +232,3 @@ if submitted:
             "answers": answers,
         }
         st.rerun()
-
-conn.close()

@@ -13,7 +13,11 @@ from styles import apply_theme, chip, score_color
 st.set_page_config(page_title="My Progress · IES 2026", layout="wide", page_icon="📈")
 apply_theme()
 
-conn = get_conn()
+@st.cache_resource
+def _get_conn():
+    return get_conn()
+
+conn = _get_conn()
 
 st.markdown("## 📈 My Progress")
 st.markdown('<div style="color:#9AA0A6;font-size:0.88rem;margin-bottom:1rem">Track your quiz attempts and score improvements over time.</div>', unsafe_allow_html=True)
@@ -43,7 +47,6 @@ if summary["total"] == 0:
         <div style="font-size:1.1rem;color:#E8EAED;margin-bottom:8px">No quiz attempts yet</div>
         <div style="font-size:0.85rem;color:#9AA0A6">Head to the Quiz page to practice your first question</div>
     </div>""", unsafe_allow_html=True)
-    conn.close()
     st.stop()
 
 # ── Filters ────────────────────────────────────────────────────────────────────
@@ -64,7 +67,6 @@ attempts = get_attempts(conn, topic_id=topic_id_filter, date_from=date_from, dat
 
 if not attempts:
     st.info("No attempts match the selected filters.")
-    conn.close()
     st.stop()
 
 # ── Attempts table ─────────────────────────────────────────────────────────────
@@ -164,5 +166,3 @@ for a in attempts[:5]:
             Conclusion: <strong style="color:#81C995">{scores.get('score_conclusion','—')}</strong>
         </div>
     </div>""", unsafe_allow_html=True)
-
-conn.close()
