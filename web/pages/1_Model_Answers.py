@@ -252,11 +252,7 @@ def _render_data_tab(ans: dict) -> None:
 
 # ── Page layout ────────────────────────────────────────────────────────────────
 
-@st.cache_resource
-def _get_conn():
-    return get_conn()
-
-conn = _get_conn()
+conn = get_conn()
 
 with st.sidebar:
     st.markdown("## 📖 Model Answers")
@@ -400,3 +396,5 @@ for qi, q in enumerate(filtered_qs):
         '<div style="margin:8px 0 16px;border-top:1px solid rgba(255,255,255,0.06)"></div>',
         unsafe_allow_html=True,
     )
+
+conn.close()

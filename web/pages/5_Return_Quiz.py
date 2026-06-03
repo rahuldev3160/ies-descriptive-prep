@@ -10,6 +10,7 @@ from db import (
     get_conn, get_user_id, init_user, get_topics,
     get_mcq_questions, submit_return_quiz, get_true_readiness, log_event, EXAM_ID,
 )
+from auth import require_user
 from styles import apply_theme, badge, chip, progress_bar
 
 st.set_page_config(page_title="Return Quiz · IES 2026", layout="wide", page_icon="✅")
@@ -37,12 +38,9 @@ for key, default in [
         st.session_state[key] = default
 
 # ── DB ────────────────────────────────────────────────────────────────────────
-@st.cache_resource
-def _get_conn():
-    return get_conn()
-
-conn = _get_conn()
-init_user(conn, get_user_id())
+conn = get_conn()
+user_id = require_user(conn)
+init_user(conn, user_id)
 
 # ── SIDEBAR ───────────────────────────────────────────────────────────────────
 with st.sidebar:
@@ -236,3 +234,5 @@ if submitted:
             "answers": answers,
         }
         st.rerun()
+
+conn.close()

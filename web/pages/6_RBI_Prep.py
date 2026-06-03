@@ -6,16 +6,21 @@ import sys
 import uuid
 from datetime import datetime
 from pathlib import Path
-from typing import Optional
 
 sys.path.insert(0, str(Path(__file__).parent.parent))
 
 import streamlit as st
-from db import get_user_id, log_event
+from db import get_conn as _get_ies_conn, get_user_id, log_event
+from auth import require_user
 from styles import apply_theme
 
 st.set_page_config(page_title="RBI Prep · DEPR 2026", layout="wide", page_icon="🏦")
 apply_theme()
+
+# ── Auth (validates session against ies.db, then releases that connection) ─────
+_ies_conn = _get_ies_conn()
+user_id = require_user(_ies_conn)
+_ies_conn.close()
 
 RBI_DATE = "2026-06-14"
 RBI_DB_PATH = Path(__file__).parent.parent.parent / "data" / "rbi.db"
@@ -25,16 +30,15 @@ def days_to_rbi() -> int:
     return (datetime.strptime(RBI_DATE, "%Y-%m-%d").date() - datetime.today().date()).days
 
 
-# ── DB connection (single cached resource — avoids connection leak) ─────────────
+# ── DB connection ──────────────────────────────────────────────────────────────
 
-@st.cache_resource
-def get_rbi_conn() -> Optional[sqlite3.Connection]:
-    if not RBI_DB_PATH.exists():
-        return None
-    conn = sqlite3.connect(str(RBI_DB_PATH), check_same_thread=False)
-    conn.row_factory = sqlite3.Row
-    conn.execute("PRAGMA journal_mode=WAL")
-    return conn
+if not RBI_DB_PATH.exists():
+    st.error("rbi.db not found. Run `python3 scripts/rbi/00_init_rbi_db.py` first.")
+    st.stop()
+conn = sqlite3.connect(str(RBI_DB_PATH), check_same_thread=False)
+conn.row_factory = sqlite3.Row
+conn.execute("PRAGMA journal_mode=WAL")
+conn.execute("PRAGMA busy_timeout=5000")
 
 
 # ── DB query helpers ───────────────────────────────────────────────────────────
@@ -717,193 +721,188 @@ with tab1:
 # TAB 2 — Phase 1 Theory Drill
 # ══════════════════════════════════════════════════════════════════════════════
 with tab2:
-    conn = get_rbi_conn()
+    t1_count = conn.execute("SELECT COUNT(*) FROM rbi_questions WHERE tier=1").fetchone()[0]
 
-    if conn is None:
-        st.warning("rbi.db not found. Run `python3 scripts/rbi/00_init_rbi_db.py` first.", icon="⚠")
+    if t1_count == 0:
+        st.info(
+            "**Question bank is being generated.** "
+            "Run `python3 scripts/rbi/02_generate_mcq_bank.py` to populate Phase 1 questions. "
+            "While you wait, the Tier 2 Quiz tab has 36 current-affairs MCQs ready.",
+            icon="⏳",
+        )
+        st.caption(f"Tier 2 questions in DB: {conn.execute('SELECT COUNT(*) FROM rbi_questions WHERE tier=2').fetchone()[0]}")
     else:
-        t1_count = conn.execute("SELECT COUNT(*) FROM rbi_questions WHERE tier=1").fetchone()[0]
-
-        if t1_count == 0:
-            st.info(
-                "**Question bank is being generated.** "
-                "Run `python3 scripts/rbi/02_generate_mcq_bank.py` to populate Phase 1 questions. "
-                "While you wait, the Tier 2 Quiz tab has 36 current-affairs MCQs ready.",
-                icon="⏳",
+        # ── Mode selector ──────────────────────────────────────────────
+        col_mode, col_info = st.columns([2, 3], gap="large")
+        with col_mode:
+            mode = st.radio(
+                "Session mode",
+                ["🎯 Smart Serve", "🔍 Filter"],
+                index=0 if st.session_state.rbi_drill_mode == "smart" else 1,
+                horizontal=True,
+                key="rbi_drill_mode_radio",
             )
-            st.caption(f"Tier 2 questions in DB: {conn.execute('SELECT COUNT(*) FROM rbi_questions WHERE tier=2').fetchone()[0]}")
-        else:
-            # ── Mode selector ──────────────────────────────────────────────
-            col_mode, col_info = st.columns([2, 3], gap="large")
-            with col_mode:
-                mode = st.radio(
-                    "Session mode",
-                    ["🎯 Smart Serve", "🔍 Filter"],
-                    index=0 if st.session_state.rbi_drill_mode == "smart" else 1,
-                    horizontal=True,
-                    key="rbi_drill_mode_radio",
-                )
-                st.session_state.rbi_drill_mode = "smart" if "Smart" in mode else "filter"
+            st.session_state.rbi_drill_mode = "smart" if "Smart" in mode else "filter"
 
-            with col_info:
-                if st.session_state.rbi_drill_mode == "smart":
-                    st.caption("Smart Serve picks the highest-gap topics and unanswered questions first, based on your coverage data.")
-                else:
-                    st.caption("Filter mode lets you target a specific subject, topic, or difficulty.")
-
-            # ── Session controls ───────────────────────────────────────────
-            if not st.session_state.rbi_drill_questions or st.session_state.rbi_drill_submitted:
-                # Show setup panel when no session is active or previous one ended
-                if st.session_state.rbi_drill_submitted:
-                    # Show summary from last session
-                    results = st.session_state.rbi_drill_results
-                    if results:
-                        correct = sum(1 for r in results if r["is_correct"])
-                        total_r = len(results)
-                        pct = correct / total_r
-                        c_col = "#81C995" if pct >= 0.8 else "#FDD663" if pct >= 0.5 else "#F28B82"
-                        st.markdown(
-                            f'<div class="score-card" style="border-color:{c_col}33;margin-bottom:16px">'
-                            f'<div class="score-num" style="color:{c_col}">{correct}/{total_r}</div>'
-                            f'<div class="score-label">Phase 1 Drill — {int(pct * 100)}% correct</div>'
-                            f'</div>',
-                            unsafe_allow_html=True,
-                        )
-                        # Per-question results — Tier 2 style with option highlighting
-                        st.markdown("#### Question-by-question breakdown")
-                        for i, r in enumerate(results):
-                            q_preview = r["question"]
-                            q_label = (q_preview[:80] + "…") if len(q_preview) > 80 else q_preview
-                            with st.expander(f"{'✅' if r['is_correct'] else '❌'} Q{i+1}  ·  {q_label}"):
-                                for opt in r.get("options", []):
-                                    is_opt_correct = opt.strip() == r.get("correct_option_full", "").strip()
-                                    is_opt_chosen = opt.strip() == r["answer_given"].strip()
-                                    if is_opt_correct and is_opt_chosen:
-                                        st.markdown(f"**✓ {opt}** ← your answer ✅")
-                                    elif is_opt_correct:
-                                        st.markdown(f"**✓ {opt}** ← correct answer")
-                                    elif is_opt_chosen:
-                                        st.markdown(f"~~{opt}~~ ← your answer ❌")
-                                    else:
-                                        st.markdown(f"  {opt}")
-                                st.info(f"**Why:** {r['explanation']}")
-
-                col_start, col_n = st.columns([2, 1])
-                with col_n:
-                    n_qs = st.selectbox("Questions per session", [5, 10, 15, 20], index=1, key="rbi_drill_n_select")
-
-                if st.session_state.rbi_drill_mode == "filter":
-                    subjects = ["all"] + sorted({
-                        r[0] for r in conn.execute("SELECT DISTINCT subject FROM rbi_questions WHERE tier=1").fetchall()
-                    })
-                    selected_subj = st.selectbox("Subject", subjects, key="rbi_filter_subject")
-
-                    topic_query = "SELECT DISTINCT topic FROM rbi_questions WHERE tier=1"
-                    topic_params: list = []
-                    if selected_subj != "all":
-                        topic_query += " AND subject=?"
-                        topic_params.append(selected_subj)
-                    topics = ["all"] + sorted({r[0] for r in conn.execute(topic_query, topic_params).fetchall()})
-                    selected_topic = st.selectbox("Topic", topics, key="rbi_filter_topic")
-
-                    col_diff, col_traps, col_recent = st.columns(3)
-                    with col_diff:
-                        difficulty = st.selectbox("Difficulty", ["all", "easy", "medium", "hard"], key="rbi_filter_diff")
-                    with col_traps:
-                        traps_only = st.checkbox("Traps only", key="rbi_filter_traps")
-                    with col_recent:
-                        recent_only = st.checkbox("Recent data only", key="rbi_filter_recent")
-
-                    st.session_state.rbi_drill_filter = {
-                        "subject": selected_subj, "topic": selected_topic,
-                        "difficulty": difficulty, "is_trap": traps_only, "is_recent": recent_only,
-                    }
-
-                with col_start:
-                    btn_label = "▶ Start Smart Session" if st.session_state.rbi_drill_mode == "smart" else "▶ Load Filtered Questions"
-                    if st.button(btn_label, type="primary", use_container_width=True):
-                        if st.session_state.rbi_drill_mode == "smart":
-                            qs = get_smart_questions(conn, n_qs)
-                        else:
-                            qs = get_filtered_questions(conn, st.session_state.rbi_drill_filter, n_qs)
-
-                        if not qs:
-                            st.warning("No questions match the current filters. Try broadening your selection.")
-                        else:
-                            st.session_state.rbi_drill_questions = qs
-                            st.session_state.rbi_drill_answers = {}
-                            st.session_state.rbi_drill_submitted = False
-                            st.session_state.rbi_drill_results = []
-                            st.session_state.rbi_drill_session_id = str(uuid.uuid4())
-                            st.rerun()
-
+        with col_info:
+            if st.session_state.rbi_drill_mode == "smart":
+                st.caption("Smart Serve picks the highest-gap topics and unanswered questions first, based on your coverage data.")
             else:
-                # ── Active quiz session ────────────────────────────────────
-                questions = st.session_state.rbi_drill_questions
-                session_id = st.session_state.rbi_drill_session_id
+                st.caption("Filter mode lets you target a specific subject, topic, or difficulty.")
 
-                st.caption(f"{len(questions)} questions · Smart Serve" if st.session_state.rbi_drill_mode == "smart"
-                           else f"{len(questions)} questions · Filtered")
+        # ── Session controls ───────────────────────────────────────────
+        if not st.session_state.rbi_drill_questions or st.session_state.rbi_drill_submitted:
+            # Show setup panel when no session is active or previous one ended
+            if st.session_state.rbi_drill_submitted:
+                # Show summary from last session
+                results = st.session_state.rbi_drill_results
+                if results:
+                    correct = sum(1 for r in results if r["is_correct"])
+                    total_r = len(results)
+                    pct = correct / total_r
+                    c_col = "#81C995" if pct >= 0.8 else "#FDD663" if pct >= 0.5 else "#F28B82"
+                    st.markdown(
+                        f'<div class="score-card" style="border-color:{c_col}33;margin-bottom:16px">'
+                        f'<div class="score-num" style="color:{c_col}">{correct}/{total_r}</div>'
+                        f'<div class="score-label">Phase 1 Drill — {int(pct * 100)}% correct</div>'
+                        f'</div>',
+                        unsafe_allow_html=True,
+                    )
+                    # Per-question results — Tier 2 style with option highlighting
+                    st.markdown("#### Question-by-question breakdown")
+                    for i, r in enumerate(results):
+                        q_preview = r["question"]
+                        q_label = (q_preview[:80] + "…") if len(q_preview) > 80 else q_preview
+                        with st.expander(f"{'✅' if r['is_correct'] else '❌'} Q{i+1}  ·  {q_label}"):
+                            for opt in r.get("options", []):
+                                is_opt_correct = opt.strip() == r.get("correct_option_full", "").strip()
+                                is_opt_chosen = opt.strip() == r["answer_given"].strip()
+                                if is_opt_correct and is_opt_chosen:
+                                    st.markdown(f"**✓ {opt}** ← your answer ✅")
+                                elif is_opt_correct:
+                                    st.markdown(f"**✓ {opt}** ← correct answer")
+                                elif is_opt_chosen:
+                                    st.markdown(f"~~{opt}~~ ← your answer ❌")
+                                else:
+                                    st.markdown(f"  {opt}")
+                            st.info(f"**Why:** {r['explanation']}")
 
-                answers: dict = {}
-                form_key = f"rbi_drill_form_{session_id}"
+            col_start, col_n = st.columns([2, 1])
+            with col_n:
+                n_qs = st.selectbox("Questions per session", [5, 10, 15, 20], index=1, key="rbi_drill_n_select")
 
-                with st.form(form_key):
-                    for i, q in enumerate(questions):
-                        trap_badge = ' <span style="font-size:0.68rem;color:#F28B82;background:rgba(242,139,130,0.1);border:1px solid rgba(242,139,130,0.25);border-radius:8px;padding:1px 6px">⚡ trap</span>' if q.get("is_trap") else ""
-                        diff_color = "#81C995" if q.get("difficulty") == "easy" else "#FDD663" if q.get("difficulty") == "medium" else "#F28B82"
-                        st.markdown(
-                            f'<div style="font-size:0.72rem;color:{diff_color};margin-bottom:2px;text-transform:uppercase;letter-spacing:.05em">'
-                            f'{q.get("subject","").replace("_"," ")} · {q.get("topic","").replace("_"," ")} · {q.get("difficulty","")}{trap_badge}</div>',
-                            unsafe_allow_html=True,
-                        )
-                        st.markdown(f"**Q{i+1}.** {q['question']}")
-                        opts = [q["option_a"], q["option_b"], q["option_c"], q["option_d"]]
-                        chosen = st.radio("", opts, index=None,
-                                          key=f"rbi_drill_q_{session_id}_{q['id']}",
-                                          label_visibility="collapsed")
-                        answers[q["id"]] = chosen or ""
-                        if i < len(questions) - 1:
-                            st.markdown("---")
+            if st.session_state.rbi_drill_mode == "filter":
+                subjects = ["all"] + sorted({
+                    r[0] for r in conn.execute("SELECT DISTINCT subject FROM rbi_questions WHERE tier=1").fetchall()
+                })
+                selected_subj = st.selectbox("Subject", subjects, key="rbi_filter_subject")
 
-                    st.markdown("")
-                    drill_submitted = st.form_submit_button("Submit Session →", use_container_width=True, type="primary")
+                topic_query = "SELECT DISTINCT topic FROM rbi_questions WHERE tier=1"
+                topic_params: list = []
+                if selected_subj != "all":
+                    topic_query += " AND subject=?"
+                    topic_params.append(selected_subj)
+                topics = ["all"] + sorted({r[0] for r in conn.execute(topic_query, topic_params).fetchall()})
+                selected_topic = st.selectbox("Topic", topics, key="rbi_filter_topic")
 
-                if drill_submitted:
-                    unanswered = [i + 1 for i, q in enumerate(questions) if not answers.get(q["id"])]
-                    if unanswered:
-                        nums = ", ".join(f"Q{n}" for n in unanswered)
-                        st.warning(f"Please answer {nums} before submitting.")
+                col_diff, col_traps, col_recent = st.columns(3)
+                with col_diff:
+                    difficulty = st.selectbox("Difficulty", ["all", "easy", "medium", "hard"], key="rbi_filter_diff")
+                with col_traps:
+                    traps_only = st.checkbox("Traps only", key="rbi_filter_traps")
+                with col_recent:
+                    recent_only = st.checkbox("Recent data only", key="rbi_filter_recent")
+
+                st.session_state.rbi_drill_filter = {
+                    "subject": selected_subj, "topic": selected_topic,
+                    "difficulty": difficulty, "is_trap": traps_only, "is_recent": recent_only,
+                }
+
+            with col_start:
+                btn_label = "▶ Start Smart Session" if st.session_state.rbi_drill_mode == "smart" else "▶ Load Filtered Questions"
+                if st.button(btn_label, type="primary", use_container_width=True):
+                    if st.session_state.rbi_drill_mode == "smart":
+                        qs = get_smart_questions(conn, n_qs)
                     else:
-                        results = []
-                        for q in questions:
-                            chosen_letter = answers.get(q["id"], "")
-                            # Extract letter from "A) ..." format
-                            letter = chosen_letter[0] if chosen_letter else ""
-                            is_correct = letter == q["correct_option"]
-                            save_attempt(conn, q["id"], letter, is_correct, session_id,
-                                         q["topic"], q["subject"])
-                            correct_key = f"option_{q['correct_option'].lower()}"
-                            results.append({
-                                "question": q["question"],
-                                "answer_given": chosen_letter,
-                                "correct_option": q["correct_option"],
-                                "correct_option_full": q[correct_key],
-                                "options": [q["option_a"], q["option_b"], q["option_c"], q["option_d"]],
-                                "explanation": q["explanation"],
-                                "is_correct": is_correct,
-                            })
-                        st.session_state.rbi_drill_results = results
-                        st.session_state.rbi_drill_submitted = True
-                        st.session_state.rbi_drill_questions = []
+                        qs = get_filtered_questions(conn, st.session_state.rbi_drill_filter, n_qs)
+
+                    if not qs:
+                        st.warning("No questions match the current filters. Try broadening your selection.")
+                    else:
+                        st.session_state.rbi_drill_questions = qs
+                        st.session_state.rbi_drill_answers = {}
+                        st.session_state.rbi_drill_submitted = False
+                        st.session_state.rbi_drill_results = []
+                        st.session_state.rbi_drill_session_id = str(uuid.uuid4())
                         st.rerun()
 
-                col_cancel, _ = st.columns([1, 3])
-                with col_cancel:
-                    if st.button("✕ Cancel session", use_container_width=True):
-                        st.session_state.rbi_drill_questions = []
-                        st.session_state.rbi_drill_submitted = False
-                        st.rerun()
+        else:
+            # ── Active quiz session ────────────────────────────────────
+            questions = st.session_state.rbi_drill_questions
+            session_id = st.session_state.rbi_drill_session_id
+
+            st.caption(f"{len(questions)} questions · Smart Serve" if st.session_state.rbi_drill_mode == "smart"
+                       else f"{len(questions)} questions · Filtered")
+
+            answers: dict = {}
+            form_key = f"rbi_drill_form_{session_id}"
+
+            with st.form(form_key):
+                for i, q in enumerate(questions):
+                    trap_badge = ' <span style="font-size:0.68rem;color:#F28B82;background:rgba(242,139,130,0.1);border:1px solid rgba(242,139,130,0.25);border-radius:8px;padding:1px 6px">⚡ trap</span>' if q.get("is_trap") else ""
+                    diff_color = "#81C995" if q.get("difficulty") == "easy" else "#FDD663" if q.get("difficulty") == "medium" else "#F28B82"
+                    st.markdown(
+                        f'<div style="font-size:0.72rem;color:{diff_color};margin-bottom:2px;text-transform:uppercase;letter-spacing:.05em">'
+                        f'{q.get("subject","").replace("_"," ")} · {q.get("topic","").replace("_"," ")} · {q.get("difficulty","")}{trap_badge}</div>',
+                        unsafe_allow_html=True,
+                    )
+                    st.markdown(f"**Q{i+1}.** {q['question']}")
+                    opts = [q["option_a"], q["option_b"], q["option_c"], q["option_d"]]
+                    chosen = st.radio("", opts, index=None,
+                                      key=f"rbi_drill_q_{session_id}_{q['id']}",
+                                      label_visibility="collapsed")
+                    answers[q["id"]] = chosen or ""
+                    if i < len(questions) - 1:
+                        st.markdown("---")
+
+                st.markdown("")
+                drill_submitted = st.form_submit_button("Submit Session →", use_container_width=True, type="primary")
+
+            if drill_submitted:
+                unanswered = [i + 1 for i, q in enumerate(questions) if not answers.get(q["id"])]
+                if unanswered:
+                    nums = ", ".join(f"Q{n}" for n in unanswered)
+                    st.warning(f"Please answer {nums} before submitting.")
+                else:
+                    results = []
+                    for q in questions:
+                        chosen_letter = answers.get(q["id"], "")
+                        # Extract letter from "A) ..." format
+                        letter = chosen_letter[0] if chosen_letter else ""
+                        is_correct = letter == q["correct_option"]
+                        save_attempt(conn, q["id"], letter, is_correct, session_id,
+                                     q["topic"], q["subject"])
+                        correct_key = f"option_{q['correct_option'].lower()}"
+                        results.append({
+                            "question": q["question"],
+                            "answer_given": chosen_letter,
+                            "correct_option": q["correct_option"],
+                            "correct_option_full": q[correct_key],
+                            "options": [q["option_a"], q["option_b"], q["option_c"], q["option_d"]],
+                            "explanation": q["explanation"],
+                            "is_correct": is_correct,
+                        })
+                    st.session_state.rbi_drill_results = results
+                    st.session_state.rbi_drill_submitted = True
+                    st.session_state.rbi_drill_questions = []
+                    st.rerun()
+
+            col_cancel, _ = st.columns([1, 3])
+            with col_cancel:
+                if st.button("✕ Cancel session", use_container_width=True):
+                    st.session_state.rbi_drill_questions = []
+                    st.session_state.rbi_drill_submitted = False
+                    st.rerun()
 
 # ══════════════════════════════════════════════════════════════════════════════
 # TAB 3 — Tier 2 Quiz (current affairs, no DB)
@@ -1088,123 +1087,120 @@ with tab3:
 # TAB 4 — My Progress
 # ══════════════════════════════════════════════════════════════════════════════
 with tab4:
-    conn4 = get_rbi_conn()
+    total_attempts = conn.execute(
+        "SELECT COUNT(*) FROM rbi_attempts WHERE user_id=?", (get_user_id(),)
+    ).fetchone()[0]
 
-    if conn4 is None:
-        st.warning("rbi.db not found.", icon="⚠")
+    if total_attempts == 0:
+        st.info(
+            "No Phase 1 drill attempts yet. Complete sessions in the **Phase 1 Drill** tab to see your coverage and readiness scores here.",
+            icon="📊",
+        )
+        # Still show Tier 2 summary if available
+        if st.session_state.rbi6_scores:
+            st.markdown("#### Tier 2 Quiz Summary")
+            for bk, s in st.session_state.rbi6_scores.items():
+                p = s["correct"] / s["total"]
+                c = "#81C995" if p >= 0.8 else "#FDD663" if p >= 0.5 else "#F28B82"
+                st.markdown(
+                    f'<div style="display:flex;justify-content:space-between;padding:6px 0;border-bottom:1px solid #2a2a2a">'
+                    f'<span style="font-size:0.82rem">{BUCKETS[bk]["icon"]} {BUCKETS[bk]["label"]}</span>'
+                    f'<span style="font-size:0.82rem;font-weight:600;color:{c}">{s["correct"]}/{s["total"]} ({int(p*100)}%)</span>'
+                    f'</div>',
+                    unsafe_allow_html=True,
+                )
     else:
-        total_attempts = conn4.execute(
-            "SELECT COUNT(*) FROM rbi_attempts WHERE user_id=?", (get_user_id(),)
-        ).fetchone()[0]
+        pd = get_progress_data(conn)
+        formula_pct = pd["formula_score"]
+        true_pct = pd["true_readiness"]
 
-        if total_attempts == 0:
-            st.info(
-                "No Phase 1 drill attempts yet. Complete sessions in the **Phase 1 Drill** tab to see your coverage and readiness scores here.",
-                icon="📊",
+        # ── Readiness header ───────────────────────────────────────────
+        rc1, rc2, rc3 = st.columns(3)
+        with rc1:
+            fc = "#81C995" if formula_pct >= 0.7 else "#FDD663" if formula_pct >= 0.4 else "#F28B82"
+            st.markdown(
+                f'<div class="gem-card" style="text-align:center;border-color:{fc}33">'
+                f'<div style="font-size:1.8rem;font-weight:700;color:{fc}">{int(formula_pct*100)}%</div>'
+                f'<div style="font-size:0.72rem;color:#9AA0A6;text-transform:uppercase;letter-spacing:.06em">Mastery Score (weighted avg)</div>'
+                f'</div>',
+                unsafe_allow_html=True,
             )
-            # Still show Tier 2 summary if available
-            if st.session_state.rbi6_scores:
-                st.markdown("#### Tier 2 Quiz Summary")
-                for bk, s in st.session_state.rbi6_scores.items():
-                    p = s["correct"] / s["total"]
-                    c = "#81C995" if p >= 0.8 else "#FDD663" if p >= 0.5 else "#F28B82"
-                    st.markdown(
-                        f'<div style="display:flex;justify-content:space-between;padding:6px 0;border-bottom:1px solid #2a2a2a">'
-                        f'<span style="font-size:0.82rem">{BUCKETS[bk]["icon"]} {BUCKETS[bk]["label"]}</span>'
-                        f'<span style="font-size:0.82rem;font-weight:600;color:{c}">{s["correct"]}/{s["total"]} ({int(p*100)}%)</span>'
-                        f'</div>',
-                        unsafe_allow_html=True,
-                    )
+        with rc2:
+            tc = "#81C995" if true_pct >= 0.6 else "#FDD663" if true_pct >= 0.35 else "#F28B82"
+            st.markdown(
+                f'<div class="gem-card" style="text-align:center;border-color:{tc}33">'
+                f'<div style="font-size:1.8rem;font-weight:700;color:{tc}">{int(true_pct*100)}%</div>'
+                f'<div style="font-size:0.72rem;color:#9AA0A6;text-transform:uppercase;letter-spacing:.06em">Exam Readiness (gap-adjusted)</div>'
+                f'</div>',
+                unsafe_allow_html=True,
+            )
+        with rc3:
+            st.markdown(
+                f'<div class="gem-card" style="text-align:center">'
+                f'<div style="font-size:1.8rem;font-weight:700;color:#8AB4F8">{pd["total_attempts"]}</div>'
+                f'<div style="font-size:0.72rem;color:#9AA0A6;text-transform:uppercase;letter-spacing:.06em">Questions Attempted</div>'
+                f'</div>',
+                unsafe_allow_html=True,
+            )
+
+        st.caption("True Readiness = Formula score minus gap penalty for topics <50% covered.")
+
+        # ── Gap alerts ─────────────────────────────────────────────────
+        gaps = pd["gaps"]
+        if gaps:
+            st.markdown("#### ⚠ Gap Alerts — study these first")
+            for g in gaps[:5]:
+                cov = g["coverage_pct"]
+                gi = g["flag_impact"]
+                gcol = "#F28B82" if cov < 0.2 else "#FDD663"
+                st.markdown(
+                    f'<div style="display:flex;justify-content:space-between;align-items:center;'
+                    f'padding:8px 12px;background:rgba(255,255,255,0.03);border-left:3px solid {gcol};'
+                    f'border-radius:4px;margin-bottom:6px">'
+                    f'<div>'
+                    f'<span style="font-size:0.84rem;font-weight:600;color:#E8EAED">{g["topic"].replace("_"," ").title()}</span>'
+                    f'<span style="font-size:0.72rem;color:#9AA0A6;margin-left:8px">{g["subject"].replace("_"," ")}</span>'
+                    f'</div>'
+                    f'<div style="text-align:right">'
+                    f'<span style="font-size:0.82rem;color:{gcol};font-weight:600">{int(cov*100)}% covered</span>'
+                    f'<span style="font-size:0.70rem;color:#9AA0A6;display:block">impact {gi:.3f}</span>'
+                    f'</div>'
+                    f'</div>',
+                    unsafe_allow_html=True,
+                )
+
+            if st.button("🎯 Start Smart Session on top gap", type="primary"):
+                st.session_state.rbi_drill_mode = "smart"
+                st.session_state.rbi_drill_questions = []
+                st.session_state.rbi_drill_submitted = False
+                st.rerun()
         else:
-            pd = get_progress_data(conn4)
-            formula_pct = pd["formula_score"]
-            true_pct = pd["true_readiness"]
+            st.success("No critical gaps! All topics ≥50% covered.", icon="✅")
 
-            # ── Readiness header ───────────────────────────────────────────
-            rc1, rc2, rc3 = st.columns(3)
-            with rc1:
-                fc = "#81C995" if formula_pct >= 0.7 else "#FDD663" if formula_pct >= 0.4 else "#F28B82"
-                st.markdown(
-                    f'<div class="gem-card" style="text-align:center;border-color:{fc}33">'
-                    f'<div style="font-size:1.8rem;font-weight:700;color:{fc}">{int(formula_pct*100)}%</div>'
-                    f'<div style="font-size:0.72rem;color:#9AA0A6;text-transform:uppercase;letter-spacing:.06em">Mastery Score (weighted avg)</div>'
-                    f'</div>',
-                    unsafe_allow_html=True,
-                )
-            with rc2:
-                tc = "#81C995" if true_pct >= 0.6 else "#FDD663" if true_pct >= 0.35 else "#F28B82"
-                st.markdown(
-                    f'<div class="gem-card" style="text-align:center;border-color:{tc}33">'
-                    f'<div style="font-size:1.8rem;font-weight:700;color:{tc}">{int(true_pct*100)}%</div>'
-                    f'<div style="font-size:0.72rem;color:#9AA0A6;text-transform:uppercase;letter-spacing:.06em">Exam Readiness (gap-adjusted)</div>'
-                    f'</div>',
-                    unsafe_allow_html=True,
-                )
-            with rc3:
-                st.markdown(
-                    f'<div class="gem-card" style="text-align:center">'
-                    f'<div style="font-size:1.8rem;font-weight:700;color:#8AB4F8">{pd["total_attempts"]}</div>'
-                    f'<div style="font-size:0.72rem;color:#9AA0A6;text-transform:uppercase;letter-spacing:.06em">Questions Attempted</div>'
-                    f'</div>',
-                    unsafe_allow_html=True,
-                )
+        # ── Subject breakdown ──────────────────────────────────────────
+        st.markdown("#### Subject Coverage")
+        SUBJECT_LABELS = {
+            "macro": "Macroeconomics", "intl_econ": "International Economics",
+            "growth": "Growth & Development", "micro": "Microeconomics",
+            "pub_finance": "Public Finance", "quant": "Quantitative Methods",
+            "env_econ": "Environmental Economics", "rbi_banking": "RBI / Banking",
+            "indian_econ": "Indian Economy",
+        }
+        for subj, cov in sorted(pd["subject_coverage"].items(), key=lambda x: x[1]):
+            label = SUBJECT_LABELS.get(subj, subj.replace("_", " ").title())
+            bar_color = "#81C995" if cov >= 0.7 else "#FDD663" if cov >= 0.4 else "#F28B82"
+            bar_w = max(2, int(cov * 100))
+            st.markdown(
+                f'<div style="margin-bottom:8px">'
+                f'<div style="display:flex;justify-content:space-between;margin-bottom:3px">'
+                f'<span style="font-size:0.78rem;color:#9AA0A6">{label}</span>'
+                f'<span style="font-size:0.78rem;font-weight:600;color:{bar_color}">{int(cov*100)}%</span>'
+                f'</div>'
+                f'<div style="background:#2a2a2a;border-radius:3px;height:5px">'
+                f'<div style="width:{bar_w}%;background:{bar_color};border-radius:3px;height:5px"></div>'
+                f'</div>'
+                f'</div>',
+                unsafe_allow_html=True,
+            )
 
-            st.caption("True Readiness = Formula score minus gap penalty for topics <50% covered.")
-
-            # ── Gap alerts ─────────────────────────────────────────────────
-            gaps = pd["gaps"]
-            if gaps:
-                st.markdown("#### ⚠ Gap Alerts — study these first")
-                for g in gaps[:5]:
-                    cov = g["coverage_pct"]
-                    gi = g["flag_impact"]
-                    gcol = "#F28B82" if cov < 0.2 else "#FDD663"
-                    st.markdown(
-                        f'<div style="display:flex;justify-content:space-between;align-items:center;'
-                        f'padding:8px 12px;background:rgba(255,255,255,0.03);border-left:3px solid {gcol};'
-                        f'border-radius:4px;margin-bottom:6px">'
-                        f'<div>'
-                        f'<span style="font-size:0.84rem;font-weight:600;color:#E8EAED">{g["topic"].replace("_"," ").title()}</span>'
-                        f'<span style="font-size:0.72rem;color:#9AA0A6;margin-left:8px">{g["subject"].replace("_"," ")}</span>'
-                        f'</div>'
-                        f'<div style="text-align:right">'
-                        f'<span style="font-size:0.82rem;color:{gcol};font-weight:600">{int(cov*100)}% covered</span>'
-                        f'<span style="font-size:0.70rem;color:#9AA0A6;display:block">impact {gi:.3f}</span>'
-                        f'</div>'
-                        f'</div>',
-                        unsafe_allow_html=True,
-                    )
-
-                if st.button("🎯 Start Smart Session on top gap", type="primary"):
-                    st.session_state.rbi_drill_mode = "smart"
-                    st.session_state.rbi_drill_questions = []
-                    st.session_state.rbi_drill_submitted = False
-                    st.rerun()
-            else:
-                st.success("No critical gaps! All topics ≥50% covered.", icon="✅")
-
-            # ── Subject breakdown ──────────────────────────────────────────
-            st.markdown("#### Subject Coverage")
-            SUBJECT_LABELS = {
-                "macro": "Macroeconomics", "intl_econ": "International Economics",
-                "growth": "Growth & Development", "micro": "Microeconomics",
-                "pub_finance": "Public Finance", "quant": "Quantitative Methods",
-                "env_econ": "Environmental Economics", "rbi_banking": "RBI / Banking",
-                "indian_econ": "Indian Economy",
-            }
-            for subj, cov in sorted(pd["subject_coverage"].items(), key=lambda x: x[1]):
-                label = SUBJECT_LABELS.get(subj, subj.replace("_", " ").title())
-                bar_color = "#81C995" if cov >= 0.7 else "#FDD663" if cov >= 0.4 else "#F28B82"
-                bar_w = max(2, int(cov * 100))
-                st.markdown(
-                    f'<div style="margin-bottom:8px">'
-                    f'<div style="display:flex;justify-content:space-between;margin-bottom:3px">'
-                    f'<span style="font-size:0.78rem;color:#9AA0A6">{label}</span>'
-                    f'<span style="font-size:0.78rem;font-weight:600;color:{bar_color}">{int(cov*100)}%</span>'
-                    f'</div>'
-                    f'<div style="background:#2a2a2a;border-radius:3px;height:5px">'
-                    f'<div style="width:{bar_w}%;background:{bar_color};border-radius:3px;height:5px"></div>'
-                    f'</div>'
-                    f'</div>',
-                    unsafe_allow_html=True,
-                )
+conn.close()

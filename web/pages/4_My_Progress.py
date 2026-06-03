@@ -8,16 +8,14 @@ import pandas as pd
 import streamlit as st
 
 from db import EXAM_ID, get_user_id, get_attempts, get_attempt_summary, get_conn, get_topics
+from auth import require_user
 from styles import apply_theme, chip, score_color
 
 st.set_page_config(page_title="My Progress · IES 2026", layout="wide", page_icon="📈")
 apply_theme()
 
-@st.cache_resource
-def _get_conn():
-    return get_conn()
-
-conn = _get_conn()
+conn = get_conn()
+user_id = require_user(conn)
 
 st.markdown("## 📈 My Progress")
 st.markdown('<div style="color:#9AA0A6;font-size:0.88rem;margin-bottom:1rem">Track your quiz attempts and score improvements over time.</div>', unsafe_allow_html=True)
@@ -166,3 +164,5 @@ for a in attempts[:5]:
             Conclusion: <strong style="color:#81C995">{scores.get('score_conclusion','—')}</strong>
         </div>
     </div>""", unsafe_allow_html=True)
+
+conn.close()

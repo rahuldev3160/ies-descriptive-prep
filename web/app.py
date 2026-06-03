@@ -3,7 +3,6 @@ IES 2026 Study App — Dashboard.
 Run: python3 -m streamlit run web/app.py
 """
 import sys
-import uuid
 from datetime import datetime
 from pathlib import Path
 
@@ -12,6 +11,7 @@ sys.path.insert(0, str(Path(__file__).parent))
 import streamlit as st
 
 from db import EXAM_DATE, EXAM_ID, get_conn, get_user_id, init_user, get_topics, get_true_readiness, get_paper_coverage, set_topic_state, is_crunch_mode
+from auth import require_user
 from styles import apply_theme, badge, progress_bar
 
 st.set_page_config(
@@ -21,10 +21,6 @@ st.set_page_config(
     initial_sidebar_state="expanded",
 )
 apply_theme()
-
-# ── Session identity (must be set before any DB call) ─────────────────────────
-if "user_id" not in st.session_state:
-    st.session_state.user_id = str(uuid.uuid4())
 
 # ── First-boot: copy seed DB if live DB doesn't exist ─────────────────────────
 _DB_PATH = Path(__file__).parent.parent / "data" / "ies.db"
@@ -46,7 +42,8 @@ if not _DB_PATH.exists():
         st.stop()
 
 conn = get_conn()
-init_user(conn, st.session_state.user_id)
+user_id = require_user(conn)
+init_user(conn, user_id)
 
 
 def days_left() -> int:

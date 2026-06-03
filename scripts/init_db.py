@@ -334,6 +334,32 @@ def create_tables(conn: sqlite3.Connection) -> None:
     CREATE INDEX IF NOT EXISTS idx_ue_user ON user_events(user_id, created_at DESC);
     CREATE INDEX IF NOT EXISTS idx_ue_type ON user_events(event_type, created_at DESC);
 
+    -- ─────────────────────────────────────────────
+    -- USERS (Google OAuth)
+    -- ─────────────────────────────────────────────
+    CREATE TABLE IF NOT EXISTS users (
+        user_id         TEXT PRIMARY KEY,           -- internal UUID
+        google_sub      TEXT UNIQUE NOT NULL,       -- Google's subject ID
+        email           TEXT NOT NULL,
+        display_name    TEXT,
+        avatar_url      TEXT,
+        daily_api_calls INTEGER DEFAULT 0,
+        quota_resets_at TEXT,                       -- ISO-8601; NULL = never reset
+        created_at      TEXT DEFAULT (datetime('now')),
+        last_seen_at    TEXT DEFAULT (datetime('now'))
+    );
+
+    -- ─────────────────────────────────────────────
+    -- SESSIONS (rolling 7-day tokens)
+    -- ─────────────────────────────────────────────
+    CREATE TABLE IF NOT EXISTS sessions (
+        session_token TEXT PRIMARY KEY,             -- secrets.token_hex(32)
+        user_id       TEXT NOT NULL REFERENCES users(user_id) ON DELETE CASCADE,
+        expires_at    TEXT NOT NULL,                -- ISO-8601; 7-day rolling
+        created_at    TEXT DEFAULT (datetime('now'))
+    );
+    CREATE INDEX IF NOT EXISTS idx_sessions_user ON sessions(user_id);
+
     """)
     conn.commit()
 

@@ -5,16 +5,14 @@ sys.path.insert(0, str(Path(__file__).parent.parent))
 
 import streamlit as st
 from db import get_conn, get_topics, get_study_brief, log_event, EXAM_ID
+from auth import require_user
 from styles import apply_theme, chip
 
 st.set_page_config(page_title="Study Brief · IES 2026", layout="wide", page_icon="🗂️")
 apply_theme()
 
-@st.cache_resource
-def _get_conn():
-    return get_conn()
-
-conn = _get_conn()
+conn = get_conn()
+user_id = require_user(conn)
 
 st.markdown("## 🗂️ Study Brief")
 st.markdown(
@@ -182,3 +180,5 @@ with st.expander("📋 Copy plain text — paste into Claude.ai for deep study")
         if q["diagram_expected"]:
             lines.append(f"   Diagram: {q['diagram_type'] or 'relevant diagram'}")
     st.text_area("", value="\n".join(lines), height=300)
+
+conn.close()

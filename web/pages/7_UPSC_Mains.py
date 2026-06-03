@@ -26,14 +26,6 @@ _PAPER_LABELS = {
 
 # ── DB helpers ────────────────────────────────────────────────────────────────
 
-@st.cache_resource
-def _get_conn() -> sqlite3.Connection:
-    conn = sqlite3.connect(_DB_PATH, check_same_thread=False)
-    conn.row_factory = sqlite3.Row
-    conn.execute("PRAGMA journal_mode=WAL")
-    return conn
-
-
 def _jl(s) -> list:
     if not s:
         return []
@@ -181,7 +173,10 @@ def _render_data_tab(ans: dict) -> None:
 
 # ── Page layout ────────────────────────────────────────────────────────────────
 
-conn = _get_conn()
+conn = sqlite3.connect(_DB_PATH, check_same_thread=False)
+conn.row_factory = sqlite3.Row
+conn.execute("PRAGMA journal_mode=WAL")
+conn.execute("PRAGMA busy_timeout=5000")
 
 with st.sidebar:
     st.markdown("## 🎓 UPSC Eco Optional")
@@ -318,3 +313,5 @@ for qi, q in enumerate(filtered_qs):
         '<div style="margin:8px 0 16px;border-top:1px solid rgba(255,255,255,0.06)"></div>',
         unsafe_allow_html=True,
     )
+
+conn.close()
