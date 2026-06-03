@@ -35,17 +35,27 @@ which streamlit                          # must resolve to /opt/homebrew/bin/str
 
 **Rule:** If `TypeError.*unsupported.*|` appears in the traceback, the fix is NEVER "remove the annotation." The fix is confirming the server is running on `/opt/homebrew/bin/streamlit` (Python 3.11). Removing the annotation is a symptom suppression — it masks the root cause and will recur on the next file that uses modern syntax.
 
+## Auth behaviour (Session 9)
+
+`require_user()` is wired into: `app.py`, `2_Quiz.py`, `3_Study_Brief.py`, `4_My_Progress.py`, `5_Return_Quiz.py`, `6_RBI_Prep.py`.
+**Without OAuth env vars**, these pages redirect to `0_Login.py` which shows a configuration message.
+**For local testing without OAuth**: set `GOOGLE_CLIENT_ID=dummy` to skip the redirect (login page shows config message but pages won't auth-gate). Or test pages individually by setting `st.session_state.session_token` manually in browser dev tools.
+
+Pages intentionally open (no auth): `1_Model_Answers.py`, `7_UPSC_Mains.py`.
+
 ## Pages & what they do
 
-| Sidebar label | File | Key things to test |
-|---|---|---|
-| app | `web/app.py` | Dashboard loads, readiness % shows |
-| Model Answers | `web/pages/1_Model_Answers.py` | Question browse, no DB errors |
-| Quiz | `web/pages/2_Quiz.py` | Quiz loads, Anthropic key reachable |
-| Study Brief | `web/pages/3_Study_Brief.py` | Topic briefs load |
-| My Progress | `web/pages/4_My_Progress.py` | Attempt history renders |
-| Return Quiz | `web/pages/5_Return_Quiz.py` | MCQ form loads |
-| RBI Prep | `web/pages/6_RBI_Prep.py` | 4 tabs: Key Data / Phase 1 Drill / Tier 2 Quiz / My Progress |
+| Sidebar label | File | Auth required | Key things to test |
+|---|---|---|---|
+| Login | `web/pages/0_Login.py` | No | Sign-in button shows; OAuth callback handles `?code=` |
+| app | `web/app.py` | Yes | Dashboard loads, readiness % shows |
+| Model Answers | `web/pages/1_Model_Answers.py` | No | Question browse, no DB errors |
+| Quiz | `web/pages/2_Quiz.py` | Yes + API key | API key gate shows banner if key absent |
+| Study Brief | `web/pages/3_Study_Brief.py` | Yes | Topic briefs load |
+| My Progress | `web/pages/4_My_Progress.py` | Yes | Attempt history renders |
+| Return Quiz | `web/pages/5_Return_Quiz.py` | Yes | MCQ form loads |
+| RBI Prep | `web/pages/6_RBI_Prep.py` | Yes | 4 tabs: Key Data / Phase 1 Drill / Tier 2 Quiz / My Progress |
+| UPSC Mains | `web/pages/7_UPSC_Mains.py` | No | Paper I/II browse, LaTeX renders |
 
 ## RBI Prep tab structure (6_RBI_Prep.py)
 
@@ -139,37 +149,21 @@ sqlite3 data/rbi.db "SELECT tier, COUNT(*) FROM rbi_questions GROUP BY tier;"
 sqlite3 data/ies.db "SELECT COUNT(*) FROM questions;"
 ```
 
-## Bug status (updated Session 8 — 2026-06-03)
+## Bug status (updated Session 9 — 2026-06-03)
 
-### IES pages — ALL CRITICAL/HIGH BUGS FIXED ✅ (Session 8)
-Smoke test: **11/11 PASS**
+### ALL KNOWN BUGS FIXED ✅
 
 | Bug | Status | Fix applied |
 |---|---|---|
-| Connection leak — per-rerun `get_conn()` | ✅ FIXED | `@st.cache_resource` on `_get_conn()` in all 5 pages; all `conn.close()` removed |
-| Silent quiz save failure `2_Quiz.py:532` | ✅ FIXED | `except: pass` → `st.toast(err)` |
-| Mastery not written on first attempt | ✅ FIXED | `INSERT OR IGNORE` + `UPDATE` pattern in `submit_return_quiz` |
-| No transaction in `submit_return_quiz` | ✅ FIXED | All writes in `with conn:` atomic block |
-| FD leak in `@st.cache_data` `2_Quiz.py:92` | ✅ FIXED | `try/finally c.close()` |
-| Option sort scramble `5_Return_Quiz.py` | ✅ FIXED | `sorted()` on full string, not first char |
+| Connection leak — per-rerun `get_conn()` | ✅ FIXED (S8) | `@st.cache_resource` per-page |
+| `@st.cache_resource` shared conn unsafe for multi-user | ✅ FIXED (S9) | Per-request `conn = get_conn()` + `conn.close()` on all 7 pages |
+| `6_RBI_Prep.py` hardcoded `USER_ID = "rahul"` | ✅ FIXED (S9) | `get_user_id()` on all 6 call sites |
+| Silent quiz save failure `2_Quiz.py` | ✅ FIXED (S8) | `st.toast(err)` |
+| Mastery not written on first attempt | ✅ FIXED (S8) | `INSERT OR IGNORE` + `UPDATE` |
+| No transaction in `submit_return_quiz` | ✅ FIXED (S8) | `with conn:` atomic block |
+| `4_My_Progress.py` wrong user import | ✅ FIXED (S9) | `get_user_id()` function |
+| No auth on any page | ✅ FIXED (S9) | Google OAuth + `require_user()` on 6 pages |
 
-### Open issues
-
-**RISK-02 (live bug): `6_RBI_Prep.py:21` — `USER_ID = "rahul"` hardcoded**
-All RBI drill attempts from any user are saved as "rahul". All users see Rahul's RBI My Progress data.
-Fix: replace `USER_ID = "rahul"` with `get_user_id()` from `db.py`. Item #1 in the MVMU list.
-
-**ARCHITECTURAL NOTE: `@st.cache_resource` is single-user only**
-The Session 8 connection fix (`@st.cache_resource` on `_get_conn()`) eliminates the per-rerun leak but creates a shared Python `sqlite3.Connection` object across all concurrent users. Python's sqlite3 is NOT thread-safe at the connection-object level — concurrent writes from two users on the same connection can corrupt cursor state or transaction boundaries.
-
-**This is safe for single-user use.** Before going multi-user, revert to per-request connections:
-```python
-conn = get_conn()
-try:
-    # all page logic
-finally:
-    conn.close()
-```
-And add to `get_conn()`: `conn.execute("PRAGMA journal_mode=WAL"); conn.execute("PRAGMA busy_timeout=5000")`
-
-Full multi-user plan: `memory/project_multiuser_plan.md`
+### Open (non-blocking)
+- Composite DB indexes — add at >100 users (SQL in `memory/project_multiuser_plan.md`)
+- Subtopic-level gap surfacing in dashboard — future enhancement

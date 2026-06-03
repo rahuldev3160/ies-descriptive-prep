@@ -1,7 +1,7 @@
 # Descriptive Exams — Session Handoff
 
 ## Last Updated
-2026-06-03 (Session 9)
+2026-06-03 (Session 9 — COMPLETE)
 
 ---
 
@@ -10,8 +10,8 @@
 | Gotcha | Symptom | Correct action |
 |---|---|---|
 | **Wrong Python runtime** | `TypeError: unsupported operand type(s) for \|` on any page | Do NOT remove the annotation. Run `/opt/homebrew/bin/streamlit --version` to confirm runtime is Python 3.11. Never use `/Library/Python/3.9/bin/streamlit`. |
-| **@st.cache_resource is single-user only** | Data corruption / OperationalError under concurrent users | All 5 IES pages now use `@st.cache_resource` — correct for single-user (fixes per-rerun leak), but WRONG for multi-user (shared connection object is not thread-safe). MUST revert to per-request connections before launch. See DECIDE-08. |
 | **ies_seed.db must stay clean** | New users get Rahul's personal data on first boot | `data/ies_seed.db` is the committed clean copy — never run quiz/drill sessions against it. It must only contain question bank rows (zero user_mastery / gap_states / attempts). |
+| **OAuth env vars required on deploy** | Login page shows config error; app redirects to login loop | Set `GOOGLE_CLIENT_ID`, `GOOGLE_CLIENT_SECRET`, `OAUTH_REDIRECT_URI` on the server. App degrades gracefully without them (shows config message), but no user can log in. |
 
 ---
 
@@ -58,14 +58,28 @@ New `data/rbi.db` with 303 questions. `6_RBI_Prep.py` fully rewritten. See below
 - `DEPLOY.md`: Python 3.11, Hetzner/Railway targets, quiz API key note
 - `scripts/init_db.py`: `user_events` table added to schema
 
-### What's still needed before public launch
+### Also completed this session (auth + connections)
 
-1. **Revert `@st.cache_resource` → per-request connections** (DECIDE-08) — all 5 IES pages + 7_UPSC_Mains.py. Single shared connection object is not thread-safe under concurrent users.
-2. **Google OAuth** + `users`/`sessions` tables + auth gate on every page (MVMU steps 3–4)
-3. **Composite indexes** (7 indexes, 15 min — already written in `memory/project_multiuser_plan.md`)
+**Google OAuth auth layer**
+- `web/auth.py`: full OAuth helper library — `build_auth_url`, `exchange_code`, `get_user_info`, `upsert_user`, `create_session`, `validate_session`, `require_user`
+- `web/pages/0_Login.py`: login page; handles callback (`?code=`) + sign-in button; degrades gracefully if OAuth env vars absent
+- `users` + `sessions` tables in schema + both DBs migrated
+- `require_user()` gating: `app.py`, `2_Quiz.py`, `3_Study_Brief.py`, `4_My_Progress.py`, `5_Return_Quiz.py`, `6_RBI_Prep.py` (ies auth conn → close → rbi page conn)
+- `1_Model_Answers.py` and `7_UPSC_Mains.py` intentionally open (read-only public pages)
+
+**Per-request DB connections (DECIDE-08)**
+- All 7 pages migrated from `@st.cache_resource _get_conn()` to per-request `conn = get_conn()` + `conn.close()` at end
+- `get_conn()` now sets `PRAGMA journal_mode=WAL` + `PRAGMA busy_timeout=5000` on every connection
+- `6_RBI_Prep.py` and `7_UPSC_Mains.py` inline connections also get WAL pragmas
+
+**Commits:** `ac1ad73` (seed DB + standalone fixes) → `ae3e409` (auth + connections)
+
+### Remaining before public launch (1 item)
+
+- **Composite indexes** (7 indexes, 15 min) — SQL already written in `memory/project_multiuser_plan.md`. Needed at >100 users. Not urgent for first launch.
 
 ### Layered-coverage gap noted (future work)
-The dashboard shows topic-level gap states but does not surface subtopic-level gaps. A topic at "20% mastered" can hide 5 completely untouched subtopics. The `at_risk_children` concept from the layered-coverage framework should be added to the dashboard after auth is complete.
+The dashboard shows topic-level gap states but does not surface subtopic-level gaps. A topic at "20% mastered" can hide 5 completely untouched subtopics. The `at_risk_children` concept from the layered-coverage framework should be added to the dashboard post-launch.
 
 ---
 
