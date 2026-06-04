@@ -25,17 +25,18 @@ apply_theme()
 # ── First-boot: copy seed DBs if live DBs don't exist ────────────────────────
 import shutil as _shutil
 
-_DATA = Path(__file__).parent.parent / "data"
+_DATA  = Path(__file__).parent.parent / "data"
+_SEEDS = Path(__file__).parent.parent / "seeds"
 
 def _boot_db(name: str) -> None:
     live = _DATA / f"{name}.db"
-    seed = _DATA / f"{name}_seed.db"
+    seed = _SEEDS / f"{name}_seed.db"
     if live.exists():
         return
     if not seed.exists():
         st.error(
             f"**Database not found.**  \n"
-            f"`data/{name}.db` and `data/{name}_seed.db` are both missing.  \n"
+            f"`data/{name}.db` is missing and `seeds/{name}_seed.db` was not found.  \n"
             f"Run `python3 scripts/setup_all.py` to initialise."
         )
         st.stop()
