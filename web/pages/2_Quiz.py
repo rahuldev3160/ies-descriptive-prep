@@ -24,36 +24,6 @@ user_id = require_user(conn)
 track_page_time(conn, "Quiz")
 
 import os
-if not os.environ.get("ANTHROPIC_API_KEY"):
-    conn.close()
-    st.markdown(
-        '<div style="max-width:600px;margin:3rem auto">'
-        '<div style="background:#1C2B3A;border:1px solid #8AB4F833;border-radius:12px;padding:32px 36px">'
-        '<div style="color:#8AB4F8;font-size:0.75rem;font-weight:700;text-transform:uppercase;'
-        'letter-spacing:.1em;margin-bottom:12px">Coming Soon</div>'
-        '<div style="color:#E8EAED;font-size:1.4rem;font-weight:700;margin-bottom:12px">'
-        '✍️ AI Answer Grading</div>'
-        '<div style="color:#BDC1C6;font-size:0.93rem;line-height:1.6;margin-bottom:20px">'
-        'Write a full descriptive answer and get instant AI feedback — scored against an IES '
-        'examiner rubric with specific marks, what you missed, and how to improve.'
-        '</div>'
-        '<div style="background:#0D1B2A;border-radius:8px;padding:14px 18px;margin-bottom:20px">'
-        '<div style="color:#9AA0A6;font-size:0.78rem;text-transform:uppercase;font-weight:600;'
-        'letter-spacing:.07em;margin-bottom:8px">How it works</div>'
-        '<div style="color:#BDC1C6;font-size:0.87rem;line-height:1.8">'
-        '① Write your answer to any IES question<br>'
-        '② Claude AI grades it against the official rubric<br>'
-        '③ See your score, gaps, and a model answer comparison<br>'
-        '④ Pay only for what you use — per answer graded'
-        '</div></div>'
-        '<div style="color:#9AA0A6;font-size:0.82rem">'
-        '⚙️ We\'re setting up secure payments. This feature will be live shortly — '
-        'all other pages are fully available now.'
-        '</div>'
-        '</div></div>',
-        unsafe_allow_html=True,
-    )
-    st.stop()
 
 EVAL_SYSTEM = """You are an IES (Indian Economic Service) exam evaluator.
 Grade the student's answer against the rubric. Be concise but specific.
@@ -487,7 +457,15 @@ with st.form(f"quiz_form_{selected_qid}", clear_on_submit=False):
         label_visibility="collapsed")
 
     st.markdown("<br>", unsafe_allow_html=True)
-    submitted = st.form_submit_button("Submit for Evaluation →", type="primary", use_container_width=True)
+    submitted = st.form_submit_button("Submit for Evaluation →", type="primary", use_container_width=True, disabled=True)
+    st.markdown(
+        '<div style="text-align:center;margin-top:8px">'
+        '<span style="background:#8AB4F815;border:1px solid #8AB4F844;border-radius:20px;'
+        'padding:5px 18px;color:#8AB4F8;font-size:0.82rem;font-weight:600;letter-spacing:.02em">'
+        '🔒 AI grading coming soon &nbsp;·&nbsp; ₹4.50 per answer</span>'
+        '</div>',
+        unsafe_allow_html=True,
+    )
 
 # ── Evaluation ──────────────────────────────────────────────────────────────────
 if submitted:
