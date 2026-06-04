@@ -13,7 +13,7 @@ from diagrams import COVERED_TYPES, get_standard_diagram
 from styles import apply_theme, chip
 from table_renderer import render_table
 
-st.set_page_config(page_title="Model Answers · IES 2026", layout="wide", page_icon="📖")
+st.set_page_config(page_title="IES PYQs · Model Answers", layout="wide", page_icon="📖")
 apply_theme()
 
 # ── Diagram type aliases ───────────────────────────────────────────────────────
@@ -256,7 +256,7 @@ conn = get_conn()
 track_page_time(conn, "Model Answers")
 
 with st.sidebar:
-    st.markdown("## 📖 Model Answers")
+    st.markdown("## 📖 IES PYQs — Model Answers")
     st.divider()
 
     paper_choice = st.selectbox(

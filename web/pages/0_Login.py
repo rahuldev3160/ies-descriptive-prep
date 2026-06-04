@@ -21,7 +21,7 @@ conn = get_conn()
 # Already authenticated → go to dashboard
 token = st.session_state.get("session_token")
 if token and validate_session(conn, token):
-    st.switch_page("app.py")
+    st.switch_page("pages/Dashboard.py")
     conn.close()
     st.stop()
 
@@ -44,7 +44,7 @@ if "code" in params:
             st.session_state.user_id = user_id
             st.query_params.clear()
             conn.close()
-            st.switch_page("app.py")
+            st.switch_page("pages/Dashboard.py")
     except Exception as exc:
         st.error(f"Sign-in failed: {exc}")
         st.query_params.clear()

@@ -85,9 +85,16 @@ def upsert_user(conn: sqlite3.Connection, google_sub: str, email: str,
 
 
 def create_session(conn: sqlite3.Connection, user_id: str) -> str:
-    """Create a 7-day session token. Old expired tokens are pruned."""
+    """Create a 7-day session token. Enforces single-session: all existing
+    sessions for this user are deleted before the new one is created, so only
+    one device can be logged in at a time. Expired tokens for other users are
+    also pruned as a housekeeping step."""
     token = secrets.token_hex(32)
     expires_at = (datetime.now(timezone.utc) + timedelta(days=7)).isoformat()
+    conn.execute(
+        "DELETE FROM sessions WHERE user_id=?",
+        (user_id,),
+    )
     conn.execute(
         "INSERT INTO sessions (session_token, user_id, expires_at) VALUES (?,?,?)",
         (token, user_id, expires_at),
