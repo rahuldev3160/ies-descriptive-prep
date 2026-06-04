@@ -21,9 +21,8 @@ conn = get_conn()
 # Already authenticated → go to dashboard
 token = st.session_state.get("session_token")
 if token and validate_session(conn, token):
-    st.switch_page("pages/Dashboard.py")
     conn.close()
-    st.stop()
+    st.rerun()
 
 # OAuth callback: Google redirected back with ?code=...
 params = st.query_params
@@ -44,7 +43,7 @@ if "code" in params:
             st.session_state.user_id = user_id
             st.query_params.clear()
             conn.close()
-            st.switch_page("pages/Dashboard.py")
+            st.rerun()
     except Exception as exc:
         st.error(f"Sign-in failed: {exc}")
         st.query_params.clear()
