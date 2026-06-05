@@ -1,7 +1,94 @@
 # Descriptive Exams — Session Handoff
 
 ## Last Updated
-2026-06-05 (Session 16 — COMPLETE)
+2026-06-06 (Session 19 — COMPLETE)
+
+---
+
+## Session 19 Summary (2026-06-06)
+
+### English dashboard UX fixes
+
+Three gaps fixed in `web/blueprints/english_bp.py` + `web/templates/english_dashboard.html` + `web/templates/english.html`:
+- Recent attempts showed raw hex question_id codes → fixed by JOINing `english_questions` to pull `prompt_text`, now displayed truncated + linked
+- Practice cards showed no attempt count → added `attempt_counts` dict (keyed by `type_id`) passed to template; green "N done" chip rendered when `attempt_counts[type.type_id] > 0`
+- No back-link from practice page to dashboard → added "← English Dashboard" breadcrumb at top of `english.html`
+
+### Feedback feature — end-to-end
+
+New files: `web/blueprints/feedback_bp.py`, `web/templates/feedback.html`
+
+- `user_feedback` table created in `_FEEDBACK_TABLE_SQL` migration in `app.py`, called in `create_app()`
+- `GET /feedback`: queries `user_feedback JOIN users`, renders sorted feedback list with colored left-border cards and status badges
+- `POST /feedback/submit`: validates title not empty, inserts, flash + redirect (PRG pattern)
+- 4 categories: Bug (`#F28B82`), Feature Request (`#8AB4F8`), Issue (`#FDD663`), Other (`#9AA0A6`)
+- 3 statuses: open, acknowledged, resolved — all color-coded
+- Registered as `feedback_bp` in `app.py`; sidebar link added under "Track & Account" in `base.html`
+
+### RBI dashboard redesign
+
+Complete rewrite of `web/templates/rbi_dashboard.html` + `web/blueprints/rbi_dashboard_bp.py`:
+- **`rbi_key_data` DB table** (40 items, 6 sections) seeded on startup via `_run_rbi_migrations()` in `app.py` using `INSERT OR IGNORE` (idempotent). `is_must_know=1` on 6 items.
+- **Must-Know panel** (left column): 6 facts inline + `<details>` expand to all 40 grouped by section
+- **My Progress panel** (right column): 4 stat cards (Mastery, Readiness, Qs Attempted, Topics ≥50%) + `<details>` for subject bars
+- **Subject Coverage**: 3 worst visible + `<details>` expand to all
+- **Top Gaps**: 3 worst visible + `<details>` expand to remaining
+- **Action buttons**: Priority 1 MCQs | Priority 2 Quiz | Full Key Data
+
+### RBI Prep tab renames
+
+In `web/templates/rbi_prep.html`:
+- "Phase 1 Drill" → "Priority 1 MCQs" (all labels, empty states, score headings)
+- "Tier 2 Quiz" → "Priority 2" (same thoroughness)
+- Info-boxes added under each tab explaining what it contains
+
+### Sidebar restructure
+
+`web/templates/base.html` — 5 groups (16 links) → 3 groups (17 links):
+- **Dashboards**: IES 2026, RBI Grade B, UPSC Mains, English
+- **Study & Practice**: IES PYQ Answers, Study Brief, IES Quiz, IES Past Papers, RBI Priority 1, RBI Priority 2, UPSC Mains Topics, English Practice
+- **Track & Account**: My Progress, Answer Review, Feedback, Setup, Profile, Sign Out
+
+RBI Priority 1/2 links use query params (`?tab=phase1_drill`, `?tab=tier2_quiz`) to land on the right tab directly.
+
+### CSS additions (`web/static/style.css`)
+
+- `.expand-section` / `.expand-arrow` — styled `<details>/<summary>` toggle (blue arrow, rotates on open)
+- `.dash-panel` — dashboard inline panel container
+- `.dash-panel-title` — small uppercase panel label
+- `.kd-row`, `.kd-name`, `.kd-value` — key data row layout
+
+### Bugs fixed this session
+
+- `rr_03` seed color typo: `"#C084PC"` → `"#C084FC"` in `web/app.py` `_RBI_KEY_DATA_SEED`
+
+### Commit
+
+`8841b84` — 15 files changed, 712 insertions(+), 124 deletions(−)
+New files: `web/blueprints/feedback_bp.py`, `web/templates/feedback.html`, `.knowledge/plans/PLAN-008.md`, `.knowledge/plans/PLAN-009.md`
+
+### Next steps (priority order)
+
+1. **Push to Railway**: `git push origin main` — Railway auto-deploys via `railway.toml`. Commit `8841b84` ready.
+   - Note: seed typo fix (`rr_03`) made this session — NOT yet committed. Commit before pushing.
+2. **IES + UPSC dashboards**: Apply same "summary + expand" panel pattern (Must-Know, Subject Coverage, Top Gaps) — RBI done, IES/UPSC are candidates.
+3. **`rbi_prep_bp.py` key data from DB**: The prep page "Key Data" tab still reads from the Python `KEY_SECTIONS` constant. Migrate to fetch from `rbi_key_data` DB table (same as dashboard).
+
+### Open bugs (unchanged from S18)
+
+- BUG-009: Transaction rollback silently swallows `gap_state_events` — LOW
+
+---
+
+## Session 18 Summary (2026-06-06)
+
+Flask app live. Commits: `81b5600`, `1384854`, `f68b976`, `6968d5d`, `6fab62d`.
+5 UI fixes (English dashboard, Begin Study→PYQ redirect, RBI data sync, diagram warning, MathJax) + 3 critical bug fixes (BUG-016 Jinja2 `.items`, BUG-017 tab panel siblings, BUG-018 drill scoring always 0).
+Route count at session end: 32. Knowledge: PLAN-007 added.
+
+---
+
+## Session 16 Summary (2026-06-05)
 
 ---
 

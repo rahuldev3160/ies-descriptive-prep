@@ -102,7 +102,7 @@ _RBI_KEY_DATA_SEED = [
     # Reserve Ratios & PSL
     ("rr_01","Reserve Ratios & PSL","#C084FC",2,"CRR","4% of NDTL","% of NDTL held as cash with RBI. No interest paid. RBI cut CRR injecting ₹2.5 lakh crore in FY26.",1,1,1),
     ("rr_02","Reserve Ratios & PSL","#C084FC",2,"SLR","18% of NDTL","% of NDTL held in approved G-secs/gold/cash. Banks borrow under MSF against SLR.",1,1,2),
-    ("rr_03","Reserve Ratios & PSL","#C084PC",2,"Base for CRR & SLR","NDTL (Net Demand and Time Liabilities)","NDTL = Demand liabilities + Time liabilities − Inter-bank liabilities.",0,0,3),
+    ("rr_03","Reserve Ratios & PSL","#C084FC",2,"Base for CRR & SLR","NDTL (Net Demand and Time Liabilities)","NDTL = Demand liabilities + Time liabilities − Inter-bank liabilities.",0,0,3),
     ("rr_04","Reserve Ratios & PSL","#C084FC",2,"PSL — domestic SCBs","40% of ANBC","Priority Sector Lending total. Sub-targets: Agriculture 18%, Micro enterprises 7.5%, Weaker sections 12%.",0,0,4),
     ("rr_05","Reserve Ratios & PSL","#C084FC",2,"Agriculture PSL sub-target","18% of ANBC","Of which ≥10% must go to Small & Marginal Farmers specifically.",0,0,5),
     # Banking Regulation
