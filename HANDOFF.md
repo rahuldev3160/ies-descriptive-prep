@@ -1,7 +1,51 @@
 # Descriptive Exams — Session Handoff
 
 ## Last Updated
-2026-06-05 (Session 15 — COMPLETE)
+2026-06-05 (Session 16 — COMPLETE)
+
+---
+
+## Session 16 Summary (2026-06-05)
+
+### English Practice module — full implementation
+
+**New module: `scoring/` (4 files)**
+- `scoring/__init__.py` — exports `score_answer`, `build_feedback`, `RUBRICS`, `compute_self_assess_score`
+- `scoring/normaliser.py` — NFKC unicode + lowercase + 40+ economics abbreviation expansion (GDP, CAD, FIT, MPC, etc.) + strip punctuation
+- `scoring/keyword_scorer.py` — hybrid keyword scorer: exact + SequenceMatcher fuzzy (threshold 0.82), stuffing detection, penalty system; `score_answer()` + `build_feedback()` + grade thresholds (Excellent ≥85%, Good ≥70%, etc.)
+- `scoring/self_assess.py` — `RUBRICS` dict for essay/précis/rc/letter/report + `compute_self_assess_score()`
+
+**New page: `web/pages/11_English_Practice.py`**
+- 3-phase flow: write → auto_scored → done (mirrors quiz page pattern)
+- Phase 1: adaptive section labels/heights per question type, "Score My Answer →" button
+- Phase 2: 4 score cards + keyword hit/miss chips + model answer expanders + rubric checkbox form
+- Phase 3: side-by-side Keyword Coverage % + Structure Quality, per-section tabs, disclaimer
+- Auth: `require_user(conn)` at top
+
+**New script: `scripts/seed_english_content.py`**
+- Creates 4 tables idempotently, seeds 3 question types (essay, précis, rc) and 4 initial questions
+- `eng_essay_001`: CAD analysis (RBI-style, 40m, medium)
+- `eng_essay_002`: FIT framework evaluation (RBI, 40m, hard)
+- `eng_precis_001`: Financial inclusion passage ~420 words → model précis ~140 words (UPSC, 30m)
+- `eng_rc_001`: RBI FIT accountability mechanism (RBI, 10m, easy)
+
+**`web/app.py` — 2 changes:**
+- English Practice tables created in migration block (idempotent `CREATE TABLE IF NOT EXISTS`)
+- Page registered as `_english` and added to "Practice" nav section
+
+**`.knowledge/plans/PLAN-005.md`** — English module plan; status APPROVED
+
+### Current state at session end
+- All 7 files created successfully
+- DB tables exist (via app.py migration) — seed script NOT yet run (was blocked at session end)
+- **Immediate next step: run seed script, then smoke-test the page**
+
+### Next steps (priority order)
+1. **Run seed**: `/opt/homebrew/bin/python3.11 scripts/seed_english_content.py`
+2. **Smoke-test**: Start app, navigate to English Practice, test write → score → self-assess → results flow with `eng_essay_001`
+3. **Option C content pipeline**: Create `scripts/tag_english_keywords.py` — Haiku batch for more questions at scale
+4. **Rahul reviews** seeded questions and keyword tags before expanding to full batch
+5. **Phase 2 question types**: Formal Letter + Report Writing (UPSC-specific, lower frequency)
 
 ---
 
