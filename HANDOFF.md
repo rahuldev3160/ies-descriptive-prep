@@ -1,7 +1,37 @@
 # Descriptive Exams — Session Handoff
 
 ## Last Updated
-2026-06-06 (Session 21 — COMPLETE)
+2026-06-06 (Session 21 — COMPLETE, incl. renames)
+
+---
+
+## Session 21 — Part 2: Project renames across all surfaces
+
+### Completed renames
+
+| Surface | Before | After |
+|---|---|---|
+| App title (browser tab + login) | `Exam Prep` / `📚 Exam Prep` | `Nyaya Scribe` |
+| GitHub repo (this project) | `ies-descriptive-prep` | `nyaya-scribe` |
+| GitHub repo (Devthorium) | `upsc-ai-prep` | `nyaya-recall` |
+| Local git remote (both) | old URLs | updated to new GitHub names |
+| Railway project | `melodious-surprise` | `nyaya-scribe` |
+| Railway service | `ies-descriptive-prep` | `nyaya-scribe` |
+
+### Railway URL note
+Railway generated URLs are locked to the original deployment name — live URL is still
+`ies-descriptive-prep-production.up.railway.app`. OAuth unchanged, nothing broke.
+Clean URL comes when `nyayascribe.com` is registered + added as custom domain in Railway.
+
+### Commits this part
+- `212445a` — brand section in CLAUDE.md, S21 HANDOFF
+- `1afc5fa` — Nyaya Scribe title in base.html + login.html
+
+### Next step (exact)
+When `nyayascribe.com` is registered:
+1. Railway dashboard → Service → Settings → Custom Domain → add `nyayascribe.com`
+2. Update Railway env var: `OAUTH_REDIRECT_URI = https://nyayascribe.com/auth/callback`
+3. Google Cloud Console → Credentials → OAuth client → add `https://nyayascribe.com/auth/callback`
 
 ---
 
