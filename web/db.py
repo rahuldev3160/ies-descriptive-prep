@@ -1,4 +1,4 @@
-"""Shared DB helpers for the web app."""
+"""Shared DB helpers — works in Flask request context and standalone scripts."""
 import json
 import os
 import re
@@ -18,6 +18,7 @@ def clean_q(text: str) -> str:
         return text
     return ' '.join(_PROMO.sub('', text).split())
 
+
 DB_PATH = Path(__file__).parent.parent / "data" / "ies.db"
 EXAM_ID = "ies_2026"
 USER_ID = os.environ.get("IES_USER_ID", "rahul")
@@ -30,27 +31,38 @@ def is_crunch_mode() -> bool:
 
 
 def get_user_id() -> str:
-    """Return the current session's user ID. Auto-assigns UUID on first call from any page."""
+    """Return current user_id: Flask g.user_id in request context, env var for scripts."""
     try:
-        import streamlit as st
-        import uuid as _uuid
-        uid = st.session_state.get("user_id")
-        if not uid:
-            uid = str(_uuid.uuid4())
-            st.session_state.user_id = uid
-        return uid
-    except Exception:
-        pass
+        from flask import g
+        uid = getattr(g, "user_id", None)
+        if uid:
+            return uid
+    except RuntimeError:
+        pass  # Outside Flask application context (scripts)
     return USER_ID
 
 
-def get_conn() -> sqlite3.Connection:
+def _open_conn() -> sqlite3.Connection:
+    """Open a new SQLite connection. Used by app factory and scripts."""
     conn = sqlite3.connect(DB_PATH, check_same_thread=False)
     conn.row_factory = sqlite3.Row
     conn.execute("PRAGMA foreign_keys=ON")
     conn.execute("PRAGMA journal_mode=WAL")
     conn.execute("PRAGMA busy_timeout=5000")
     return conn
+
+
+def get_conn() -> sqlite3.Connection:
+    """Return the request-scoped connection (Flask) or open a new one (scripts).
+    In Flask routes, teardown_appcontext closes the connection — do NOT close manually.
+    In scripts, caller must close the returned connection."""
+    try:
+        from flask import g
+        if hasattr(g, "conn") and g.conn:
+            return g.conn
+    except RuntimeError:
+        pass  # Outside Flask application context
+    return _open_conn()
 
 
 def init_user(conn, user_id: str) -> None:
@@ -84,18 +96,18 @@ def log_event(conn, event_type: str, entity_type: str | None = None,
               entity_id: str | None = None, exam_id: str | None = None,
               payload: dict | None = None) -> None:
     """Append one row to user_events. Silent no-op if table doesn't exist yet."""
+    uid = get_user_id()
     try:
-        import streamlit as st
-        session_id = st.session_state.get("session_id") or st.session_state.get("user_id", "unknown")
-    except Exception:
+        from flask import session as flask_session
+        session_id = flask_session.get("user_id", uid)
+    except RuntimeError:
         session_id = "script"
     try:
-        import json
         conn.execute(
             """INSERT INTO user_events
                (user_id, session_id, event_type, entity_type, entity_id, exam_id, payload)
                VALUES (?,?,?,?,?,?,?)""",
-            (get_user_id(), session_id, event_type, entity_type, entity_id, exam_id,
+            (uid, session_id, event_type, entity_type, entity_id, exam_id,
              json.dumps(payload) if payload else None)
         )
         conn.commit()
@@ -104,26 +116,11 @@ def log_event(conn, event_type: str, entity_type: str | None = None,
 
 
 def track_page_time(conn, page_name: str) -> None:
-    """Call after auth on each page. Logs exit time of previous page. Safe without auth."""
-    try:
-        import streamlit as st
-        from datetime import datetime, timezone
-        if not st.session_state.get("user_id"):
-            return
-        now = datetime.now(timezone.utc)
-        prev = st.session_state.get("_active_page")
-        if prev and prev != page_name:
-            entry = st.session_state.get("_page_entry_time")
-            if entry:
-                duration_s = int((now - entry).total_seconds())
-                if 5 < duration_s < 14400:
-                    log_event(conn, "page_time", "page", prev,
-                             payload={"duration_s": duration_s})
-        if st.session_state.get("_active_page") != page_name:
-            st.session_state._active_page = page_name
-            st.session_state._page_entry_time = now
-    except Exception:
-        pass
+    """Log page visit. Flask handles timing per-request; no cross-page state needed."""
+    uid = get_user_id()
+    if not uid or uid == USER_ID:
+        return
+    log_event(conn, "page_visit", "page", page_name)
 
 
 def get_study_path(conn, user_id: str) -> dict | None:
@@ -214,8 +211,10 @@ def get_topics(conn, paper_id=None) -> list[dict]:
     return [dict(r) for r in rows]
 
 
-def set_topic_state(conn, topic_id: str, new_state: str, trigger: str):
-    uid = get_user_id()
+def set_topic_state(conn, topic_id: str, new_state: str, trigger: str,
+                    user_id: str | None = None):
+    """Update gap state for a topic. Pass user_id explicitly to avoid BUG-010."""
+    uid = user_id or get_user_id()
     current = conn.execute(
         "SELECT state FROM gap_states WHERE user_id=? AND topic_id=? AND exam_id=?",
         (uid, topic_id, EXAM_ID)
@@ -371,9 +370,11 @@ def get_study_brief(conn, topic_id: str) -> dict:
     }
 
 
-def get_attempts(conn, topic_id=None, date_from=None, date_to=None) -> list:
+def get_attempts(conn, topic_id=None, date_from=None, date_to=None,
+                 user_id: str | None = None) -> list:
+    uid = user_id or get_user_id()
     clauses = ["da.exam_id=?", "da.user_id=?"]
-    params = [EXAM_ID, get_user_id()]
+    params = [EXAM_ID, uid]
     if topic_id:
         clauses.append("q.topic_id=?"); params.append(topic_id)
     if date_from:
@@ -398,14 +399,12 @@ def get_attempts(conn, topic_id=None, date_from=None, date_to=None) -> list:
     for r in rows:
         d = dict(r)
         d["scores"] = jl(d.pop("scores_json", None) or "[]")
-        if isinstance(d["scores"], dict):
-            pass
         result.append(d)
     return result
 
 
-def get_attempt_summary(conn) -> dict:
-    uid = get_user_id()
+def get_attempt_summary(conn, user_id: str | None = None) -> dict:
+    uid = user_id or get_user_id()
     row = conn.execute("""
         SELECT COUNT(*) as total,
                AVG(weighted_score) as avg_score,
@@ -429,7 +428,7 @@ def get_attempt_summary(conn) -> dict:
     }
 
 
-def get_true_readiness(conn, user_id: str = None) -> dict:
+def get_true_readiness(conn, user_id: str | None = None) -> dict:
     """Compute weighted readiness % and projected % if top-10 gaps are filled."""
     uid = user_id or get_user_id()
     rows = conn.execute("""
@@ -454,7 +453,6 @@ def get_true_readiness(conn, user_id: str = None) -> dict:
     formula_pct = round(sum(d["mastery"] * d["priority"] for d in data) / total_priority * 100, 1)
     covered_count = sum(1 for d in data if d["mastery"] >= 0.5)
 
-    # Top-10 gap topics: mastery < 0.5, sorted by priority × (1 - mastery) DESC
     gaps = sorted(
         [d for d in data if d["mastery"] < 0.5],
         key=lambda d: d["priority"] * (1 - d["mastery"]),
@@ -475,18 +473,14 @@ def get_true_readiness(conn, user_id: str = None) -> dict:
     }
 
 
-def submit_return_quiz(conn, topic_id: str, answers: dict, session_id: str) -> dict:
-    """
-    Grade MCQ answers, update gap state, mastery, and attempt summary.
-    answers: {question_id: user_answer_string}
-    Returns: {score, correct, total, new_state, from_state, new_mastery}
-    """
-    uid = get_user_id()
+def submit_return_quiz(conn, topic_id: str, answers: dict, session_id: str,
+                       user_id: str | None = None) -> dict:
+    """Grade MCQ answers, update gap state, mastery, and attempt summary."""
+    uid = user_id or get_user_id()
     questions = get_mcq_questions(conn, topic_id)
     if not questions:
         return {"score": 0.0, "correct": 0, "total": 0, "new_state": "UNVISITED", "from_state": "UNVISITED", "new_mastery": 0.0}
 
-    # Grade answers
     correct = 0
     total = len(questions)
     graded_rows = []
@@ -499,7 +493,6 @@ def submit_return_quiz(conn, topic_id: str, answers: dict, session_id: str) -> d
 
     score = correct / total
 
-    # Read all config before entering transaction
     cfg = conn.execute(
         "SELECT verified_quiz_threshold, partial_quiz_threshold FROM exam_configurations WHERE exam_id=?",
         (EXAM_ID,)
@@ -516,7 +509,7 @@ def submit_return_quiz(conn, topic_id: str, answers: dict, session_id: str) -> d
     ).fetchone()
     from_state = gap["state"] if gap else "UNVISITED"
     urgency = gap["urgency_multiplier"] if gap else 1.0
-    attempt_count = (gap["attempt_count"] or 0) + 1  # used locally for stuck logic only
+    attempt_count = (gap["attempt_count"] or 0) + 1
 
     existing = conn.execute(
         "SELECT mastery_level, quiz_attempt_count FROM user_mastery WHERE user_id=? AND topic_id=? AND exam_id=?",
@@ -532,7 +525,6 @@ def submit_return_quiz(conn, topic_id: str, answers: dict, session_id: str) -> d
     ).fetchone()
     base_priority = base_row["base_priority_score"] if base_row else 0.5
 
-    # Compute new gap state
     if score >= verified_thresh:
         new_state = "VERIFIED"
     elif score >= partial_thresh:
@@ -542,7 +534,6 @@ def submit_return_quiz(conn, topic_id: str, answers: dict, session_id: str) -> d
     new_urgency = min(urgency + 0.3, 2.0) if new_state == "FLAGGED" else urgency
     stuck = 1 if new_state == "FLAGGED" and attempt_count >= 3 else 0
 
-    # Write all changes atomically
     with conn:
         for row in graded_rows:
             conn.execute("""
@@ -577,7 +568,6 @@ def submit_return_quiz(conn, topic_id: str, answers: dict, session_id: str) -> d
             VALUES (?, ?, ?, ?, ?, 'mcq_quiz', ?, datetime('now'))
         """, (uid, topic_id, EXAM_ID, from_state, new_state, score))
 
-        # INSERT OR IGNORE ensures first attempt creates the row; UPDATE fills it in
         conn.execute("""
             INSERT OR IGNORE INTO user_mastery (user_id, topic_id, exam_id) VALUES (?, ?, ?)
         """, (uid, topic_id, EXAM_ID))
@@ -607,7 +597,7 @@ def submit_return_quiz(conn, topic_id: str, answers: dict, session_id: str) -> d
     }
 
 
-def get_paper_coverage(conn, user_id: str = None) -> list[dict]:
+def get_paper_coverage(conn, user_id: str | None = None) -> list[dict]:
     """Return per-paper weighted coverage stats for all top-level topics."""
     from collections import defaultdict
 
@@ -666,7 +656,6 @@ def get_study_plan_template(
     prep_level: str,
     study_mode: str,
 ) -> dict | None:
-    """Return a pre-generated plan dict from study_plan_templates, or None if not found."""
     key = _template_key(exam_list, days_to_exam, prep_level, study_mode)
     try:
         row = conn.execute(

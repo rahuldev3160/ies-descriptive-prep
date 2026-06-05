@@ -1,0 +1,35 @@
+{% extends "base.html" %}
+{% block title %}Answer Review · IES 2026{% endblock %}
+
+{% block content %}
+
+<div style="margin-bottom:24px;">
+  <h2 style="margin-bottom:4px;">🔒 Answer Review</h2>
+  <span style="color:#9AA0A6;font-size:0.85rem;">Score your written answer against an examiner's rubric</span>
+</div>
+
+{% if is_pro %}
+<div class="info-box">
+  Pro access confirmed. This feature is coming soon — check back shortly.
+</div>
+{% else %}
+<div style="background:#1C2B3A;border:1px solid #C084FC33;border-radius:12px;padding:32px 28px;text-align:center;max-width:520px;margin:0 auto;">
+  <div style="font-size:2.5rem;margin-bottom:12px;">🔒</div>
+  <div style="color:#E8EAED;font-weight:700;font-size:1.15rem;margin-bottom:10px;">Pro Feature</div>
+  <div style="color:#9AA0A6;font-size:0.9rem;line-height:1.6;margin-bottom:20px;">
+    Write your exam answer, paste it here, and receive a detailed score against the
+    examiner's rubric — covering argument structure, key concepts, diagrams,
+    and conclusion quality.<br><br>
+    Available for IES, RBI DEPR, and UPSC Economics Optional questions.
+  </div>
+  <div style="color:#C084FC;font-size:0.8rem;font-weight:600;text-transform:uppercase;letter-spacing:.07em;">
+    Coming soon — Pro plan
+  </div>
+</div>
+<div style="margin-top:24px;text-align:center;color:#9AA0A6;font-size:0.82rem;">
+  Until then, paste your answer into Claude or Gemini and ask it to score your answer
+  against an IES examiner rubric.
+</div>
+{% endif %}
+
+{% endblock %}

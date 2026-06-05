@@ -1,0 +1,160 @@
+{% extends "base.html" %}
+{% block title %}UPSC Dashboard · Eco Optional{% endblock %}
+
+{% block content %}
+{% if db_missing %}
+<div class="info-box" style="margin-top: 2rem;">
+  <strong style="color: #F28B82;">Database unavailable.</strong>
+  <span style="color: #9AA0A6;"> upsc.db not found. Seed the database to get started.</span>
+</div>
+{% else %}
+
+<!-- Header -->
+<div style="margin-bottom: 1.75rem;">
+  <h1 style="font-size: 1.5rem; font-weight: 700; color: #E8EAED; margin-bottom: 4px;">UPSC Eco Optional</h1>
+  <div style="font-size: 0.85rem; color: #9AA0A6;">Mains 2026 · August 22 · GS Paper + Optional</div>
+</div>
+
+<!-- Metric row: 5 cols -->
+<div style="display: grid; grid-template-columns: repeat(5, 1fr); gap: 10px; margin-bottom: 1.5rem;">
+
+  <div class="gem-card" style="text-align: center; border-color: {{ day_color }}33;">
+    <div style="font-size: 1.9rem; font-weight: 700; color: {{ day_color }}; line-height: 1.1;">{{ days_left }}</div>
+    <div class="metric-label" style="margin-top: 4px;">Days Left</div>
+  </div>
+
+  <div class="gem-card" style="text-align: center; border-color: {{ r_color }}33;">
+    <div style="font-size: 1.9rem; font-weight: 700; color: {{ r_color }}; line-height: 1.1;">{{ verified }}<span style="font-size: 1rem; color: #9AA0A6;">/{{ total_t }}</span></div>
+    <div class="metric-label" style="margin-top: 4px;">Verified</div>
+  </div>
+
+  <div class="gem-card" style="text-align: center; border-color: {{ ip_color }}33;">
+    <div style="font-size: 1.9rem; font-weight: 700; color: {{ ip_color }}; line-height: 1.1;">{{ in_progress }}</div>
+    <div class="metric-label" style="margin-top: 4px;">In Progress</div>
+  </div>
+
+  <div class="gem-card" style="text-align: center; border-color: #8AB4F833;">
+    <div style="font-size: 1.9rem; font-weight: 700; color: #8AB4F8; line-height: 1.1;">{{ total_ans }}<span style="font-size: 1rem; color: #9AA0A6;">/{{ total_q }}</span></div>
+    <div class="metric-label" style="margin-top: 4px;">Model Answers</div>
+  </div>
+
+  <div class="gem-card" style="text-align: center; border-color: {{ r_color }}33;">
+    <div style="font-size: 1.9rem; font-weight: 700; color: {{ r_color }}; line-height: 1.1;">{{ readiness_pct }}<span style="font-size: 1rem;">%</span></div>
+    <div class="metric-label" style="margin-top: 4px;">Topics Done</div>
+  </div>
+
+</div>
+
+<!-- Model answers link -->
+<div style="margin-bottom: 1.75rem;">
+  <a href="/upsc/mains" class="btn btn-primary">→ Browse Model Answers</a>
+</div>
+
+<!-- Paper tabs -->
+<div id="upsc-papers" style="margin-bottom: 2rem;" id="topics">
+  <div class="tab-bar">
+    {% for paper in papers_data %}
+    <button class="tab-btn {% if loop.first %}active{% endif %}"
+            data-tab="{{ paper.id }}"
+            onclick="switchTab('upsc-papers','{{ paper.id }}')">
+      {{ paper.label }}
+    </button>
+    {% endfor %}
+  </div>
+
+  {% for paper in papers_data %}
+  <div id="upsc-papers-{{ paper.id }}" class="tab-panel {% if loop.first %}active{% endif %}">
+
+    <!-- Paper progress bar -->
+    <div class="gem-card" style="margin-bottom: 1rem;">
+      <div style="display: flex; justify-content: space-between; align-items: center; margin-bottom: 6px;">
+        <span style="font-size: 0.85rem; font-weight: 600; color: #E8EAED;">{{ paper.label }}</span>
+        <span style="font-size: 0.82rem; color: {{ paper.color }};">{{ paper.pct }}% verified &middot; {{ paper.verified }}/{{ paper.total }} topics done</span>
+      </div>
+      <div class="prog-bar-bg">
+        <div class="prog-bar-fill" style="width: {{ paper.pct }}%; background: {{ paper.color }};"></div>
+      </div>
+    </div>
+
+    <!-- Topic list -->
+    {% for t in paper.topics %}
+    <div class="gem-card" style="margin-bottom: 8px;">
+      <div style="display: flex; align-items: flex-start; justify-content: space-between; gap: 12px; flex-wrap: wrap;">
+
+        <!-- Left: name + badge + meta -->
+        <div style="flex: 1; min-width: 180px;">
+          <div style="display: flex; align-items: center; gap: 8px; margin-bottom: 4px;">
+            <span style="font-size: 0.92rem; font-weight: 600; color: #E8EAED;">{{ t._name }}</span>
+            <span class="badge badge-{{ t._state | lower }}">{{ t._state }}</span>
+          </div>
+          {% if t._state_meta %}
+          <div style="font-size: 0.76rem; color: #9AA0A6; margin-bottom: 6px;">{{ t._state_meta }}</div>
+          {% endif %}
+
+          <!-- Answers progress bar -->
+          <div style="display: flex; align-items: center; gap: 8px;">
+            <div class="prog-bar-bg" style="flex: 1; max-width: 140px;">
+              <div class="prog-bar-fill" style="width: {{ t._ans_bar_pct }}%;"></div>
+            </div>
+            <span style="font-size: 0.74rem; color: #9AA0A6; white-space: nowrap;">
+              {{ t.answers_ready }}/{{ t.total_q }} answers
+            </span>
+          </div>
+
+          <!-- Mastery -->
+          {% if t._mastery_pct > 0 %}
+          <div style="font-size: 0.74rem; color: #9AA0A6; margin-top: 4px;">
+            Mastery: <span style="color: #8AB4F8;">{{ t._mastery_pct }}%</span>
+          </div>
+          {% endif %}
+        </div>
+
+        <!-- Right: action buttons -->
+        <div style="display: flex; gap: 6px; flex-wrap: wrap; align-items: flex-start; padding-top: 2px;">
+          <form method="POST" action="/upsc/topics/{{ t.topic_id }}/state" style="display:inline;">
+            <input type="hidden" name="new_state" value="{{ t._next_state }}">
+            <button type="submit" class="btn btn-sm btn-primary"
+                    {% if t._state == 'VERIFIED' %}disabled{% endif %}>
+              {{ t._btn_label }}
+            </button>
+          </form>
+
+          <form method="POST" action="/upsc/topics/{{ t.topic_id }}/state" style="display:inline;">
+            <input type="hidden" name="new_state" value="VERIFIED">
+            <button type="submit" class="btn btn-sm"
+                    style="color: #81C995; border-color: rgba(129,201,149,0.35);"
+                    {% if t._state == 'VERIFIED' %}disabled{% endif %}>
+              Quick Verify
+            </button>
+          </form>
+
+          <form method="POST" action="/upsc/topics/{{ t.topic_id }}/state" style="display:inline;">
+            <input type="hidden" name="new_state" value="UNVISITED">
+            <button type="submit" class="btn btn-sm btn-danger">Reset</button>
+          </form>
+        </div>
+
+      </div>
+    </div>
+    {% endfor %}
+
+  </div>
+  {% endfor %}
+</div>
+
+<!-- State overview -->
+<div style="margin-bottom: 0.5rem;">
+  <div class="section-header">State Overview</div>
+  <div class="grid-6">
+    {% for s in state_overview %}
+    <div class="gem-card" style="text-align: center; border-color: {{ s.color }}33;">
+      <div style="font-size: 1.4rem; color: {{ s.color }}; line-height: 1;">{{ s.emoji }}</div>
+      <div style="font-size: 1.5rem; font-weight: 700; color: {{ s.color }}; margin: 4px 0;">{{ s.count }}</div>
+      <div style="font-size: 0.7rem; color: #9AA0A6; text-transform: uppercase; letter-spacing: 0.04em;">{{ s.label }}</div>
+    </div>
+    {% endfor %}
+  </div>
+</div>
+
+{% endif %}
+{% endblock %}

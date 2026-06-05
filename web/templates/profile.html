@@ -1,0 +1,96 @@
+{% extends "base.html" %}
+{% block title %}Profile · Exam Prep{% endblock %}
+
+{% block content %}
+<div style="max-width:680px;">
+
+  <!-- ── Section 1: Account header ─────────────────────────── -->
+  <div class="gem-card" style="display:flex;align-items:center;gap:18px;margin-bottom:20px;">
+    {% if user and user.avatar_url %}
+    <img src="{{ user.avatar_url }}" alt="avatar"
+         style="width:64px;height:64px;border-radius:50%;border:2px solid #3A3A3C;flex-shrink:0;">
+    {% else %}
+    <div style="width:64px;height:64px;border-radius:50%;background:#2C2C2E;border:2px solid #3A3A3C;
+                display:flex;align-items:center;justify-content:center;font-size:1.8rem;flex-shrink:0;">
+      👤
+    </div>
+    {% endif %}
+    <div style="min-width:0;">
+      <div style="font-size:1.15rem;font-weight:700;color:#E8EAED;margin-bottom:2px;">
+        {{ user.display_name if user and user.display_name else "User" }}
+      </div>
+      <div style="color:#9AA0A6;font-size:0.85rem;margin-bottom:6px;">
+        {{ user.email if user and user.email else "" }}
+      </div>
+      <div style="display:flex;align-items:center;gap:8px;flex-wrap:wrap;">
+        {% if user and user.created_at %}
+        <span style="color:#6E6E73;font-size:0.78rem;">
+          Member since {{ user.created_at[:10] }}
+        </span>
+        {% endif %}
+        {% if user and user.subscription_tier %}
+        <span class="chip chip-purple" style="font-size:0.72rem;">
+          {{ user.subscription_tier | capitalize }}
+        </span>
+        {% endif %}
+        {% if user and user.onboarding_completed %}
+        <span class="chip chip-green" style="font-size:0.72rem;">Setup complete</span>
+        {% endif %}
+      </div>
+    </div>
+  </div>
+
+  <!-- ── Section 2: Contact details ────────────────────────── -->
+  <div class="gem-card" style="margin-bottom:20px;">
+    <div class="section-header" style="margin-bottom:14px;">Contact Details</div>
+    <form method="POST" action="/profile">
+      <div class="form-group">
+        <label for="phone_number">Phone number</label>
+        <input type="text" id="phone_number" name="phone_number"
+               value="{{ user.phone_number if user and user.phone_number else '' }}"
+               placeholder="+91 98765 43210"
+               style="max-width:280px;">
+      </div>
+      <button type="submit" class="btn btn-primary btn-sm">Save</button>
+    </form>
+  </div>
+
+  <!-- ── Section 3: Study snapshot ─────────────────────────── -->
+  <div class="gem-card" style="margin-bottom:20px;">
+    <div class="section-header" style="margin-bottom:14px;">Study Snapshot</div>
+    <div class="grid-3">
+      <div class="metric-card" style="text-align:center;">
+        <div class="metric-value">{{ answers_graded }}</div>
+        <div class="metric-label">Answers Graded</div>
+      </div>
+      <div class="metric-card" style="text-align:center;">
+        <div class="metric-value">{{ mcqs_attempted }}</div>
+        <div class="metric-label">MCQs Attempted</div>
+      </div>
+      <div class="metric-card" style="text-align:center;">
+        {% if exam_focus_list %}
+        {% for e in exam_focus_list %}
+        <span class="chip" style="font-size:0.72rem;margin:2px 1px;">{{ exam_labels.get(e, e) }}</span>
+        {% endfor %}
+        <div class="metric-label" style="margin-top:6px;">Exam Focus</div>
+        {% else %}
+        <div class="metric-value" style="font-size:1rem;color:#9AA0A6;">—</div>
+        <div class="metric-label">Exam Focus</div>
+        {% endif %}
+      </div>
+    </div>
+    {% if user and user.exam_date %}
+    <div style="margin-top:12px;color:#9AA0A6;font-size:0.82rem;">
+      Primary exam date: <span style="color:#E8EAED;">{{ user.exam_date }}</span>
+    </div>
+    {% endif %}
+  </div>
+
+  <!-- ── Section 4: Sign out ───────────────────────────────── -->
+  <div class="gem-card">
+    <div class="section-header" style="margin-bottom:10px;">Session</div>
+    <a href="/auth/logout" class="btn btn-danger btn-sm">Sign Out</a>
+  </div>
+
+</div>
+{% endblock %}

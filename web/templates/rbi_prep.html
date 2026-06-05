@@ -1,0 +1,557 @@
+{% extends "base.html" %}
+{% block title %}RBI Prep · DEPR 2026{% endblock %}
+
+{% block content %}
+
+{# ── Page header ────────────────────────────────────────────────────────────── #}
+<div style="display:flex; align-items:flex-start; justify-content:space-between; flex-wrap:wrap; gap:16px; margin-bottom:28px;">
+  <div>
+    <h1 style="font-size:1.6rem; font-weight:700; color:#E8EAED; margin-bottom:4px;">🏦 RBI DEPR 2026 Prep</h1>
+    <p style="color:#9AA0A6; font-size:0.88rem;">Key Data · Phase 1 Theory Drill · Tier 2 Current Affairs Quiz · Progress Dashboard</p>
+  </div>
+  <div class="gem-card" style="text-align:center; border-color:{{ days_color }}33; min-width:120px; padding:12px 20px;">
+    <div style="font-size:2rem; font-weight:700; color:{{ days_color }};">{{ days }}</div>
+    <div style="font-size:0.68rem; color:#9AA0A6; text-transform:uppercase; letter-spacing:.06em;">Days to RBI DEPR</div>
+    <div style="font-size:0.72rem; color:#9AA0A6; margin-top:4px;">June 14: Phase 1 MCQ + English</div>
+  </div>
+</div>
+
+{# ── Tab bar ─────────────────────────────────────────────────────────────────── #}
+<div id="rbi-tabs" class="tab-bar" style="margin-bottom:28px;">
+  <button class="tab-btn {% if tab == 'key_data' %}active{% endif %}"
+          data-tab="key_data"
+          onclick="switchTab('rbi-tabs','key_data')">📊 Key Data</button>
+  <button class="tab-btn {% if tab == 'phase1_drill' %}active{% endif %}"
+          data-tab="phase1_drill"
+          onclick="switchTab('rbi-tabs','phase1_drill')">🧠 Phase 1 Drill</button>
+  <button class="tab-btn {% if tab == 'tier2_quiz' %}active{% endif %}"
+          data-tab="tier2_quiz"
+          onclick="switchTab('rbi-tabs','tier2_quiz')">❓ Tier 2 Quiz</button>
+  <button class="tab-btn {% if tab == 'progress' %}active{% endif %}"
+          data-tab="progress"
+          onclick="switchTab('rbi-tabs','progress')">📈 My Progress</button>
+</div>
+
+{# ══════════════════════════════════════════════════════════════════════════════
+   TAB 1 — Key Data
+   ══════════════════════════════════════════════════════════════════════════════ #}
+<div id="rbi-tabs-key_data" class="tab-panel {% if tab == 'key_data' %}active{% endif %}">
+
+  <div class="info-box" style="margin-bottom:24px;">
+    ⚠ Items marked <strong>VERIFY</strong> depend on live RBI/MoSPI data — confirm at rbi.org.in before exam.
+  </div>
+
+  {% for section in key_sections %}
+  <div style="display:flex; align-items:center; gap:8px; margin:24px 0 10px;">
+    <div style="width:4px; height:20px; background:{{ section.color }}; border-radius:2px;"></div>
+    <span style="font-size:0.95rem; font-weight:600; color:#E8EAED;">{{ section.label }}</span>
+  </div>
+
+  {% for name, value, note, verify in section.items %}
+  <div class="gem-card-sm" style="border-left:3px solid {{ section.color }}40; margin-bottom:6px;">
+    <div style="display:flex; justify-content:space-between; align-items:flex-start; flex-wrap:wrap; gap:4px;">
+      <span style="font-size:0.82rem; font-weight:600; color:#E8EAED;">
+        {{ name }}
+        {% if verify %}
+        <span style="font-size:0.68rem; font-weight:700; color:#F28B82;
+              background:rgba(242,139,130,0.12); border:1px solid rgba(242,139,130,0.3);
+              border-radius:10px; padding:1px 7px; margin-left:6px;">⚠ VERIFY</span>
+        {% endif %}
+      </span>
+      <span style="font-size:0.82rem; font-weight:700; color:{{ section.color }}; text-align:right; max-width:55%;">{{ value }}</span>
+    </div>
+    <div style="font-size:0.76rem; color:#9AA0A6; margin-top:5px; line-height:1.4;">{{ note }}</div>
+  </div>
+  {% endfor %}
+  {% endfor %}
+
+</div>
+
+{# ══════════════════════════════════════════════════════════════════════════════
+   TAB 2 — Phase 1 Drill
+   ══════════════════════════════════════════════════════════════════════════════ #}
+<div id="rbi-tabs-phase1_drill" class="tab-panel {% if tab == 'phase1_drill' %}active{% endif %}">
+
+  {% if t1_count == 0 %}
+  <div class="info-box">
+    <strong>⏳ Question bank is being generated.</strong>
+    Run <code>python3 scripts/rbi/02_generate_mcq_bank.py</code> to populate Phase 1 questions.
+    While you wait, the Tier 2 Quiz tab has 48 current-affairs MCQs ready.
+  </div>
+
+  {% else %}
+
+  {# ── Mode selector ─────────────────────────────────────────────────────── #}
+  <div style="display:flex; gap:8px; align-items:center; margin-bottom:20px; flex-wrap:wrap;">
+    <a href="{{ url_for('rbi_prep.prep', tab='phase1_drill', mode='smart') }}"
+       class="btn btn-sm {% if drill_mode == 'smart' %}btn-primary{% endif %}"
+       style="{% if drill_mode != 'smart' %}background:#2C2C2E; color:#9AA0A6; border:1px solid #3A3A3C;{% endif %}">
+      🎯 Smart Serve
+    </a>
+    <a href="{{ url_for('rbi_prep.prep', tab='phase1_drill', mode='filter') }}"
+       class="btn btn-sm {% if drill_mode == 'filter' %}btn-primary{% endif %}"
+       style="{% if drill_mode != 'filter' %}background:#2C2C2E; color:#9AA0A6; border:1px solid #3A3A3C;{% endif %}">
+      🔍 Filter
+    </a>
+    <span style="font-size:0.80rem; color:#9AA0A6;">
+      {% if drill_mode == 'smart' %}
+        Smart Serve picks the highest-gap topics and unanswered questions first.
+      {% else %}
+        Filter mode lets you target a specific subject, topic, or difficulty.
+      {% endif %}
+    </span>
+  </div>
+
+  {# ── Results view (after submission) ──────────────────────────────────── #}
+  {% if result_mode and drill_results %}
+  {% set correct_count = drill_results | selectattr('is_correct') | list | length %}
+  {% set total_r = drill_results | length %}
+  {% set pct = (correct_count / total_r) if total_r > 0 else 0 %}
+  {% set c_col = '#81C995' if pct >= 0.8 else '#FDD663' if pct >= 0.5 else '#F28B82' %}
+
+  <div class="score-card" style="border-color:{{ c_col }}33; margin-bottom:20px;">
+    <div class="score-num" style="color:{{ c_col }};">{{ correct_count }}/{{ total_r }}</div>
+    <div class="score-label">Phase 1 Drill — {{ (pct * 100) | int }}% correct</div>
+  </div>
+
+  <h3 style="font-size:1rem; font-weight:600; color:#E8EAED; margin-bottom:12px;">Question-by-question breakdown</h3>
+
+  {% for r in drill_results %}
+  {% set q_label = r.question[:80] ~ ('…' if r.question | length > 80 else '') %}
+  <details style="margin-bottom:8px; background:#2C2C2E; border-radius:8px; border:1px solid #3A3A3C;">
+    <summary style="padding:10px 14px; cursor:pointer; font-size:0.84rem; color:#E8EAED; list-style:none; display:flex; align-items:center; gap:8px;">
+      <span>{% if r.is_correct %}✅{% else %}❌{% endif %}</span>
+      <span>Q{{ loop.index }}. {{ q_label }}</span>
+    </summary>
+    <div style="padding:0 14px 14px;">
+      {% for opt in r.options %}
+      {% set is_correct_opt = opt.strip() == r.correct_option_full.strip() %}
+      {% set is_chosen = opt.strip() == r.answer_given.strip() %}
+      <div style="padding:4px 0; font-size:0.82rem;
+           color:{% if is_correct_opt %}#81C995{% elif is_chosen %}#F28B82{% else %}#9AA0A6{% endif %};">
+        {% if is_correct_opt and is_chosen %}✓ <strong>{{ opt }}</strong> ← your answer ✅
+        {% elif is_correct_opt %}<strong>✓ {{ opt }}</strong> ← correct answer
+        {% elif is_chosen %}<s>{{ opt }}</s> ← your answer ❌
+        {% else %}{{ opt }}{% endif %}
+      </div>
+      {% endfor %}
+      {% if r.explanation %}
+      <div class="info-box" style="margin-top:10px; font-size:0.80rem;">
+        <strong>Why:</strong> {{ r.explanation }}
+      </div>
+      {% endif %}
+    </div>
+  </details>
+  {% endfor %}
+
+  <div style="margin-top:20px;">
+    <a href="{{ url_for('rbi_prep.prep', tab='phase1_drill', mode=drill_mode) }}"
+       class="btn btn-primary">▶ New Session</a>
+  </div>
+
+  {% elif drill_questions %}
+  {# ── Active quiz session ───────────────────────────────────────────────── #}
+  <p style="font-size:0.80rem; color:#9AA0A6; margin-bottom:16px;">
+    {{ drill_questions | length }} questions ·
+    {% if drill_mode == 'smart' %}Smart Serve{% else %}Filtered{% endif %}
+  </p>
+
+  <form method="POST" action="{{ url_for('rbi_prep.drill_submit') }}">
+    <input type="hidden" name="session_id" value="{{ drill_session_id }}">
+
+    {% for q in drill_questions %}
+    {% set diff_color = '#81C995' if q.difficulty == 'easy' else '#FDD663' if q.difficulty == 'medium' else '#F28B82' %}
+    <div style="margin-bottom:24px;">
+      <div style="font-size:0.72rem; color:{{ diff_color }}; margin-bottom:4px; text-transform:uppercase; letter-spacing:.05em;">
+        {{ q.subject | replace('_', ' ') }} · {{ q.topic | replace('_', ' ') }} · {{ q.difficulty }}
+        {% if q.is_trap %}
+        <span style="font-size:0.68rem; color:#F28B82; background:rgba(242,139,130,0.1);
+              border:1px solid rgba(242,139,130,0.25); border-radius:8px; padding:1px 6px; margin-left:4px;">⚡ trap</span>
+        {% endif %}
+      </div>
+      <p style="font-size:0.88rem; font-weight:600; color:#E8EAED; margin-bottom:8px;">
+        <strong>Q{{ loop.index }}.</strong> {{ q.question }}
+      </p>
+      {% for opt_key in ['option_a', 'option_b', 'option_c', 'option_d'] %}
+      {% if q[opt_key] %}
+      <label style="display:flex; align-items:flex-start; gap:8px; padding:6px 10px; margin-bottom:4px;
+             border-radius:6px; border:1px solid #3A3A3C; cursor:pointer; font-size:0.84rem; color:#C8CACC;">
+        <input type="radio" name="q_{{ q.id }}" value="{{ q[opt_key] }}" style="margin-top:2px; flex-shrink:0;">
+        {{ q[opt_key] }}
+      </label>
+      {% endif %}
+      {% endfor %}
+    </div>
+    {% if not loop.last %}<hr>{% endif %}
+    {% endfor %}
+
+    <div style="display:flex; gap:12px; margin-top:20px; flex-wrap:wrap;">
+      <button type="submit" class="btn btn-primary">Submit Session →</button>
+      <a href="{{ url_for('rbi_prep.prep', tab='phase1_drill', mode=drill_mode) }}"
+         class="btn btn-sm" style="background:#2C2C2E; color:#9AA0A6; border:1px solid #3A3A3C;">
+        ✕ Cancel session
+      </a>
+    </div>
+  </form>
+
+  {% else %}
+  {# ── Setup panel ───────────────────────────────────────────────────────── #}
+  <form method="GET" action="{{ url_for('rbi_prep.prep') }}">
+    <input type="hidden" name="tab" value="phase1_drill">
+    <input type="hidden" name="mode" value="{{ drill_mode }}">
+    <input type="hidden" name="start" value="1">
+
+    <div class="grid-2" style="gap:16px; margin-bottom:16px;">
+      <div>
+        <label style="font-size:0.80rem; color:#9AA0A6; display:block; margin-bottom:6px;">Questions per session</label>
+        <select name="n" style="width:100%; background:#2C2C2E; color:#E8EAED; border:1px solid #3A3A3C; border-radius:6px; padding:7px 10px; font-size:0.84rem;">
+          {% for n_opt in [5, 10, 15, 20] %}
+          <option value="{{ n_opt }}" {% if n_opt == drill_n %}selected{% endif %}>{{ n_opt }}</option>
+          {% endfor %}
+        </select>
+      </div>
+    </div>
+
+    {% if drill_mode == 'filter' %}
+    <div class="grid-3" style="gap:12px; margin-bottom:16px;">
+      <div>
+        <label style="font-size:0.80rem; color:#9AA0A6; display:block; margin-bottom:6px;">Subject</label>
+        <select name="subject" style="width:100%; background:#2C2C2E; color:#E8EAED; border:1px solid #3A3A3C; border-radius:6px; padding:7px 10px; font-size:0.84rem;"
+                onchange="this.form.submit()">
+          {% for s in subjects %}
+          <option value="{{ s }}" {% if s == (drill_filter.subject or 'all') %}selected{% endif %}>{{ s }}</option>
+          {% endfor %}
+        </select>
+      </div>
+      <div>
+        <label style="font-size:0.80rem; color:#9AA0A6; display:block; margin-bottom:6px;">Topic</label>
+        <select name="topic" style="width:100%; background:#2C2C2E; color:#E8EAED; border:1px solid #3A3A3C; border-radius:6px; padding:7px 10px; font-size:0.84rem;">
+          {% for t in topics_for_subject %}
+          <option value="{{ t }}" {% if t == (drill_filter.topic or 'all') %}selected{% endif %}>{{ t }}</option>
+          {% endfor %}
+        </select>
+      </div>
+      <div>
+        <label style="font-size:0.80rem; color:#9AA0A6; display:block; margin-bottom:6px;">Difficulty</label>
+        <select name="difficulty" style="width:100%; background:#2C2C2E; color:#E8EAED; border:1px solid #3A3A3C; border-radius:6px; padding:7px 10px; font-size:0.84rem;">
+          {% for d_opt in ['all', 'easy', 'medium', 'hard'] %}
+          <option value="{{ d_opt }}" {% if d_opt == (drill_filter.difficulty or 'all') %}selected{% endif %}>{{ d_opt }}</option>
+          {% endfor %}
+        </select>
+      </div>
+    </div>
+    <div style="display:flex; gap:16px; margin-bottom:16px;">
+      <label style="font-size:0.82rem; color:#C8CACC; display:flex; align-items:center; gap:6px; cursor:pointer;">
+        <input type="checkbox" name="is_trap" value="1" {% if drill_filter.is_trap %}checked{% endif %}>
+        Traps only
+      </label>
+      <label style="font-size:0.82rem; color:#C8CACC; display:flex; align-items:center; gap:6px; cursor:pointer;">
+        <input type="checkbox" name="is_recent" value="1" {% if drill_filter.is_recent %}checked{% endif %}>
+        Recent data only
+      </label>
+    </div>
+    {% endif %}
+
+    <button type="submit" class="btn btn-primary">
+      {% if drill_mode == 'smart' %}▶ Start Smart Session{% else %}▶ Load Filtered Questions{% endif %}
+    </button>
+  </form>
+  {% endif %}
+  {% endif %}
+
+</div>
+
+{# ══════════════════════════════════════════════════════════════════════════════
+   TAB 3 — Tier 2 Quiz
+   ══════════════════════════════════════════════════════════════════════════════ #}
+<div id="rbi-tabs-tier2_quiz" class="tab-panel {% if tab == 'tier2_quiz' %}active{% endif %}">
+  <div style="display:flex; gap:24px; align-items:flex-start; flex-wrap:wrap;">
+
+    {# ── Left: bucket selector ─────────────────────────────────────────── #}
+    <div style="min-width:220px; max-width:260px; flex-shrink:0;">
+      <div class="section-header" style="margin-bottom:10px;">Topic Bucket</div>
+
+      {% for bk in bucket_keys %}
+      {% set bdata = buckets[bk] %}
+      {% set is_done = bk in tier2_scores %}
+      {% set is_active = bk == bucket_key %}
+      <a href="{{ url_for('rbi_prep.prep', tab='tier2_quiz', bucket=bk) }}"
+         style="display:flex; align-items:center; justify-content:space-between;
+                padding:8px 12px; border-radius:7px; margin-bottom:3px; text-decoration:none;
+                border:1px solid {% if is_active %}#8AB4F8{% else %}#3A3A3C{% endif %};
+                background:{% if is_active %}rgba(138,180,248,0.1){% else %}transparent{% endif %};
+                color:{% if is_active %}#8AB4F8{% else %}#9AA0A6{% endif %}; font-size:0.84rem;">
+        <span>{{ bdata.icon }} {{ bdata.label }}</span>
+        {% if is_done %}
+        {% set s = tier2_scores[bk] %}
+        {% set p = s.correct / s.total %}
+        <span style="font-size:0.76rem; font-weight:600;
+               color:{% if p >= 0.8 %}#81C995{% elif p >= 0.5 %}#FDD663{% else %}#F28B82{% endif %};">
+          {{ s.correct }}/{{ s.total }}
+        </span>
+        {% endif %}
+      </a>
+      {% endfor %}
+
+      <hr style="margin:12px 0;">
+      {% set total_done = tier2_scores | length %}
+      <div style="font-size:0.78rem; color:#9AA0A6;">
+        Buckets completed: <strong style="color:#E8EAED;">{{ total_done }}/{{ bucket_keys | length }}</strong>
+      </div>
+    </div>
+
+    {# ── Right: quiz or results ────────────────────────────────────────── #}
+    <div style="flex:1; min-width:300px;">
+      {% set bucket = buckets[bucket_key] %}
+      {% set questions = bucket.qs %}
+
+      <h2 style="font-size:1.2rem; font-weight:700; color:#E8EAED; margin-bottom:4px;">
+        {{ bucket.icon }} {{ bucket.label }}
+      </h2>
+      <p style="font-size:0.78rem; color:#9AA0A6; margin-bottom:20px;">
+        {{ questions | length }} questions · instant grading · no AI cost
+      </p>
+
+      {# ── Result view ──────────────────────────────────────────────── #}
+      {% if result_mode and bucket_key in tier2_scores %}
+      {% set s = tier2_scores[bucket_key] %}
+      {% set score_pct = s.correct / s.total %}
+      {% set sc_color = '#81C995' if score_pct >= 0.8 else '#FDD663' if score_pct >= 0.5 else '#F28B82' %}
+      {% set icon = '🟢' if score_pct >= 0.8 else '🟡' if score_pct >= 0.5 else '🔴' %}
+
+      <div class="score-card" style="border-color:{{ sc_color }}33; margin-bottom:20px;">
+        <div class="score-num" style="color:{{ sc_color }};">{{ icon }} {{ s.correct }}/{{ s.total }}</div>
+        <div class="score-label">{{ (score_pct * 100) | int }}% correct</div>
+      </div>
+
+      <h3 style="font-size:0.95rem; font-weight:600; color:#E8EAED; margin-bottom:12px;">Per-question breakdown</h3>
+
+      {% for q in questions %}
+      {% set user_ans = tier2_answers.get(q.id, '') %}
+      {% set is_correct = user_ans.strip() == q.correct.strip() %}
+      <details style="margin-bottom:8px; background:#2C2C2E; border-radius:8px; border:1px solid #3A3A3C;">
+        <summary style="padding:10px 14px; cursor:pointer; font-size:0.84rem; color:#E8EAED; list-style:none; display:flex; align-items:center; gap:8px;">
+          <span>{% if is_correct %}✅{% else %}❌{% endif %}</span>
+          <span>Q{{ loop.index }}. {{ q.q[:80] }}{% if q.q | length > 80 %}…{% endif %}</span>
+        </summary>
+        <div style="padding:0 14px 14px;">
+          {% for opt in q.opts %}
+          {% set is_opt_correct = opt.strip() == q.correct.strip() %}
+          {% set is_opt_chosen = opt.strip() == user_ans.strip() %}
+          <div style="padding:4px 0; font-size:0.82rem;
+               color:{% if is_opt_correct %}#81C995{% elif is_opt_chosen %}#F28B82{% else %}#9AA0A6{% endif %};">
+            {% if is_opt_correct and is_opt_chosen %}✓ <strong>{{ opt }}</strong> ← your answer ✅
+            {% elif is_opt_correct %}<strong>✓ {{ opt }}</strong> ← correct answer
+            {% elif is_opt_chosen %}<s>{{ opt }}</s> ← your answer ❌
+            {% else %}{{ opt }}{% endif %}
+          </div>
+          {% endfor %}
+          <div class="info-box" style="margin-top:10px; font-size:0.80rem;">
+            <strong>Why:</strong> {{ q.exp }}
+          </div>
+        </div>
+      </details>
+      {% endfor %}
+
+      {# ── All done / next bucket ────────────────────────────────── #}
+      {% set total_done_now = tier2_scores | length %}
+      {% if total_done_now == bucket_keys | length %}
+      {# All buckets complete #}
+      {% set total_correct = tier2_scores.values() | map(attribute='correct') | sum %}
+      {% set total_qs = tier2_scores.values() | map(attribute='total') | sum %}
+      {% set agg_pct = (total_correct / total_qs) if total_qs > 0 else 0 %}
+      {% set agg_color = '#81C995' if agg_pct >= 0.8 else '#FDD663' if agg_pct >= 0.5 else '#F28B82' %}
+
+      <div style="margin-top:20px; padding:16px; background:rgba(129,201,149,0.08); border:1px solid rgba(129,201,149,0.3); border-radius:8px; margin-bottom:16px;">
+        🎉 <strong>All {{ bucket_keys | length }} Tier 2 buckets complete!</strong>
+      </div>
+      <div class="score-card" style="border-color:{{ agg_color }}33; margin-bottom:16px;">
+        <div class="score-num" style="color:{{ agg_color }};">{{ total_correct }}/{{ total_qs }}</div>
+        <div class="score-label">Overall Tier 2 — {{ (agg_pct * 100) | int }}% correct</div>
+      </div>
+
+      {# Weakest bucket #}
+      {% set weakest_key = namespace(key=bucket_keys[0], pct=1.0) %}
+      {% for bk in bucket_keys %}
+        {% if bk in tier2_scores %}
+          {% set bp = tier2_scores[bk].correct / tier2_scores[bk].total %}
+          {% if bp < weakest_key.pct %}
+            {% set weakest_key.key = bk %}
+            {% set weakest_key.pct = bp %}
+          {% endif %}
+        {% endif %}
+      {% endfor %}
+      {% set ws = tier2_scores.get(weakest_key.key, {}) %}
+      <div class="info-box" style="margin-bottom:16px;">
+        ⚠ Weakest bucket: <strong>{{ buckets[weakest_key.key].icon }} {{ buckets[weakest_key.key].label }}</strong>
+        {% if ws %} — {{ ws.correct }}/{{ ws.total }} ({{ (ws.correct / ws.total * 100) | int }}%). Retry it below.{% endif %}
+      </div>
+      <div style="display:flex; gap:10px; flex-wrap:wrap;">
+        <a href="{{ url_for('rbi_prep.prep', tab='tier2_quiz', bucket=weakest_key.key) }}"
+           class="btn btn-primary btn-sm">↩ Retry weakest bucket</a>
+        <a href="{{ url_for('rbi_prep.prep', tab='tier2_quiz', bucket=bucket_keys[0]) }}"
+           class="btn btn-sm" style="background:#2C2C2E; color:#9AA0A6; border:1px solid #3A3A3C;">
+          Reset all buckets
+        </a>
+      </div>
+
+      {% else %}
+      {# Not all done — show retry / next #}
+      {% set curr_idx = bucket_keys.index(bucket_key) %}
+      {% set next_idx = (curr_idx + 1) % (bucket_keys | length) %}
+      {% set next_key = bucket_keys[next_idx] %}
+      <div style="display:flex; gap:10px; flex-wrap:wrap; margin-top:20px;">
+        <a href="{{ url_for('rbi_prep.prep', tab='tier2_quiz', bucket=bucket_key) }}"
+           class="btn btn-sm" style="background:#2C2C2E; color:#9AA0A6; border:1px solid #3A3A3C;">
+          ↩ Retry this bucket
+        </a>
+        <a href="{{ url_for('rbi_prep.prep', tab='tier2_quiz', bucket=next_key) }}"
+           class="btn btn-primary btn-sm">
+          Next → {{ buckets[next_key].label[:28] }}{% if buckets[next_key].label | length > 28 %}…{% endif %}
+        </a>
+      </div>
+      {% endif %}
+
+      {# ── Quiz form ────────────────────────────────────────────────── #}
+      {% else %}
+      <p style="font-size:0.82rem; color:#9AA0A6; margin-bottom:16px;">Answer all questions, then submit.</p>
+      <p style="font-size:0.76rem; color:#6E6E73; margin-bottom:16px;">Explanations shown after submission · no AI calls</p>
+
+      <form method="POST" action="{{ url_for('rbi_prep.tier2_submit') }}">
+        <input type="hidden" name="bucket_key" value="{{ bucket_key }}">
+
+        {% for q in questions %}
+        <div style="margin-bottom:20px;">
+          <p style="font-size:0.88rem; font-weight:600; color:#E8EAED; margin-bottom:8px;">
+            <strong>Q{{ loop.index }}.</strong> {{ q.q }}
+          </p>
+          {% for opt in q.opts %}
+          <label style="display:flex; align-items:flex-start; gap:8px; padding:6px 10px; margin-bottom:4px;
+                 border-radius:6px; border:1px solid #3A3A3C; cursor:pointer; font-size:0.84rem; color:#C8CACC;">
+            <input type="radio" name="ans_{{ q.id }}" value="{{ opt }}" style="margin-top:2px; flex-shrink:0;" required>
+            {{ opt }}
+          </label>
+          {% endfor %}
+        </div>
+        {% if not loop.last %}<hr>{% endif %}
+        {% endfor %}
+
+        <div style="margin-top:20px;">
+          <button type="submit" class="btn btn-primary">Submit →</button>
+        </div>
+      </form>
+      {% endif %}
+
+    </div>{# end right col #}
+  </div>{# end flex container #}
+</div>
+
+{# ══════════════════════════════════════════════════════════════════════════════
+   TAB 4 — My Progress
+   ══════════════════════════════════════════════════════════════════════════════ #}
+<div id="rbi-tabs-progress" class="tab-panel {% if tab == 'progress' %}active{% endif %}">
+
+  {% if not progress or progress.total_attempts == 0 %}
+  <div class="info-box" style="margin-bottom:24px;">
+    📊 No Phase 1 drill attempts yet. Complete sessions in the <strong>Phase 1 Drill</strong>
+    tab to see your coverage and readiness scores here.
+  </div>
+
+  {# Still show Tier 2 summary if any scores exist #}
+  {% if tier2_scores %}
+  <h3 style="font-size:1rem; font-weight:600; color:#E8EAED; margin-bottom:12px;">Tier 2 Quiz Summary</h3>
+  {% for bk, s in tier2_scores.items() %}
+  {% set p = s.correct / s.total %}
+  <div style="display:flex; justify-content:space-between; padding:8px 0; border-bottom:1px solid #2a2a2a;">
+    <span style="font-size:0.82rem; color:#C8CACC;">{{ buckets[bk].icon }} {{ buckets[bk].label }}</span>
+    <span style="font-size:0.82rem; font-weight:600;
+          color:{% if p >= 0.8 %}#81C995{% elif p >= 0.5 %}#FDD663{% else %}#F28B82{% endif %};">
+      {{ s.correct }}/{{ s.total }} ({{ (p * 100) | int }}%)
+    </span>
+  </div>
+  {% endfor %}
+  {% endif %}
+
+  {% else %}
+  {# ── Readiness header ────────────────────────────────────────────────── #}
+  {% set formula_pct = progress.formula_score %}
+  {% set true_pct = progress.true_readiness %}
+  {% set fc = '#81C995' if formula_pct >= 0.7 else '#FDD663' if formula_pct >= 0.4 else '#F28B82' %}
+  {% set tc = '#81C995' if true_pct >= 0.6 else '#FDD663' if true_pct >= 0.35 else '#F28B82' %}
+
+  <div class="grid-3" style="gap:16px; margin-bottom:24px;">
+    <div class="gem-card" style="text-align:center; border-color:{{ fc }}33;">
+      <div style="font-size:1.8rem; font-weight:700; color:{{ fc }};">{{ (formula_pct * 100) | int }}%</div>
+      <div style="font-size:0.72rem; color:#9AA0A6; text-transform:uppercase; letter-spacing:.06em;">Mastery Score (weighted avg)</div>
+    </div>
+    <div class="gem-card" style="text-align:center; border-color:{{ tc }}33;">
+      <div style="font-size:1.8rem; font-weight:700; color:{{ tc }};">{{ (true_pct * 100) | int }}%</div>
+      <div style="font-size:0.72rem; color:#9AA0A6; text-transform:uppercase; letter-spacing:.06em;">Exam Readiness (gap-adjusted)</div>
+    </div>
+    <div class="gem-card" style="text-align:center;">
+      <div style="font-size:1.8rem; font-weight:700; color:#8AB4F8;">{{ progress.total_attempts }}</div>
+      <div style="font-size:0.72rem; color:#9AA0A6; text-transform:uppercase; letter-spacing:.06em;">Questions Attempted</div>
+    </div>
+  </div>
+
+  <p style="font-size:0.78rem; color:#6E6E73; margin-bottom:24px;">
+    True Readiness = Formula score minus gap penalty for topics &lt;50% covered.
+  </p>
+
+  {# ── Gap alerts ──────────────────────────────────────────────────────── #}
+  {% set gaps = progress.gaps %}
+  {% if gaps %}
+  <h3 style="font-size:1rem; font-weight:600; color:#E8EAED; margin-bottom:12px;">⚠ Gap Alerts — study these first</h3>
+
+  {% for g in gaps[:5] %}
+  {% set gcol = '#F28B82' if g.coverage_pct < 0.2 else '#FDD663' %}
+  <div style="display:flex; justify-content:space-between; align-items:center;
+       padding:8px 12px; background:rgba(255,255,255,0.03); border-left:3px solid {{ gcol }};
+       border-radius:4px; margin-bottom:6px;">
+    <div>
+      <span style="font-size:0.84rem; font-weight:600; color:#E8EAED;">
+        {{ g.topic | replace('_', ' ') | title }}
+      </span>
+      <span style="font-size:0.72rem; color:#9AA0A6; margin-left:8px;">{{ g.subject | replace('_', ' ') }}</span>
+    </div>
+    <div style="text-align:right;">
+      <span style="font-size:0.82rem; color:{{ gcol }}; font-weight:600;">{{ (g.coverage_pct * 100) | int }}% covered</span>
+      <span style="font-size:0.70rem; color:#9AA0A6; display:block;">impact {{ "%.3f" | format(g.flag_impact) }}</span>
+    </div>
+  </div>
+  {% endfor %}
+
+  <a href="{{ url_for('rbi_prep.prep', tab='phase1_drill', mode='smart', start='1') }}"
+     class="btn btn-primary btn-sm" style="margin-top:12px;">
+    🎯 Start Smart Session on top gap
+  </a>
+
+  {% else %}
+  <div style="padding:14px 16px; background:rgba(129,201,149,0.08); border:1px solid rgba(129,201,149,0.3); border-radius:8px; margin-bottom:20px;">
+    ✅ No critical gaps! All topics ≥50% covered.
+  </div>
+  {% endif %}
+
+  {# ── Subject coverage bars ───────────────────────────────────────────── #}
+  <h3 style="font-size:1rem; font-weight:600; color:#E8EAED; margin:24px 0 12px;">Subject Coverage</h3>
+
+  {% for subj, cov in progress.subject_coverage.items() | sort(attribute='1') %}
+  {% set bar_color = '#81C995' if cov >= 0.7 else '#FDD663' if cov >= 0.4 else '#F28B82' %}
+  {% set bar_w = [2, (cov * 100) | int] | max %}
+  {% set label = SUBJECT_LABELS.get(subj, subj | replace('_', ' ') | title) %}
+  <div style="margin-bottom:10px;">
+    <div style="display:flex; justify-content:space-between; margin-bottom:3px;">
+      <span style="font-size:0.78rem; color:#9AA0A6;">{{ label }}</span>
+      <span style="font-size:0.78rem; font-weight:600; color:{{ bar_color }};">{{ (cov * 100) | int }}%</span>
+    </div>
+    <div class="prog-bar-bg">
+      <div class="prog-bar-fill" style="width:{{ bar_w }}%; background:{{ bar_color }};"></div>
+    </div>
+  </div>
+  {% endfor %}
+
+  {% endif %}
+
+</div>
+
+{% endblock %}

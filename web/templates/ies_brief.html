@@ -1,0 +1,199 @@
+{% extends "base.html" %}
+{% block title %}Study Brief · IES 2026{% endblock %}
+
+{% block content %}
+<div style="max-width:1100px;">
+
+  <!-- ── Page heading ──────────────────────────────────────────── -->
+  <h2 style="font-size:1.5rem;font-weight:700;color:#E8EAED;margin-bottom:4px;">
+    🗂️ Study Brief
+  </h2>
+  <p style="color:#9AA0A6;font-size:0.88rem;margin-bottom:1.4rem;">
+    Pick a topic to get key terms, top questions, rubric points, and a copy-paste study prompt.
+  </p>
+
+  <!-- ── Selectors ─────────────────────────────────────────────── -->
+  <form method="GET" id="brief-form" style="display:flex;gap:12px;margin-bottom:1.5rem;flex-wrap:wrap;">
+    <div style="flex:1;min-width:180px;">
+      <label for="paper-select">Paper</label>
+      <select id="paper-select" name="paper" onchange="document.getElementById('brief-form').submit()">
+        {% for key, label in paper_labels.items() %}
+        <option value="{{ key }}" {% if paper == key %}selected{% endif %}>{{ label }}</option>
+        {% endfor %}
+      </select>
+    </div>
+    <div style="flex:2;min-width:260px;">
+      <label for="topic-select">Topic</label>
+      <select id="topic-select" name="topic" onchange="document.getElementById('brief-form').submit()">
+        {% for tid, tname in topic_opts.items() %}
+        <option value="{{ tid }}" {% if topic_id == tid %}selected{% endif %}>{{ tname }}</option>
+        {% endfor %}
+      </select>
+    </div>
+  </form>
+
+  {% if not brief %}
+  <div class="info-box">Topic not found or no data available for the selected topic.</div>
+  {% else %}
+
+  <!-- ── Topic header ───────────────────────────────────────────── -->
+  <div class="gem-card-accent" style="margin-bottom:16px;">
+    <div style="font-size:1.25rem;font-weight:700;color:#E8EAED;">
+      {{ brief.topic.topic_name }}
+    </div>
+    <div style="font-size:0.82rem;color:#9AA0A6;margin-top:4px;">
+      {{ paper.upper().replace("_", "-") }} · Syllabus weight: {{ brief.topic.syllabus_weight or "?" }}
+    </div>
+  </div>
+
+  <!-- ── Priority metrics ──────────────────────────────────────── -->
+  <div class="grid-3" style="margin-bottom:20px;">
+    <div class="gem-card" style="text-align:center;border-color:rgba(138,180,248,0.2);">
+      <div style="font-size:1.8rem;font-weight:700;color:#8AB4F8;">{{ "%.3f"|format(score) }}</div>
+      <div style="font-size:0.7rem;color:#9AA0A6;text-transform:uppercase;letter-spacing:.06em;">Priority Score</div>
+    </div>
+    <div class="gem-card" style="text-align:center;border-color:rgba(192,132,252,0.2);">
+      <div style="font-size:1.8rem;font-weight:700;color:#C084FC;">{{ pyq_count }}</div>
+      <div style="font-size:0.7rem;color:#9AA0A6;text-transform:uppercase;letter-spacing:.06em;">PYQs</div>
+    </div>
+    <div class="gem-card" style="text-align:center;border-color:rgba(129,201,149,0.2);">
+      <div style="font-size:1.8rem;font-weight:700;color:#81C995;">{{ years_asked }}</div>
+      <div style="font-size:0.7rem;color:#9AA0A6;text-transform:uppercase;letter-spacing:.06em;">Years Asked</div>
+    </div>
+  </div>
+
+  <!-- ── Two-column body ───────────────────────────────────────── -->
+  <div style="display:grid;grid-template-columns:3fr 2fr;gap:16px;margin-bottom:20px;">
+
+    <!-- Left: subtopics / key terms / diagrams -->
+    <div>
+      {% if brief.subtopics %}
+      <div style="margin-bottom:16px;">
+        <div class="section-header">Syllabus Coverage</div>
+        <ul style="list-style:none;padding:0;margin:0;">
+          {% for s in brief.subtopics %}
+          <li style="font-size:0.88rem;color:#E8EAED;padding:3px 0;">• {{ s }}</li>
+          {% endfor %}
+        </ul>
+      </div>
+      {% endif %}
+
+      {% if brief.key_terms %}
+      <div style="margin-bottom:16px;">
+        <div class="section-header">Key Terms to Master</div>
+        <div style="line-height:2.2;">
+          {% for k in brief.key_terms %}
+          <span class="chip">{{ k }}</span>
+          {% endfor %}
+        </div>
+      </div>
+      {% endif %}
+
+      {% if brief.diagrams %}
+      <div style="margin-bottom:16px;">
+        <div class="section-header">Frequently Asked Diagrams</div>
+        <div style="display:flex;flex-wrap:wrap;gap:8px;align-items:center;">
+          {% for dtype, cnt in brief.diagrams.items() %}
+          <span class="chip chip-purple">📊 {{ dtype }}</span>
+          <span style="color:#9AA0A6;font-size:0.75rem;">{{ cnt }}× asked</span>
+          {% endfor %}
+        </div>
+      </div>
+      {% endif %}
+    </div>
+
+    <!-- Right: how to study card -->
+    <div>
+      <div class="gem-card" style="border-left:3px solid #C084FC;">
+        <div class="section-header" style="color:#C084FC;">How to Study This Topic</div>
+        <ol style="font-size:0.85rem;line-height:2;color:#E8EAED;margin:0;padding-left:18px;">
+          <li>Learn every key term on the left</li>
+          <li>For each question, check the rubric — those are your marks</li>
+          <li>Practice diagrams: sketch them, label axes</li>
+          <li>Focus on 2025 + 2024 patterns — exam repeats themes</li>
+          <li>Add data points and government schemes in your answers</li>
+        </ol>
+      </div>
+    </div>
+  </div>
+
+  <hr>
+
+  <!-- ── Questions ─────────────────────────────────────────────── -->
+  <div style="margin-bottom:8px;">
+    <div class="section-header">Past Year Questions</div>
+  </div>
+
+  {% for q in brief.questions %}
+  {% set marks_str = q.marks|string + "m" if q.marks else "?m" %}
+  {% set wc_str    = "~" + q.answer_length|string + "w" if q.answer_length else "" %}
+  <details {% if loop.first %}open{% endif %} style="margin-bottom:8px;">
+    <summary style="cursor:pointer;color:#8AB4F8;font-size:0.88rem;padding:10px 0;list-style:none;display:flex;align-items:center;gap:8px;">
+      <span style="color:#9AA0A6;font-size:0.78rem;flex-shrink:0;">Q{{ loop.index }}.</span>
+      <span style="color:#FDD663;font-size:0.75rem;flex-shrink:0;">[{{ q.year }}] {{ marks_str }}</span>
+      <span style="color:#E8EAED;flex:1;overflow:hidden;text-overflow:ellipsis;white-space:nowrap;">
+        {{ q.question_text[:80] }}{% if q.question_text|length > 80 %}…{% endif %}
+      </span>
+    </summary>
+
+    <div style="padding:12px 0 4px 0;">
+      <!-- Full question text -->
+      <div class="info-box" style="margin-bottom:12px;">{{ q.question_text }}</div>
+
+      <!-- Meta chips -->
+      <div style="display:flex;flex-wrap:wrap;gap:6px;margin-bottom:12px;align-items:center;">
+        {% if wc_str %}
+        <span class="chip chip-green">{{ wc_str }}</span>
+        {% endif %}
+        {% if q.diagram_expected %}
+        <span class="chip chip-purple">📊 {{ q.diagram_type or "Diagram" }}</span>
+        {% endif %}
+        {% if q.key_terms %}
+        {% for kt in q.key_terms[:5] %}
+        <span class="chip">{{ kt }}</span>
+        {% endfor %}
+        {% if q.key_terms|length > 5 %}
+        <span style="color:#6E6E73;font-size:0.75rem;">+{{ q.key_terms|length - 5 }} more</span>
+        {% endif %}
+        {% endif %}
+      </div>
+
+      <!-- Rubric -->
+      {% if q.rubric_points %}
+      <div class="section-header">Rubric checklist</div>
+      <ul style="list-style:none;padding:0;margin:0;">
+        {% for rp in q.rubric_points %}
+        <li style="font-size:0.85rem;color:#E8EAED;padding:3px 0;display:flex;gap:8px;">
+          <code style="background:rgba(138,180,248,0.12);color:#8AB4F8;border-radius:4px;padding:1px 6px;font-size:0.75rem;flex-shrink:0;">
+            {{ (rp.section_hint or "body")|upper }}
+          </code>
+          <span>{{ rp.point }}</span>
+        </li>
+        {% endfor %}
+      </ul>
+      {% endif %}
+    </div>
+  </details>
+  {% endfor %}
+
+  <hr>
+
+  <!-- ── Copy-paste plain text ─────────────────────────────────── -->
+  <details style="margin-bottom:16px;">
+    <summary style="cursor:pointer;color:#8AB4F8;font-size:0.88rem;padding:10px 0;">
+      📋 Copy plain text — paste into Claude.ai for deep study
+    </summary>
+    <div style="padding:12px 0;">
+      <textarea
+        rows="14"
+        readonly
+        onclick="this.select()"
+        style="font-family:'SF Mono',monospace;font-size:0.78rem;line-height:1.6;background:#1C1C1E;border-color:#3A3A3C;color:#9AA0A6;resize:vertical;"
+      >{{ plain_text }}</textarea>
+    </div>
+  </details>
+
+  {% endif %}
+
+</div>
+{% endblock %}

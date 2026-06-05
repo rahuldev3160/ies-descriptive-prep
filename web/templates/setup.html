@@ -1,0 +1,126 @@
+{% extends "base.html" %}
+{% block title %}My Setup · Exam Prep{% endblock %}
+
+{% block content %}
+<div style="max-width:740px;">
+  <h2 style="margin-bottom:4px;">⚙️ My Setup</h2>
+  <p style="color:#9AA0A6;font-size:0.88rem;margin-bottom:24px;">Your personalised study path</p>
+
+  {% if not show_form and plan %}
+
+  <!-- ── Plan view ──────────────────────────────────────────── -->
+  <div style="background:#1E3A2F;border:1px solid #81C99533;border-radius:10px;padding:16px 20px;margin-bottom:20px;">
+    <div style="color:#81C995;font-weight:700;font-size:0.82rem;text-transform:uppercase;letter-spacing:.08em;margin-bottom:6px;">Your Study Path</div>
+    <div style="color:#E8EAED;font-size:0.95rem;">{{ plan.summary }}</div>
+  </div>
+
+  <div class="grid-2" style="margin-bottom:20px;">
+    <div class="gem-card">
+      <div class="section-header">Starting Phase</div>
+      <div style="font-size:1.05rem;font-weight:600;color:#8AB4F8;">{{ plan.current_phase }}</div>
+    </div>
+    <div class="gem-card">
+      <div class="section-header">Key Insight</div>
+      <div style="font-size:0.9rem;color:#E8EAED;line-height:1.5;">{{ plan.insight }}</div>
+    </div>
+  </div>
+
+  <div style="background:rgba(192,132,252,0.08);border:1px solid rgba(192,132,252,0.3);border-radius:10px;padding:16px 20px;margin-bottom:20px;">
+    <div style="color:#C084FC;font-weight:700;font-size:0.82rem;text-transform:uppercase;letter-spacing:.08em;margin-bottom:6px;">Today's Action</div>
+    <div style="color:#E8EAED;font-size:0.95rem;">{{ plan.today_action }}</div>
+  </div>
+
+  {% if plan.phases %}
+  <details style="margin-bottom:16px;">
+    <summary style="cursor:pointer;color:#8AB4F8;font-weight:600;font-size:0.88rem;padding:8px 0;list-style:none;">▸ Study Phases ({{ plan.phases|length }})</summary>
+    <div style="margin-top:12px;">
+      {% for phase in plan.phases %}
+      <div class="gem-card" style="margin-bottom:10px;">
+        <div style="display:flex;align-items:baseline;gap:10px;margin-bottom:8px;">
+          <span style="font-weight:700;color:#E8EAED;font-size:0.95rem;">{{ phase.name }}</span>
+          <span style="color:#9AA0A6;font-size:0.8rem;">{{ phase.duration }}</span>
+        </div>
+        <div style="color:#E8EAED;font-size:0.88rem;margin-bottom:8px;">{{ phase.focus }}</div>
+        {% if phase.app_features %}
+        <div style="margin-bottom:6px;">
+          {% for f in phase.app_features %}
+          <span class="chip chip-purple">{{ f }}</span>
+          {% endfor %}
+        </div>
+        {% endif %}
+        <div style="color:#9AA0A6;font-size:0.82rem;margin-top:4px;">Daily: {{ phase.daily_action }}</div>
+      </div>
+      {% endfor %}
+    </div>
+  </details>
+  {% endif %}
+
+  {% if plan.resources %}
+  <details style="margin-bottom:16px;">
+    <summary style="cursor:pointer;color:#8AB4F8;font-weight:600;font-size:0.88rem;padding:8px 0;list-style:none;">▸ Resources ({{ plan.resources|length }})</summary>
+    <div style="margin-top:12px;">
+      {% for r in plan.resources %}
+      <div class="gem-card-sm" style="margin-bottom:8px;">
+        <div style="font-weight:600;color:#E8EAED;font-size:0.88rem;margin-bottom:2px;">{{ r.title }}</div>
+        <div style="color:#9AA0A6;font-size:0.78rem;margin-bottom:4px;">{{ r.channel }}</div>
+        <div style="color:#9AA0A6;font-size:0.82rem;">{{ r.when_to_use }}</div>
+        <a href="{{ r.url }}" target="_blank" rel="noopener" style="color:#8AB4F8;font-size:0.78rem;">Watch →</a>
+      </div>
+      {% endfor %}
+    </div>
+  </details>
+  {% endif %}
+
+  {% if plan.ai_tip %}
+  <div class="info-box" style="margin-bottom:20px;">
+    <span style="color:#9AA0A6;font-size:0.78rem;text-transform:uppercase;letter-spacing:.08em;font-weight:700;">AI Tip</span>
+    <div style="margin-top:4px;">{{ plan.ai_tip }}</div>
+  </div>
+  {% endif %}
+
+  <a href="/setup?redo=1" class="btn" style="font-size:0.82rem;">Update my preferences</a>
+
+  {% else %}
+
+  <!-- ── Setup form ─────────────────────────────────────────── -->
+  <form method="POST" action="/setup">
+    <div class="gem-card" style="margin-bottom:20px;">
+      <div class="section-header" style="margin-bottom:12px;">Which exams are you preparing for?</div>
+      {% for key, label in exam_labels.items() %}
+      <label class="checkbox-label" style="margin-bottom:10px;">
+        <input type="checkbox" name="{{ key }}" value="1"> {{ label }}
+      </label>
+      {% endfor %}
+    </div>
+
+    <div class="form-group">
+      <label for="exam_date">Primary exam date</label>
+      <input type="date" id="exam_date" name="exam_date" value="{{ today }}" style="max-width:220px;">
+    </div>
+
+    <div class="gem-card" style="margin-bottom:20px;">
+      <div class="section-header" style="margin-bottom:12px;">Where are you in your prep?</div>
+      <label class="checkbox-label" style="margin-bottom:10px;">
+        <input type="radio" name="prep_level" value="fresh" style="width:16px;height:16px;accent-color:#8AB4F8;"> Starting fresh — building from basics
+      </label>
+      <label class="checkbox-label">
+        <input type="radio" name="prep_level" value="revision" checked style="width:16px;height:16px;accent-color:#8AB4F8;"> Revision mode — filling gaps and drilling
+      </label>
+    </div>
+
+    <div class="gem-card" style="margin-bottom:24px;">
+      <div class="section-header" style="margin-bottom:12px;">What's your primary goal?</div>
+      <label class="checkbox-label" style="margin-bottom:10px;">
+        <input type="radio" name="study_mode" value="answers_only" style="width:16px;height:16px;accent-color:#8AB4F8;"> Model answers + answer writing (understand exam patterns)
+      </label>
+      <label class="checkbox-label">
+        <input type="radio" name="study_mode" value="full_prep" checked style="width:16px;height:16px;accent-color:#8AB4F8;"> Full prep — theory → practice → revision
+      </label>
+    </div>
+
+    <button type="submit" class="btn btn-primary" style="width:100%;">Generate My Study Path →</button>
+  </form>
+
+  {% endif %}
+</div>
+{% endblock %}

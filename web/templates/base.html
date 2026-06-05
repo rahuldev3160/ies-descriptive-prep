@@ -1,0 +1,94 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>{% block title %}Exam Prep{% endblock %}</title>
+    <link rel="stylesheet" href="{{ url_for('static', filename='style.css') }}">
+    <!-- MathJax: renders $...$ LaTeX inline and $$...$$ display -->
+    <script>
+        window.MathJax = {
+            tex: {
+                inlineMath: [['$', '$'], ['\\(', '\\)']],
+                displayMath: [['$$', '$$'], ['\\[', '\\]']]
+            },
+            svg: { fontCache: 'global' }
+        };
+    </script>
+    <script src="https://cdn.jsdelivr.net/npm/mathjax@3/es5/tex-svg.js" async></script>
+    <!-- HTMX: declarative AJAX for form submissions -->
+    <script src="https://unpkg.com/htmx.org@1.9.12" crossorigin="anonymous"></script>
+    {% block head %}{% endblock %}
+</head>
+<body>
+<div class="app-layout">
+
+{% if current_user_id %}
+<nav class="sidebar">
+    <a href="/dashboard" class="sidebar-title">📚 Exam Prep</a>
+
+    <div class="nav-group">
+        <div class="nav-group-label">Dashboards</div>
+        <a href="/dashboard"    class="nav-link {% if active_page == 'dashboard' %}active{% endif %}">🏠 IES Dashboard</a>
+        <a href="/rbi"          class="nav-link {% if active_page == 'rbi_dashboard' %}active{% endif %}">🏦 RBI Dashboard</a>
+        <a href="/upsc"         class="nav-link {% if active_page == 'upsc_dashboard' %}active{% endif %}">🎓 UPSC Dashboard</a>
+    </div>
+
+    <div class="nav-group">
+        <div class="nav-group-label">Study</div>
+        <a href="/ies/answers"  class="nav-link {% if active_page == 'model_answers' %}active{% endif %}">📖 IES PYQs</a>
+        <a href="/ies/brief"    class="nav-link {% if active_page == 'study_brief' %}active{% endif %}">📄 Study Brief</a>
+        <a href="/upsc/mains"   class="nav-link {% if active_page == 'upsc_mains' %}active{% endif %}">📚 UPSC Mains</a>
+    </div>
+
+    <div class="nav-group">
+        <div class="nav-group-label">Practice</div>
+        <a href="/ies/quiz"          class="nav-link {% if active_page == 'quiz' %}active{% endif %}">✏️ Quiz</a>
+        <a href="/ies/return-quiz"   class="nav-link {% if active_page == 'return_quiz' %}active{% endif %}">❓ Return Quiz</a>
+        <a href="/rbi/prep"          class="nav-link {% if active_page == 'rbi_prep' %}active{% endif %}">📊 RBI Prep</a>
+        <a href="/practice/english"  class="nav-link {% if active_page == 'english' %}active{% endif %}">✍️ English Practice</a>
+    </div>
+
+    <div class="nav-group">
+        <div class="nav-group-label">Progress</div>
+        <a href="/progress"         class="nav-link {% if active_page == 'progress' %}active{% endif %}">📈 My Progress</a>
+        <a href="/progress/review"  class="nav-link {% if active_page == 'answer_review' %}active{% endif %}">⭐ Answer Review</a>
+    </div>
+
+    <div class="nav-group">
+        <div class="nav-group-label">Account</div>
+        <a href="/setup"         class="nav-link {% if active_page == 'setup' %}active{% endif %}">⚙️ My Setup</a>
+        <a href="/profile"       class="nav-link {% if active_page == 'profile' %}active{% endif %}">👤 Profile</a>
+        <a href="/auth/logout"   class="nav-link">🚪 Sign Out</a>
+    </div>
+</nav>
+{% endif %}
+
+<main class="main-content {% if not current_user_id %}no-sidebar{% endif %}">
+    {% with messages = get_flashed_messages(with_categories=true) %}
+    {% if messages %}
+    <ul class="flash-list">
+        {% for category, message in messages %}
+        <li class="flash-{{ category }}">{{ message }}</li>
+        {% endfor %}
+    </ul>
+    {% endif %}
+    {% endwith %}
+
+    {% block content %}{% endblock %}
+</main>
+
+</div>
+
+<!-- Tab switching (no JS framework needed) -->
+<script>
+function switchTab(groupId, tabId) {
+    document.querySelectorAll('#' + groupId + ' .tab-btn').forEach(b => b.classList.remove('active'));
+    document.querySelectorAll('#' + groupId + ' .tab-panel').forEach(p => p.classList.remove('active'));
+    document.querySelector('#' + groupId + ' [data-tab="' + tabId + '"]').classList.add('active');
+    document.getElementById(groupId + '-' + tabId).classList.add('active');
+}
+</script>
+{% block scripts %}{% endblock %}
+</body>
+</html>

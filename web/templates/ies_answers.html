@@ -1,0 +1,312 @@
+{% extends "base.html" %}
+{% block title %}IES PYQs · Model Answers{% endblock %}
+
+{% block content %}
+<div style="margin-bottom: 2rem;">
+  <h1 style="font-size: 1.5rem; font-weight: 700; color: #E8EAED; margin-bottom: 4px;">📖 IES PYQs — Model Answers</h1>
+  <p style="color: #9AA0A6; font-size: 0.88rem;">Browse past-year questions with model answers, rubric checklists, and diagrams.</p>
+</div>
+
+{# ── Filter bar ─────────────────────────────────────────────── #}
+<form method="GET" id="f" style="display: flex; gap: 12px; flex-wrap: wrap; margin-bottom: 1.5rem; align-items: flex-end;">
+  <div>
+    <label>Paper</label>
+    <select name="paper" onchange="document.getElementById('f').submit()">
+      {% for pid, plabel in paper_labels.items() %}
+      <option value="{{ pid }}" {% if pid == paper %}selected{% endif %}>{{ plabel }}</option>
+      {% endfor %}
+    </select>
+  </div>
+  <div style="min-width: 220px;">
+    <label>Topic</label>
+    <select name="topic" onchange="document.getElementById('f').submit()">
+      <option value="">— All topics —</option>
+      {% for t in all_topics %}
+      <option value="{{ t.topic_id }}" {% if t.topic_id == topic_id %}selected{% endif %}>
+        {{ t.topic_name }}{% if t.answers_ready %} ({{ t.answers_ready }} ans){% endif %}
+      </option>
+      {% endfor %}
+    </select>
+  </div>
+  {# preserve year if set #}
+  {% if year_filter %}<input type="hidden" name="year" value="{{ year_filter }}">{% endif %}
+  {% if show_all %}<input type="hidden" name="show_all" value="1">{% endif %}
+</form>
+
+{# ── Topic header ───────────────────────────────────────────── #}
+{% if current_topic %}
+<div style="margin-bottom: 1.25rem;">
+  <h2 style="font-size: 1.2rem; font-weight: 700; color: #E8EAED; margin-bottom: 4px;">
+    {{ current_topic.topic_name }}
+  </h2>
+  <div style="display: flex; gap: 10px; flex-wrap: wrap; align-items: center;">
+    <span class="chip">{{ paper_label }}</span>
+    <span class="chip chip-green">{{ answers_ready }} answer{{ 's' if answers_ready != 1 else '' }} ready</span>
+    {% if current_topic.pyq_count %}
+    <span class="chip chip-purple">{{ current_topic.pyq_count }} PYQs</span>
+    {% endif %}
+  </div>
+</div>
+{% endif %}
+
+{# ── Year navigation ────────────────────────────────────────── #}
+{% if years %}
+<div class="tab-bar" style="margin-bottom: 1rem;">
+  <a href="?paper={{ paper }}&topic={{ topic_id }}&show_all=1"
+     class="tab-btn {% if show_all %}active{% endif %}"
+     style="text-decoration: none;">All years</a>
+  {% for yr in years %}
+  <a href="?paper={{ paper }}&topic={{ topic_id }}&year={{ yr }}"
+     class="tab-btn {% if year_filter == yr|string and not show_all %}active{% endif %}"
+     style="text-decoration: none;">{{ yr }}</a>
+  {% endfor %}
+</div>
+{% endif %}
+
+{# ── Question count ─────────────────────────────────────────── #}
+<p style="font-size: 0.82rem; color: #9AA0A6; margin-bottom: 1rem;">
+  Showing {{ filtered_qs|length }} question{{ 's' if filtered_qs|length != 1 else '' }}
+  {% if year_filter and not show_all %} for {{ year_filter }}{% endif %}
+</p>
+
+{# ── Questions ──────────────────────────────────────────────── #}
+{% if not filtered_qs %}
+<div class="info-box">No questions found for this selection.</div>
+{% endif %}
+
+{% for q in filtered_qs %}
+{% set qidx = loop.index %}
+<div class="gem-card" style="margin-bottom: 14px;">
+
+  {# Question header chips #}
+  <div style="display: flex; gap: 6px; flex-wrap: wrap; margin-bottom: 10px;">
+    {% if q.year %}<span class="chip">{{ q.year }}</span>{% endif %}
+    {% if q.paper_id %}<span class="chip chip-purple">{{ paper_labels.get(q.paper_id, q.paper_id) }}</span>{% endif %}
+    {% if q.marks %}<span class="chip chip-green">{{ q.marks }} marks</span>{% endif %}
+    {% if q._answer %}
+    <span style="display:inline-block; background:rgba(129,201,149,0.12); color:#81C995;
+                 border:1px solid rgba(129,201,149,0.25); border-radius:16px;
+                 padding:2px 10px; font-size:0.78rem; margin:2px 3px;">
+      {{ (q._answer.wc_intro or 0) + (q._answer.wc_body or 0) + (q._answer.wc_conclusion or 0) }} wc
+    </span>
+    {% endif %}
+  </div>
+
+  {# Question text #}
+  <p style="color: #E8EAED; font-size: 0.95rem; line-height: 1.6; margin-bottom: 10px;">
+    {{ q.question_text }}
+  </p>
+
+  {# Key term chips #}
+  {% if q._key_terms %}
+  <div style="margin-bottom: 10px;">
+    <span class="section-header" style="display:inline; margin-right:6px;">Key terms</span>
+    {% for kt in q._key_terms %}
+    <span class="chip chip-purple">{{ kt }}</span>
+    {% endfor %}
+  </div>
+  {% endif %}
+
+  {# ── No answer yet ── #}
+  {% if not q._answer %}
+  <div class="info-box" style="margin-top: 6px; color: #9AA0A6;">
+    ⏳ Answer not yet generated
+  </div>
+
+  {# ── Has answer: details expander ── #}
+  {% else %}
+  {% set ans = q._answer %}
+  <details style="margin-top: 8px;">
+    <summary class="btn btn-sm" style="cursor: pointer; list-style: none; display: inline-flex;">
+      View Answer
+    </summary>
+
+    <div style="margin-top: 14px;">
+
+      {# Total word count #}
+      {% set total_wc = (ans.wc_intro or 0) + (ans.wc_body or 0) + (ans.wc_conclusion or 0) %}
+      {% if total_wc %}
+      <p style="font-size: 0.82rem; color: #9AA0A6; margin-bottom: 12px;">
+        Total word count: <strong style="color: #E8EAED;">{{ total_wc }}</strong>
+        (intro {{ ans.wc_intro or 0 }} / body {{ ans.wc_body or 0 }} / conc {{ ans.wc_conclusion or 0 }})
+      </p>
+      {% endif %}
+
+      {# ── Intro section ── #}
+      {% if ans.intro_tex %}
+      <div class="answer-section" style="margin-bottom: 10px;">
+        <div class="section-header">Introduction</div>
+        <div style="color: #E8EAED; font-size: 0.9rem; line-height: 1.7; white-space: pre-wrap;">{{ ans.intro_tex }}</div>
+      </div>
+      {% elif ans.intro_text %}
+      <div class="answer-section" style="margin-bottom: 10px;">
+        <div class="section-header">Introduction</div>
+        <div style="color: #E8EAED; font-size: 0.9rem; line-height: 1.7; white-space: pre-wrap;">{{ ans.intro_text }}</div>
+      </div>
+      {% endif %}
+
+      {# ── Body section ── #}
+      {% if ans.body_tex %}
+      <div class="answer-section answer-section-body" style="margin-bottom: 10px;">
+        <div class="section-header">Body</div>
+        <div style="color: #E8EAED; font-size: 0.9rem; line-height: 1.7; white-space: pre-wrap;">{{ ans.body_tex }}</div>
+      </div>
+      {% elif ans.body_text %}
+      <div class="answer-section answer-section-body" style="margin-bottom: 10px;">
+        <div class="section-header">Body</div>
+        <div style="color: #E8EAED; font-size: 0.9rem; line-height: 1.7; white-space: pre-wrap;">{{ ans.body_text }}</div>
+      </div>
+      {% endif %}
+
+      {# ── Conclusion section ── #}
+      {% if ans.conclusion_tex %}
+      <div class="answer-section answer-section-conc" style="margin-bottom: 10px;">
+        <div class="section-header">Conclusion</div>
+        <div style="color: #E8EAED; font-size: 0.9rem; line-height: 1.7; white-space: pre-wrap;">{{ ans.conclusion_tex }}</div>
+      </div>
+      {% elif ans.conclusion_text %}
+      <div class="answer-section answer-section-conc" style="margin-bottom: 10px;">
+        <div class="section-header">Conclusion</div>
+        <div style="color: #E8EAED; font-size: 0.9rem; line-height: 1.7; white-space: pre-wrap;">{{ ans.conclusion_text }}</div>
+      </div>
+      {% endif %}
+
+      {# ── Diagram section ── #}
+      {% if ans.diagram_mode in ('described', 'mentioned') %}
+      <div style="margin: 14px 0 10px;">
+        <div class="section-header" style="margin-bottom: 8px;">Diagram</div>
+
+        {# matplotlib diagram as PNG #}
+        {% if ans._norm_dtype in covered_types %}
+        <div style="background: #1C1C1E; border: 1px solid #3A3A3C; border-radius: 10px;
+                    padding: 12px; display: inline-block; max-width: 100%;">
+          <img src="/ies/diagram/{{ ans._norm_dtype }}.png"
+               alt="{{ ans.diagram_type }}"
+               style="max-width: 100%; border-radius: 6px; display: block;">
+          {% if ans._labels %}
+          <div style="margin-top: 8px; display: flex; flex-wrap: wrap; gap: 4px;">
+            {% for lbl in ans._labels %}
+            <span class="chip">{{ lbl }}</span>
+            {% endfor %}
+          </div>
+          {% endif %}
+        </div>
+
+        {# mermaid flowchart #}
+        {% elif ans.diagram_type == 'flow_chart' and ans.diagram_code %}
+        <div class="mermaid" style="background: #1C1C1E; border: 1px solid #3A3A3C;
+                                    border-radius: 10px; padding: 16px;">
+{{ ans.diagram_code }}
+        </div>
+
+        {# table #}
+        {% elif ans.diagram_type == 'table' and ans._table_html %}
+        <div style="margin-top: 4px;">
+          {{ ans._table_html | safe }}
+        </div>
+
+        {# text fallback #}
+        {% elif ans.diagram_description %}
+        <div class="info-box" style="font-size: 0.85rem; white-space: pre-wrap; color: #C9CACE;">{{ ans.diagram_description }}</div>
+        {% endif %}
+
+      </div>
+      {% endif %}
+
+      {# ── Tabs: Rubric | Data ── #}
+      {% set tab_group = 'tabs-' ~ qidx %}
+      <div id="{{ tab_group }}" style="margin-top: 16px;">
+        <div class="tab-bar">
+          <button class="tab-btn active" data-tab="rubric"
+                  onclick="switchTab('{{ tab_group }}', 'rubric')">Rubric Checklist</button>
+          <button class="tab-btn" data-tab="data"
+                  onclick="switchTab('{{ tab_group }}', 'data')">Data &amp; Schemes</button>
+        </div>
+
+        {# Rubric tab #}
+        <div id="{{ tab_group }}-rubric" class="tab-panel active">
+          {% if q._rubric_pts %}
+          {% for pt in q._rubric_pts %}
+          <div class="gem-card-sm" style="margin-bottom: 6px;">
+            {% if pt.section_hint %}
+            <div style="font-size: 0.72rem; font-weight: 700; letter-spacing: 0.08em;
+                        text-transform: uppercase; margin-bottom: 4px;
+                        color: {% if pt.section_hint == 'intro' %}#8AB4F8{% elif pt.section_hint == 'body' %}#C084FC{% else %}#81C995{% endif %};">
+              {{ pt.section_hint | upper }}
+            </div>
+            {% endif %}
+            <div style="color: #E8EAED; font-size: 0.88rem; margin-bottom: 4px;">{{ pt.point }}</div>
+            {% if pt.category or pt.weight %}
+            <div style="display: flex; gap: 6px; flex-wrap: wrap;">
+              {% if pt.category %}<span class="chip" style="font-size: 0.72rem;">{{ pt.category }}</span>{% endif %}
+              {% if pt.weight %}<span class="chip chip-green" style="font-size: 0.72rem;">wt {{ pt.weight }}</span>{% endif %}
+            </div>
+            {% endif %}
+          </div>
+          {% endfor %}
+          {% else %}
+          <p style="color: #9AA0A6; font-size: 0.85rem;">No rubric points available.</p>
+          {% endif %}
+        </div>
+
+        {# Data & Schemes tab #}
+        <div id="{{ tab_group }}-data" class="tab-panel">
+          {% if ans._data_points %}
+          <div style="margin-bottom: 12px;">
+            <div class="section-header">Data Points</div>
+            {% for dp in ans._data_points %}
+            <div style="color: #C9CACE; font-size: 0.87rem; padding: 4px 0;
+                        border-bottom: 1px solid rgba(255,255,255,0.05);">{{ dp }}</div>
+            {% endfor %}
+          </div>
+          {% endif %}
+
+          {% if ans._schemes %}
+          <div style="margin-bottom: 12px;">
+            <div class="section-header">Schemes Referenced</div>
+            {% for s in ans._schemes %}
+            <div style="color: #C9CACE; font-size: 0.87rem; padding: 4px 0;
+                        border-bottom: 1px solid rgba(255,255,255,0.05);">{{ s }}</div>
+            {% endfor %}
+          </div>
+          {% endif %}
+
+          {% if ans._key_terms_used %}
+          <div>
+            <div class="section-header">Key Terms Used</div>
+            <div style="display: flex; flex-wrap: wrap; gap: 4px; margin-top: 4px;">
+              {% for kt in ans._key_terms_used %}
+              <span class="chip chip-purple">{{ kt }}</span>
+              {% endfor %}
+            </div>
+          </div>
+          {% endif %}
+
+          {% if not ans._data_points and not ans._schemes and not ans._key_terms_used %}
+          <p style="color: #9AA0A6; font-size: 0.85rem;">No data or scheme references recorded.</p>
+          {% endif %}
+        </div>
+
+      </div>{# end tabs #}
+    </div>{# end answer body #}
+  </details>
+  {% endif %}{# end has answer #}
+
+</div>{# end gem-card #}
+{% endfor %}
+{% endblock %}
+
+{% block scripts %}
+{% set has_flowchart = namespace(found=false) %}
+{% for q in filtered_qs %}
+  {% if q._answer and q._answer.diagram_type == 'flow_chart' and q._answer.diagram_code %}
+    {% set has_flowchart.found = true %}
+  {% endif %}
+{% endfor %}
+{% if has_flowchart.found %}
+<script type="module">
+  import mermaid from 'https://cdn.jsdelivr.net/npm/mermaid@10/dist/mermaid.esm.min.mjs';
+  mermaid.initialize({ startOnLoad: true, theme: 'dark' });
+</script>
+{% endif %}
+{% endblock %}

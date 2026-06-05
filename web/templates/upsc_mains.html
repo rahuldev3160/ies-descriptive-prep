@@ -1,0 +1,256 @@
+{% extends "base.html" %}
+{% block title %}UPSC Eco Optional · Model Answers{% endblock %}
+
+{% block content %}
+{% if error %}
+<div class="flash-error" style="margin-bottom:24px;">{{ error }}</div>
+{% else %}
+
+{# ── Filter bar ────────────────────────────────────────────────────── #}
+<form method="GET" action="/upsc/mains" id="filter-form">
+  <div style="display:flex; flex-wrap:wrap; gap:16px; align-items:flex-end; margin-bottom:24px;">
+
+    <div class="form-group" style="margin:0; min-width:220px;">
+      <label for="paper-select">Paper</label>
+      <select id="paper-select" name="paper" onchange="this.form.submit()">
+        {% for pid, plabel in paper_labels.items() %}
+        <option value="{{ pid }}" {% if pid == paper %}selected{% endif %}>{{ plabel }}</option>
+        {% endfor %}
+      </select>
+    </div>
+
+    <div class="form-group" style="margin:0; min-width:260px;">
+      <label for="topic-select">Topic</label>
+      <select id="topic-select" name="topic" onchange="this.form.submit()">
+        {% for t in topics %}
+        <option value="{{ t.topic_id }}" {% if t.topic_id == topic_id %}selected{% endif %}>
+          {{ t.topic_name }}
+        </option>
+        {% endfor %}
+      </select>
+    </div>
+
+    <div class="form-group" style="margin:0;">
+      <label class="checkbox-label">
+        <input type="checkbox" name="show_all" value="1"
+               {% if show_all %}checked{% endif %}
+               onchange="this.form.submit()">
+        Include unanswered questions
+      </label>
+    </div>
+
+    {# preserve year in form submissions so it survives paper/topic changes #}
+    {% if sel_year %}
+    <input type="hidden" name="year" value="{{ sel_year }}">
+    {% endif %}
+
+  </div>
+</form>
+
+{# ── Topic header ──────────────────────────────────────────────────── #}
+<div style="margin-bottom:20px;">
+  <h2 style="font-size:1.4rem; color:#E8EAED; margin-bottom:4px;">{{ topic_name }}</h2>
+  <div style="color:#9AA0A6; font-size:0.88rem;">
+    {{ paper_label }}
+    &nbsp;·&nbsp;
+    <span class="chip-green chip">{{ has_ans_count }} answered</span>
+    {% if no_ans_count > 0 %}
+    <span class="chip" style="margin-left:4px;">{{ no_ans_count }} pending</span>
+    {% endif %}
+  </div>
+</div>
+
+{# ── Year navigation ───────────────────────────────────────────────── #}
+{% if available_years %}
+<div class="tab-bar" style="margin-bottom:20px; border-bottom:none;">
+  <a href="/upsc/mains?paper={{ paper }}&topic={{ topic_id }}{% if show_all %}&show_all=1{% endif %}"
+     class="tab-btn {% if not sel_year %}active{% endif %}">All</a>
+  {% for yr in available_years %}
+  <a href="/upsc/mains?paper={{ paper }}&topic={{ topic_id }}&year={{ yr }}{% if show_all %}&show_all=1{% endif %}"
+     class="tab-btn {% if sel_year == yr %}active{% endif %}">{{ yr }}</a>
+  {% endfor %}
+</div>
+{% endif %}
+
+{# ── Question count ────────────────────────────────────────────────── #}
+<p style="color:#9AA0A6; font-size:0.82rem; margin-bottom:16px;">
+  Showing {{ questions | length }} question{{ 's' if questions | length != 1 else '' }}
+  {% if sel_year %}for {{ sel_year }}{% endif %}
+</p>
+
+{# ── Questions ─────────────────────────────────────────────────────── #}
+{% if not questions %}
+<div class="info-box">No questions match the current filters.</div>
+{% endif %}
+
+{% for q in questions %}
+{% set qid = q.question_id %}
+{% set marks_str = (q.marks | string) + 'm' if q.marks else '?' %}
+{% set wc_str = '~' + (q.answer_length | string) + 'w' if q.answer_length else '' %}
+
+<div class="gem-card" style="margin-bottom:16px;">
+
+  {# — Meta chips — #}
+  <div style="margin-bottom:10px;">
+    {% if q.year %}
+    <span class="chip">{{ q.year }}</span>
+    {% endif %}
+    <span class="chip chip-purple">{{ marks_str }}</span>
+    {% if wc_str %}
+    <span class="chip chip-green">{{ wc_str }}</span>
+    {% endif %}
+    {% if q.diagram_expected %}
+    <span class="chip chip-purple" style="opacity:0.8;">📊 diagram</span>
+    {% endif %}
+  </div>
+
+  {# — Question text — #}
+  <p style="color:#E8EAED; font-size:0.95rem; line-height:1.6; margin-bottom:10px;">
+    {{ q.question_text }}
+  </p>
+
+  {# — Key term chips — #}
+  {% if q._key_terms %}
+  <div style="margin-top:6px;">
+    <span class="section-header" style="display:inline; margin-right:6px;">Key terms</span>
+    {% for kt in q._key_terms %}
+    <span class="chip chip-green" style="font-size:0.73rem;">{{ kt }}</span>
+    {% endfor %}
+  </div>
+  {% endif %}
+
+  {# — No answer notice — #}
+  {% if not q.answer_id %}
+  <div class="info-box" style="margin-top:12px; color:#9AA0A6;">
+    ⏳ Answer not yet generated.
+  </div>
+
+  {# — Answer expander — #}
+  {% else %}
+  {% set ans = answers.get(qid) %}
+  <details style="margin-top:14px;">
+    <summary class="btn btn-sm" style="cursor:pointer; list-style:none; display:inline-flex;">
+      View Answer
+    </summary>
+
+    {% if ans %}
+    <div style="margin-top:14px;">
+
+      {# Introduction #}
+      {% set intro = (ans.intro_text or '') | trim %}
+      {% if intro %}
+      <div class="answer-section" style="margin-bottom:10px;">
+        <div class="section-header" style="color:#8AB4F8;">Introduction</div>
+        <p style="color:#E8EAED; font-size:0.9rem; line-height:1.65; white-space:pre-line;">{{ intro }}</p>
+      </div>
+      {% endif %}
+
+      {# Body #}
+      {% set body = (ans.body_text or '') | trim %}
+      {% if body %}
+      <div class="answer-section answer-section-body" style="margin-bottom:10px;">
+        <div class="section-header" style="color:#C084FC;">Body</div>
+        <p style="color:#E8EAED; font-size:0.9rem; line-height:1.65; white-space:pre-line;">{{ body }}</p>
+      </div>
+      {% endif %}
+
+      {# Conclusion #}
+      {% set conc = (ans.conclusion_text or '') | trim %}
+      {% if conc %}
+      <div class="answer-section answer-section-conc" style="margin-bottom:10px;">
+        <div class="section-header" style="color:#81C995;">Conclusion</div>
+        <p style="color:#E8EAED; font-size:0.9rem; line-height:1.65; white-space:pre-line;">{{ conc }}</p>
+      </div>
+      {% endif %}
+
+      {# Rubric + Data tabs #}
+      {% set tab_group = 'tabs-' ~ qid %}
+      <div id="{{ tab_group }}" style="margin-top:16px;">
+        <div class="tab-bar">
+          <button class="tab-btn active" data-tab="rubric"
+                  onclick="switchTab('{{ tab_group }}', 'rubric')">Rubric Checklist</button>
+          <button class="tab-btn" data-tab="data"
+                  onclick="switchTab('{{ tab_group }}', 'data')">Data &amp; Schemes</button>
+        </div>
+
+        {# Rubric panel #}
+        <div id="{{ tab_group }}-rubric" class="tab-panel active">
+          {% set rubric_pts = q._rubric_pts %}
+          {% if rubric_pts %}
+          {% for pt in rubric_pts %}
+          <div class="gem-card-sm" style="margin-bottom:8px;">
+            {% if pt is mapping %}
+              {% if pt.section %}
+              <span class="chip chip-purple" style="font-size:0.72rem; margin-right:6px;">
+                {{ pt.section | upper }}
+              </span>
+              {% endif %}
+              <span style="color:#E8EAED; font-size:0.88rem;">{{ pt.point or pt.text or pt }}</span>
+            {% else %}
+              <span style="color:#E8EAED; font-size:0.88rem;">{{ pt }}</span>
+            {% endif %}
+          </div>
+          {% endfor %}
+          {% else %}
+          <p style="color:#9AA0A6; font-size:0.85rem;">No rubric points available.</p>
+          {% endif %}
+        </div>
+
+        {# Data & Schemes panel #}
+        <div id="{{ tab_group }}-data" class="tab-panel">
+
+          {% if ans._data_points %}
+          <div style="margin-bottom:14px;">
+            <div class="section-header">Data Points</div>
+            {% for dp in ans._data_points %}
+            <div class="gem-card-sm">
+              <span style="color:#E8EAED; font-size:0.88rem;">
+                {% if dp is mapping %}{{ dp.point or dp.text or dp }}{% else %}{{ dp }}{% endif %}
+              </span>
+            </div>
+            {% endfor %}
+          </div>
+          {% endif %}
+
+          {% if ans._schemes %}
+          <div style="margin-bottom:14px;">
+            <div class="section-header">Schemes / Policies Referenced</div>
+            <div>
+              {% for s in ans._schemes %}
+              <span class="chip chip-purple" style="margin:3px;">{{ s }}</span>
+              {% endfor %}
+            </div>
+          </div>
+          {% endif %}
+
+          {% if ans._key_terms %}
+          <div style="margin-bottom:8px;">
+            <div class="section-header">Key Terms Used</div>
+            <div>
+              {% for kt in ans._key_terms %}
+              <span class="chip chip-green" style="margin:3px;">{{ kt }}</span>
+              {% endfor %}
+            </div>
+          </div>
+          {% endif %}
+
+          {% if not ans._data_points and not ans._schemes and not ans._key_terms %}
+          <p style="color:#9AA0A6; font-size:0.85rem;">No supplementary data available.</p>
+          {% endif %}
+
+        </div>{# /data panel #}
+      </div>{# /tab group #}
+
+    </div>{# /ans block #}
+    {% else %}
+    <p style="color:#9AA0A6; font-size:0.85rem; margin-top:12px;">Answer data could not be loaded.</p>
+    {% endif %}
+
+  </details>
+  {% endif %}{# /answer_id #}
+
+</div>{# /gem-card #}
+{% endfor %}{# /questions loop #}
+
+{% endif %}{# /error #}
+{% endblock %}

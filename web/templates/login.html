@@ -1,0 +1,47 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Sign In — Exam Prep</title>
+    <link rel="stylesheet" href="{{ url_for('static', filename='style.css') }}">
+</head>
+<body>
+<div class="login-wrap">
+    <div class="login-card">
+        <h2>📚 Exam Prep</h2>
+        <p>Sign in to track your progress across IES, RBI, and UPSC exams.</p>
+
+        {% with messages = get_flashed_messages(with_categories=true) %}
+        {% if messages %}
+            {% for category, message in messages %}
+            <div class="flash-{{ category }}" style="margin-bottom:12px;">{{ message }}</div>
+            {% endfor %}
+        {% endif %}
+        {% endwith %}
+
+        {% if oauth_configured %}
+        <form method="POST" action="/auth/login">
+            <div class="form-group">
+                <label class="checkbox-label">
+                    <input type="checkbox" name="remember_me">
+                    Keep me signed in for 30 days
+                </label>
+            </div>
+            <button type="submit" class="btn btn-primary btn-block" style="padding:12px;">
+                Sign in with Google
+            </button>
+        </form>
+        {% else %}
+        <div class="info-box">
+            <strong>OAuth not configured.</strong><br>
+            Set <code>GOOGLE_CLIENT_ID</code>, <code>GOOGLE_CLIENT_SECRET</code>, and
+            <code>OAUTH_REDIRECT_URI</code> environment variables to enable Google sign-in.
+        </div>
+        {% endif %}
+
+        <p class="caption">Your data is private and only used to track your study progress.</p>
+    </div>
+</div>
+</body>
+</html>

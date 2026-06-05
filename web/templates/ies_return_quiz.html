@@ -1,0 +1,194 @@
+{% extends "base.html" %}
+{% block title %}Return Quiz · IES 2026{% endblock %}
+
+{% block content %}
+<div style="display:flex;align-items:flex-start;gap:20px;flex-wrap:wrap;margin-bottom:20px;">
+  <!-- Left: header + topic info -->
+  <div style="flex:1;min-width:250px;">
+    {% if topic_info %}
+    <h2>✅ {{ topic_info.topic_name }}</h2>
+    <div style="display:flex;gap:6px;flex-wrap:wrap;margin-top:6px;">
+      <span class="chip chip-purple">{{ paper|upper|replace('_','-') }}</span>
+      <span class="badge badge-{{ (topic_info.state or 'unvisited')|lower }}">
+        {{ topic_info.state or 'UNVISITED' }}
+      </span>
+      {% if topic_info.stuck_flag %}
+      <span class="chip" style="color:#F28B82;border-color:rgba(242,139,130,0.3);">Stuck — try a different approach</span>
+      {% endif %}
+    </div>
+    <div style="font-size:0.82rem;color:#9AA0A6;margin-top:6px;">
+      Priority: <strong style="color:#8AB4F8;">{{ "%.3f"|format(topic_info.base_priority_score or 0) }}</strong>
+      · {{ questions|length }} questions
+    </div>
+    {% else %}
+    <h2>✅ Return Quiz</h2>
+    {% endif %}
+  </div>
+
+  <!-- Right: mastery + readiness -->
+  <div style="display:flex;gap:10px;flex-shrink:0;">
+    <div class="gem-card" style="text-align:center;min-width:110px;padding:12px;">
+      <div style="font-size:1.5rem;font-weight:700;color:#8AB4F8;">
+        {{ (((topic_info.mastery_level or 0) * 100)|round|int) if topic_info else '0' }}%
+      </div>
+      <div style="font-size:0.72rem;color:#9AA0A6;text-transform:uppercase;letter-spacing:.05em;">Mastery</div>
+      <div class="prog-bar-bg" style="margin-top:6px;">
+        <div class="prog-bar-fill" style="width:{{ (((topic_info.mastery_level or 0) * 100)|round|int) if topic_info else 0 }}%;"></div>
+      </div>
+    </div>
+    <div class="gem-card" style="text-align:center;min-width:110px;padding:12px;">
+      <div style="font-size:1.5rem;font-weight:700;color:#81C995;">{{ readiness.formula_pct|round(1) }}%</div>
+      <div style="font-size:0.72rem;color:#9AA0A6;text-transform:uppercase;letter-spacing:.05em;">Readiness</div>
+    </div>
+  </div>
+</div>
+
+<!-- ── Paper + Topic selector ──────────────────────────────────────────────── -->
+<div style="display:flex;gap:10px;flex-wrap:wrap;margin-bottom:20px;align-items:flex-end;">
+  <div>
+    <label style="font-size:0.75rem;display:block;margin-bottom:4px;">Paper</label>
+    <select onchange="location.href='?paper='+this.value" style="width:auto;padding:8px 12px;">
+      {% for pid, plabel in papers %}
+      <option value="{{ pid }}" {% if paper == pid %}selected{% endif %}>{{ plabel }}</option>
+      {% endfor %}
+    </select>
+  </div>
+  <div style="flex:1;min-width:220px;">
+    <label style="font-size:0.75rem;display:block;margin-bottom:4px;">Topic</label>
+    <select onchange="location.href='?paper={{ paper }}&topic='+this.value"
+            style="width:100%;padding:8px 12px;">
+      {% for t in topic_labels %}
+      <option value="{{ t.id }}" {% if topic_id == t.id %}selected{% endif %}>{{ t.label }}</option>
+      {% endfor %}
+    </select>
+  </div>
+</div>
+
+<div style="font-size:0.75rem;color:#9AA0A6;margin-bottom:16px;">
+  Scores ≥80% → VERIFIED · 50–79% → PARTIAL · &lt;50% → FLAGGED
+</div>
+
+<hr>
+
+<!-- ── Error message ──────────────────────────────────────────────────────── -->
+{% if error_msg %}
+<div class="flash-error" style="margin-bottom:12px;">{{ error_msg }}</div>
+{% endif %}
+
+{% if not questions %}
+<div class="info-box">No MCQ questions available for this topic yet.</div>
+
+{% elif show_result and last_result %}
+<!-- ── RESULT VIEW ──────────────────────────────────────────────────────── -->
+{% set res = last_result.result %}
+{% set score_pct = res.score %}
+{% set color_icon = '🟢' if score_pct >= 0.8 else ('🟡' if score_pct >= 0.5 else '🔴') %}
+<h3>{{ color_icon }} {{ res.correct }}/{{ res.total }} correct — {{ (score_pct * 100)|round|int }}%</h3>
+
+{% if res.new_state != res.from_state %}
+<div class="flash-success" style="margin:10px 0;">
+  <strong>{{ res.from_state }}</strong> → <strong>{{ res.new_state }}</strong> · Gap state updated
+</div>
+{% else %}
+<div class="flash-info" style="margin:10px 0;">
+  Gap state remains <strong>{{ res.new_state }}</strong>
+</div>
+{% endif %}
+
+<div style="font-size:0.88rem;color:#9AA0A6;margin-bottom:4px;">
+  Updated mastery: <strong style="color:#E8EAED;">{{ ((res.new_mastery or 0) * 100)|round|int }}%</strong>
+</div>
+<div class="prog-bar-bg" style="margin-bottom:16px;">
+  <div class="prog-bar-fill" style="width:{{ ((res.new_mastery or 0) * 100)|round|int }}%;"></div>
+</div>
+
+<div class="section-header" style="margin-bottom:10px;">Per-question breakdown</div>
+{% for qr in question_reviews %}
+<details style="margin-bottom:8px;">
+  <summary style="cursor:pointer;padding:8px 0;font-size:0.88rem;color:{% if qr.is_correct %}#81C995{% else %}#F28B82{% endif %};">
+    {% if qr.is_correct %}✅{% else %}❌{% endif %}
+    Q{{ loop.index }} · {{ qr.q.question_text[:90] }}{% if qr.q.question_text|length > 90 %}…{% endif %}
+  </summary>
+  <div class="gem-card-sm" style="margin-top:4px;">
+    {% for opt in qr.opts %}
+    {% set is_correct_opt = opt.strip() == (qr.q.correct_answer or '').strip() %}
+    {% set is_chosen = opt.strip() == qr.user_ans.strip() %}
+    <div style="padding:3px 0;font-size:0.85rem;">
+      {% if is_correct_opt and is_chosen %}
+      <strong style="color:#81C995;">✓ {{ opt }}</strong> <span style="color:#9AA0A6;font-size:0.8rem;">← your answer ✅</span>
+      {% elif is_correct_opt %}
+      <strong style="color:#81C995;">✓ {{ opt }}</strong> <span style="color:#9AA0A6;font-size:0.8rem;">← correct answer</span>
+      {% elif is_chosen %}
+      <span style="text-decoration:line-through;color:#F28B82;">{{ opt }}</span> <span style="color:#9AA0A6;font-size:0.8rem;">← your answer ❌</span>
+      {% else %}
+      <span style="color:#9AA0A6;">{{ opt }}</span>
+      {% endif %}
+    </div>
+    {% endfor %}
+    <div style="font-size:0.75rem;color:#6E6E73;margin-top:6px;">
+      Difficulty: {{ "%.2f"|format(qr.q.difficulty or 0.5) }} · Focus: {{ qr.dim }}
+    </div>
+  </div>
+</details>
+{% endfor %}
+
+<hr style="margin:20px 0;">
+<div style="display:flex;gap:8px;">
+  <a href="?paper={{ paper }}&topic={{ topic_id }}" class="btn" style="flex:1;text-align:center;">
+    ↩ Retry this topic
+  </a>
+  {% if next_topic %}
+  <a href="?paper={{ paper }}&topic={{ next_topic.topic_id }}" class="btn btn-primary" style="flex:1;text-align:center;">
+    Next → {{ next_topic.topic_name[:30] }}{% if next_topic.topic_name|length > 30 %}…{% endif %}
+  </a>
+  {% endif %}
+</div>
+
+{% else %}
+<!-- ── QUIZ FORM ───────────────────────────────────────────────────────────── -->
+<p style="color:#9AA0A6;font-size:0.88rem;margin-bottom:16px;">
+  Answer all {{ questions|length }} questions, then submit. Results update your gap state and readiness instantly — no AI call.
+</p>
+
+<form method="POST" action="/ies/return-quiz/submit">
+  <input type="hidden" name="paper" value="{{ paper }}">
+  <input type="hidden" name="topic_id" value="{{ topic_id }}">
+  <input type="hidden" name="session_id" value="{{ session_id }}">
+
+  {% for q in questions %}
+  {% set diff = q.difficulty or 0.5 %}
+  {% set diff_label = 'Easy' if diff < 0.5 else ('Medium' if diff < 0.7 else 'Hard') %}
+  {% set dim = q.dimension_id or 'concept' %}
+
+  <div class="gem-card" style="margin-bottom:12px;">
+    <div style="font-size:0.75rem;color:#9AA0A6;margin-bottom:6px;">
+      Difficulty: {{ diff_label }} · Focus: {{ dim }}
+    </div>
+    <p style="font-size:0.95rem;font-weight:500;margin-bottom:10px;">
+      <strong>Q{{ loop.index }}.</strong> {{ q.question_text }}
+    </p>
+
+    {% set opts = [q.correct_answer, q.option_b, q.option_c, q.option_d] | select | list | sort %}
+    {% for opt in opts %}
+    <label class="checkbox-label" style="padding:4px 0;cursor:pointer;">
+      <input type="radio" name="ans_{{ q.question_id }}" value="{{ opt }}"
+             style="accent-color:#8AB4F8;">
+      {{ opt }}
+    </label>
+    {% endfor %}
+  </div>
+
+  {% if not loop.last %}
+  <hr style="margin:4px 0 12px;">
+  {% endif %}
+  {% endfor %}
+
+  <div style="margin-top:16px;">
+    <button type="submit" class="btn btn-primary" style="width:100%;padding:12px;">
+      Submit Quiz →
+    </button>
+  </div>
+</form>
+
+{% endif %}
+{% endblock %}

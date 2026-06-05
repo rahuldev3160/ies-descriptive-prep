@@ -1,0 +1,169 @@
+{% extends "base.html" %}
+{% block title %}Quiz · IES 2026{% endblock %}
+
+{% block content %}
+<div style="display:flex;align-items:center;gap:12px;margin-bottom:20px;flex-wrap:wrap;">
+  <h2 style="flex:1;min-width:200px;">✍️ Descriptive Quiz</h2>
+  <span style="font-size:0.82rem;color:#9AA0A6;">{{ total_qs }} questions available · AI eval coming soon</span>
+</div>
+
+<!-- ── Mode + Filter bar ───────────────────────────────────────────────────── -->
+<div style="display:flex;gap:8px;align-items:flex-end;flex-wrap:wrap;margin-bottom:20px;">
+  <!-- Mode pills -->
+  <div>
+    <label style="display:block;margin-bottom:4px;font-size:0.75rem;">Mode</label>
+    <div style="display:flex;gap:4px;">
+      {% for m, label in [('year-wise','Year-wise'), ('by-topic','By Topic'), ('random','Random')] %}
+      <a href="?mode={{ m }}" class="btn btn-sm {% if mode == m %}btn-primary{% endif %}">{{ label }}</a>
+      {% endfor %}
+    </div>
+  </div>
+
+  {% if mode == 'year-wise' %}
+  <!-- Year selector -->
+  <div>
+    <label style="display:block;margin-bottom:4px;font-size:0.75rem;">Year</label>
+    <select onchange="location.href='?mode=year-wise&year='+this.value"
+            style="width:auto;padding:8px 12px;">
+      {% for yr in years %}
+      <option value="{{ yr }}" {% if year_str == yr|string %}selected{% endif %}>{{ yr }}</option>
+      {% endfor %}
+      <option value="all" {% if year_str == 'all' %}selected{% endif %}>All years</option>
+    </select>
+  </div>
+  <!-- Question selector -->
+  {% if qs_with_labels %}
+  <div style="flex:2;min-width:300px;">
+    <label style="display:block;margin-bottom:4px;font-size:0.75rem;">Question</label>
+    <select onchange="location.href='?mode=year-wise&year={{ year_str }}&qid='+this.value"
+            style="width:100%;padding:8px 12px;">
+      {% for q_id, q_label in qs_with_labels %}
+      <option value="{{ q_id }}" {% if qid == q_id %}selected{% endif %}>{{ q_label }}</option>
+      {% endfor %}
+    </select>
+  </div>
+  {% endif %}
+
+  {% elif mode == 'by-topic' %}
+  <!-- Paper selector -->
+  <div>
+    <label style="display:block;margin-bottom:4px;font-size:0.75rem;">Paper</label>
+    <select onchange="location.href='?mode=by-topic&paper='+this.value"
+            style="width:auto;padding:8px 12px;">
+      {% for pid, plabel in paper_labels.items() %}
+      <option value="{{ pid }}" {% if paper == pid %}selected{% endif %}>{{ plabel }}</option>
+      {% endfor %}
+    </select>
+  </div>
+  <!-- Topic selector -->
+  {% if topic_opts %}
+  <div>
+    <label style="display:block;margin-bottom:4px;font-size:0.75rem;">Topic</label>
+    <select onchange="location.href='?mode=by-topic&paper={{ paper }}&topic='+this.value"
+            style="width:200px;padding:8px 12px;">
+      {% for tid, tname in topic_opts.items() %}
+      <option value="{{ tid }}" {% if topic_id == tid %}selected{% endif %}>{{ tname }}</option>
+      {% endfor %}
+    </select>
+  </div>
+  {% endif %}
+  <!-- Question selector -->
+  {% if qs_with_labels %}
+  <div style="flex:2;min-width:300px;">
+    <label style="display:block;margin-bottom:4px;font-size:0.75rem;">Question</label>
+    <select onchange="location.href='?mode=by-topic&paper={{ paper }}&topic={{ topic_id }}&qid='+this.value"
+            style="width:100%;padding:8px 12px;">
+      {% for q_id, q_label in qs_with_labels %}
+      <option value="{{ q_id }}" {% if qid == q_id %}selected{% endif %}>{{ q_label }}</option>
+      {% endfor %}
+    </select>
+  </div>
+  {% endif %}
+
+  {% else %}
+  <!-- Random mode -->
+  <div>
+    <label style="display:block;margin-bottom:4px;font-size:0.75rem;">&nbsp;</label>
+    <a href="?mode=random" class="btn btn-primary">🎲 Random question</a>
+  </div>
+  {% endif %}
+</div>
+
+{% if not selected_q %}
+<div class="info-box">No questions found for the selected filter. Try a different year or topic.</div>
+{% else %}
+
+<!-- ── Question card ──────────────────────────────────────────────────────── -->
+<div class="gem-card-accent" style="margin-bottom:16px;">
+  <div style="margin-bottom:10px;">
+    <span class="chip">{{ selected_q.year }}</span>
+    <span class="chip chip-purple" style="margin-left:6px;">
+      {{ selected_q.marks }}{% if selected_q.marks %} marks{% else %}marks unknown{% endif %}
+    </span>
+    <span class="chip" style="margin-left:6px;">
+      {{ (selected_q.paper_id or '')|upper|replace('_','-') }}
+    </span>
+  </div>
+  <div style="font-size:1.05rem;line-height:1.65;color:#E8EAED;">{{ selected_q.question_text }}</div>
+  <div style="margin-top:12px;">
+    <span style="font-size:0.72rem;color:#9AA0A6;margin-right:8px;">Word guide:</span>
+    <span class="chip">Intro ~{{ wc[0] }}w</span>
+    <span class="chip chip-purple" style="margin-left:4px;">Body ~{{ wc[1] }}w</span>
+    <span class="chip chip-green" style="margin-left:4px;">Conclusion ~{{ wc[2] }}w</span>
+  </div>
+</div>
+
+<!-- ── Rubric hints ───────────────────────────────────────────────────────── -->
+{% if rubric_pts %}
+<details style="margin-bottom:16px;">
+  <summary style="cursor:pointer;color:#8AB4F8;font-size:0.88rem;padding:8px 0;">
+    📋 Scoring hints (rubric — {{ rubric_pts|length }} points)
+  </summary>
+  <div style="padding:8px 0;">
+    {% for rp in rubric_pts %}
+    <div style="padding:3px 0;font-size:0.85rem;">
+      <span class="chip">{{ (rp.section_hint or 'body')|upper }}</span>
+      {{ rp.point or '' }}
+    </div>
+    {% endfor %}
+  </div>
+</details>
+{% endif %}
+
+<!-- ── Answer form (disabled — AI eval coming soon) ──────────────────────── -->
+<div class="gem-card" style="margin-bottom:16px;">
+  <div class="section-header" style="color:#8AB4F8;margin-bottom:8px;">Introduction</div>
+  <textarea disabled placeholder="~{{ wc[0] }} words · Define the key concept, state the scope of your answer"
+            style="height:100px;opacity:0.6;cursor:not-allowed;resize:none;"></textarea>
+
+  <div class="section-header" style="color:#C084FC;margin-top:16px;margin-bottom:8px;">Body</div>
+  <textarea disabled placeholder="~{{ wc[1] }} words · Analysis, theories, diagrams (described), data points, government schemes"
+            style="height:260px;opacity:0.6;cursor:not-allowed;resize:none;"></textarea>
+
+  <div class="section-header" style="color:#81C995;margin-top:16px;margin-bottom:8px;">Conclusion</div>
+  <textarea disabled placeholder="~{{ wc[2] }} words · Policy implications, way forward, evaluative statement"
+            style="height:90px;opacity:0.6;cursor:not-allowed;resize:none;"></textarea>
+
+  <div style="margin-top:16px;text-align:center;">
+    <span style="background:#8AB4F815;border:1px solid #8AB4F844;border-radius:20px;
+                 padding:8px 20px;color:#8AB4F8;font-size:0.82rem;font-weight:600;letter-spacing:.02em;
+                 display:inline-block;">
+      🔒 AI grading coming soon &nbsp;·&nbsp; ₹4.50 per answer
+    </span>
+  </div>
+</div>
+
+<!-- ── Navigation ─────────────────────────────────────────────────────────── -->
+<div style="display:flex;gap:8px;margin-top:16px;">
+  <a class="btn" style="flex:1;text-align:center;"
+     href="?mode={{ mode }}{% if mode == 'year-wise' %}&year={{ year_str }}{% elif mode == 'by-topic' %}&paper={{ paper }}&topic={{ topic_id }}{% endif %}&qid={{ qid }}">
+    ↩ Retry this question
+  </a>
+  <a class="btn btn-primary" style="flex:1;text-align:center;"
+     href="?mode={{ mode }}{% if mode == 'year-wise' %}&year={{ year_str }}{% elif mode == 'by-topic' %}&paper={{ paper }}&topic={{ topic_id }}{% endif %}&qid={{ next_qid }}">
+    Next Question →
+  </a>
+</div>
+
+{% endif %}
+{% endblock %}

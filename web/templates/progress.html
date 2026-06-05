@@ -1,0 +1,196 @@
+{% extends "base.html" %}
+{% block title %}My Progress · IES 2026{% endblock %}
+
+{% block content %}
+
+<div style="margin-bottom:24px;">
+  <h2 style="margin-bottom:4px;">📈 My Progress</h2>
+  <span style="color:#9AA0A6;font-size:0.85rem;">Track your descriptive practice across all papers</span>
+</div>
+
+<!-- ── Metric cards ─────────────────────────────────────────────────────────── -->
+<div style="display:flex;gap:12px;flex-wrap:wrap;margin-bottom:24px;">
+  <div class="gem-card" style="flex:1;min-width:120px;text-align:center;">
+    <div style="font-size:2rem;font-weight:700;color:#8AB4F8;">{{ summary.total }}</div>
+    <div style="font-size:0.72rem;color:#9AA0A6;text-transform:uppercase;letter-spacing:.06em;">Total Attempts</div>
+  </div>
+  <div class="gem-card" style="flex:1;min-width:120px;text-align:center;">
+    <div style="font-size:2rem;font-weight:700;color:#C084FC;">
+      {% if summary.avg_score is not none %}{{ summary.avg_score }}/10{% else %}—{% endif %}
+    </div>
+    <div style="font-size:0.72rem;color:#9AA0A6;text-transform:uppercase;letter-spacing:.06em;">Average Score</div>
+  </div>
+  <div class="gem-card" style="flex:1;min-width:120px;text-align:center;">
+    <div style="font-size:2rem;font-weight:700;color:#81C995;">
+      {% if summary.max_score is not none %}{{ summary.max_score }}/10{% else %}—{% endif %}
+    </div>
+    <div style="font-size:0.72rem;color:#9AA0A6;text-transform:uppercase;letter-spacing:.06em;">Best Score</div>
+  </div>
+  <div class="gem-card" style="flex:1;min-width:120px;text-align:center;">
+    <div style="font-size:1.2rem;font-weight:700;color:#FDD663;line-height:2.2;">
+      {{ top_topic_display or "—" }}
+    </div>
+    <div style="font-size:0.72rem;color:#9AA0A6;text-transform:uppercase;letter-spacing:.06em;">Most Practiced</div>
+  </div>
+</div>
+
+<!-- ── Time tracker ─────────────────────────────────────────────────────────── -->
+<div style="display:flex;gap:16px;flex-wrap:wrap;margin-bottom:24px;">
+  <div class="gem-card" style="flex:1;min-width:220px;">
+    <div class="section-header" style="margin-bottom:12px;">Today's Time</div>
+    {% if today_time %}
+      {% for item in today_time %}
+      <div style="display:flex;align-items:center;gap:10px;margin-bottom:8px;">
+        <div style="width:110px;font-size:0.82rem;color:#E8EAED;white-space:nowrap;overflow:hidden;text-overflow:ellipsis;">{{ item.page_name }}</div>
+        <div style="flex:1;background:#2A2F3A;border-radius:4px;height:8px;">
+          <div style="background:#8AB4F8;height:8px;border-radius:4px;width:{{ item.pct }}%;"></div>
+        </div>
+        <div style="width:52px;font-size:0.8rem;color:#9AA0A6;text-align:right;">{{ item.label }}</div>
+      </div>
+      {% endfor %}
+    {% else %}
+      <div style="color:#9AA0A6;font-size:0.85rem;">No time logged today yet.</div>
+    {% endif %}
+  </div>
+  <div class="gem-card" style="flex:1;min-width:220px;">
+    <div class="section-header" style="margin-bottom:12px;">Last 7 Days</div>
+    {% if week_time %}
+      {% for item in week_time %}
+      <div style="display:flex;align-items:center;gap:10px;margin-bottom:8px;">
+        <div style="width:110px;font-size:0.82rem;color:#E8EAED;white-space:nowrap;overflow:hidden;text-overflow:ellipsis;">{{ item.page_name }}</div>
+        <div style="flex:1;background:#2A2F3A;border-radius:4px;height:8px;">
+          <div style="background:#8AB4F8;height:8px;border-radius:4px;width:{{ item.pct }}%;"></div>
+        </div>
+        <div style="width:52px;font-size:0.8rem;color:#9AA0A6;text-align:right;">{{ item.label }}</div>
+      </div>
+      {% endfor %}
+    {% else %}
+      <div style="color:#9AA0A6;font-size:0.85rem;">No time logged this week yet.</div>
+    {% endif %}
+  </div>
+</div>
+
+<!-- ── Filters ──────────────────────────────────────────────────────────────── -->
+<form method="GET" action="/progress" style="display:flex;gap:8px;flex-wrap:wrap;align-items:flex-end;margin-bottom:16px;">
+  <div>
+    <label style="display:block;font-size:0.78rem;color:#9AA0A6;margin-bottom:4px;">Topic</label>
+    <select name="topic" style="background:#1E2535;color:#E8EAED;border:1px solid #3C4454;border-radius:6px;padding:6px 10px;font-size:0.85rem;">
+      <option value="all" {% if topic_filter == "all" %}selected{% endif %}>All topics</option>
+      {% for t in all_topics %}
+      <option value="{{ t.topic_id }}" {% if topic_filter == t.topic_id %}selected{% endif %}>
+        {{ t.topic_name }}
+      </option>
+      {% endfor %}
+    </select>
+  </div>
+  <div>
+    <label style="display:block;font-size:0.78rem;color:#9AA0A6;margin-bottom:4px;">From</label>
+    <input type="date" name="date_from" value="{{ date_from or '' }}"
+      style="background:#1E2535;color:#E8EAED;border:1px solid #3C4454;border-radius:6px;padding:6px 10px;font-size:0.85rem;">
+  </div>
+  <div>
+    <label style="display:block;font-size:0.78rem;color:#9AA0A6;margin-bottom:4px;">To</label>
+    <input type="date" name="date_to" value="{{ date_to or '' }}"
+      style="background:#1E2535;color:#E8EAED;border:1px solid #3C4454;border-radius:6px;padding:6px 10px;font-size:0.85rem;">
+  </div>
+  <button type="submit" class="btn btn-sm btn-primary">Filter</button>
+  <a href="/progress" class="btn btn-sm">Clear</a>
+</form>
+
+{% if not table_rows %}
+<!-- ── Empty state ──────────────────────────────────────────────────────────── -->
+<div class="gem-card" style="text-align:center;padding:48px 24px;">
+  <div style="font-size:2rem;margin-bottom:12px;">📭</div>
+  <div style="color:#E8EAED;font-weight:600;margin-bottom:6px;">No attempts yet</div>
+  <div style="color:#9AA0A6;font-size:0.88rem;">
+    Complete a quiz to see your progress here.
+    {% if topic_filter != "all" or date_from or date_to %}
+    Try clearing your filters.
+    {% endif %}
+  </div>
+</div>
+
+{% else %}
+
+<!-- ── Attempt history table ────────────────────────────────────────────────── -->
+<div class="gem-card" style="margin-bottom:24px;padding:0;overflow:hidden;">
+  <div class="section-header" style="padding:16px 20px 12px;">Attempt History</div>
+  <div style="overflow-x:auto;">
+    <table style="width:100%;border-collapse:collapse;font-size:0.85rem;">
+      <thead>
+        <tr style="border-bottom:1px solid #2A2F3A;">
+          <th style="text-align:left;padding:8px 20px;color:#9AA0A6;font-weight:500;font-size:0.78rem;text-transform:uppercase;letter-spacing:.05em;white-space:nowrap;">Date</th>
+          <th style="text-align:left;padding:8px 12px;color:#9AA0A6;font-weight:500;font-size:0.78rem;text-transform:uppercase;letter-spacing:.05em;">Topic</th>
+          <th style="text-align:left;padding:8px 12px;color:#9AA0A6;font-weight:500;font-size:0.78rem;text-transform:uppercase;letter-spacing:.05em;">Paper</th>
+          <th style="text-align:center;padding:8px 12px;color:#9AA0A6;font-weight:500;font-size:0.78rem;text-transform:uppercase;letter-spacing:.05em;">Year</th>
+          <th style="text-align:center;padding:8px 12px;color:#9AA0A6;font-weight:500;font-size:0.78rem;text-transform:uppercase;letter-spacing:.05em;">Marks</th>
+          <th style="text-align:center;padding:8px 12px;color:#9AA0A6;font-weight:500;font-size:0.78rem;text-transform:uppercase;letter-spacing:.05em;">Words</th>
+          <th style="text-align:left;padding:8px 20px 8px 12px;color:#9AA0A6;font-weight:500;font-size:0.78rem;text-transform:uppercase;letter-spacing:.05em;">Score</th>
+        </tr>
+      </thead>
+      <tbody>
+        {% for row in table_rows %}
+        <tr style="border-bottom:1px solid #1E2535;">
+          <td style="padding:10px 20px;color:#9AA0A6;white-space:nowrap;">{{ row.Date }}</td>
+          <td style="padding:10px 12px;color:#E8EAED;">{{ row.Topic or "—" }}</td>
+          <td style="padding:10px 12px;">
+            {% if row.Paper and row.Paper != "—" %}
+            <span class="chip chip-purple">{{ row.Paper }}</span>
+            {% else %}
+            <span style="color:#9AA0A6;">—</span>
+            {% endif %}
+          </td>
+          <td style="padding:10px 12px;text-align:center;color:#9AA0A6;">{{ row.Year }}</td>
+          <td style="padding:10px 12px;text-align:center;color:#9AA0A6;">{{ row.Marks }}</td>
+          <td style="padding:10px 12px;text-align:center;color:#9AA0A6;">{{ row.Words }}</td>
+          <td style="padding:10px 12px 10px 12px;padding-right:20px;">
+            <div style="display:flex;align-items:center;gap:8px;">
+              <div style="width:80px;background:#2A2F3A;border-radius:4px;height:8px;flex-shrink:0;">
+                <div style="background:{{ row._color }};height:8px;border-radius:4px;width:{{ (row.Score * 10)|int }}%;"></div>
+              </div>
+              <span style="color:{{ row._color }};font-weight:600;font-size:0.85rem;white-space:nowrap;">{{ row.Score }}/10</span>
+            </div>
+          </td>
+        </tr>
+        {% endfor %}
+      </tbody>
+    </table>
+  </div>
+</div>
+
+<!-- ── Recent 5 attempts ─────────────────────────────────────────────────────── -->
+{% if recent %}
+<div class="section-header" style="margin-bottom:12px;">Recent Attempts</div>
+{% for a in recent %}
+<div class="gem-card" style="border-left:3px solid {{ a._color }};margin-bottom:8px;">
+  <div style="display:flex;justify-content:space-between;align-items:flex-start;gap:12px;">
+    <div style="display:flex;flex-wrap:wrap;gap:6px;align-items:center;">
+      {% if a.created_at %}
+      <span class="chip">{{ a.created_at[:10] }}</span>
+      {% endif %}
+      {% if a.topic_id %}
+      <span class="chip">{{ a.topic_id.replace("_"," ").title() }}</span>
+      {% endif %}
+      {% if a.paper_id %}
+      <span class="chip chip-purple">{{ a.paper_id.upper().replace("_","-") }}</span>
+      {% endif %}
+      {% if a.marks %}
+      <span class="chip">{{ a.marks }}m</span>
+      {% endif %}
+    </div>
+    <div style="font-size:1.4rem;font-weight:700;color:{{ a._color }};white-space:nowrap;flex-shrink:0;">
+      {{ a._overall }}/10
+    </div>
+  </div>
+  {% if a.question_text %}
+  <div style="font-size:0.85rem;color:#9AA0A6;margin-top:8px;line-height:1.5;">
+    {{ a.question_text[:100] }}{% if a.question_text|length > 100 %}…{% endif %}
+  </div>
+  {% endif %}
+</div>
+{% endfor %}
+{% endif %}
+
+{% endif %}
+
+{% endblock %}

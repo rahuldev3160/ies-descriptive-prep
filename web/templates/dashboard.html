@@ -1,0 +1,189 @@
+{% extends "base.html" %}
+{% block title %}Dashboard · IES 2026{% endblock %}
+
+{% block content %}
+<!-- ── Cross-exam banners ──────────────────────────────────────────────────── -->
+{% if other_exams %}
+<div class="grid-{{ other_exams|length }}" style="margin-bottom:16px;">
+  {% for exam in other_exams %}
+  {% set link, label = other_exam_links[exam] %}
+  <a href="{{ link }}" class="btn" style="justify-content:flex-start;">→ {{ label }}</a>
+  {% endfor %}
+</div>
+{% endif %}
+
+<!-- ── Header metrics ─────────────────────────────────────────────────────── -->
+<div style="display:flex;align-items:flex-start;gap:12px;flex-wrap:wrap;margin-bottom:24px;">
+  <div style="flex:3;min-width:200px;">
+    <h2 style="margin-bottom:4px;">📚 IES 2026 Study Dashboard</h2>
+    <span style="color:#9AA0A6;font-size:0.85rem;">Exam 19–21 June 2026 · GE-01 to GE-04</span>
+  </div>
+  <!-- Days left -->
+  <div class="gem-card" style="flex:1;min-width:100px;text-align:center;border-color:{{ day_color }}33;">
+    <div style="font-size:2rem;font-weight:700;color:{{ day_color }};">{{ d }}</div>
+    <div style="font-size:0.72rem;color:#9AA0A6;text-transform:uppercase;letter-spacing:.06em;">Days Left</div>
+  </div>
+  <!-- Answers ready -->
+  <div class="gem-card" style="flex:1;min-width:100px;text-align:center;">
+    <div style="font-size:2rem;font-weight:700;color:#8AB4F8;">{{ total_a }}</div>
+    <div style="font-size:0.72rem;color:#9AA0A6;text-transform:uppercase;letter-spacing:.06em;">Answers Ready</div>
+    <div style="font-size:0.7rem;color:#9AA0A6;margin-top:2px;">{{ ans_pct }}% of {{ total_q }} PYQs</div>
+  </div>
+  <!-- Topics verified -->
+  <div class="gem-card" style="flex:1;min-width:100px;text-align:center;">
+    <div style="font-size:2rem;font-weight:700;color:#81C995;">{{ verified_count }}</div>
+    <div style="font-size:0.72rem;color:#9AA0A6;text-transform:uppercase;letter-spacing:.06em;">Topics Verified</div>
+    <div style="font-size:0.7rem;color:#9AA0A6;margin-top:2px;">of {{ total_t }} topics</div>
+  </div>
+  <!-- Readiness now -->
+  <div class="gem-card" style="flex:1;min-width:100px;text-align:center;border-color:{{ r_color }}33;">
+    <div style="font-size:2rem;font-weight:700;color:{{ r_color }};">{{ readiness.formula_pct|round|int }}%</div>
+    <div style="font-size:0.72rem;color:#9AA0A6;text-transform:uppercase;letter-spacing:.06em;">Readiness Now</div>
+    <div style="font-size:0.7rem;color:#9AA0A6;margin-top:2px;">{{ readiness.covered_count }}/{{ readiness.topic_count }} topics ≥50%</div>
+  </div>
+  <!-- Projected -->
+  <div class="gem-card" style="flex:1;min-width:100px;text-align:center;border-color:#8AB4F833;">
+    <div style="font-size:2rem;font-weight:700;color:#8AB4F8;">{{ readiness.projected_pct|round|int }}%</div>
+    <div style="font-size:0.72rem;color:#9AA0A6;text-transform:uppercase;letter-spacing:.06em;">If Top 10 Done</div>
+    <div style="font-size:0.7rem;color:#9AA0A6;margin-top:2px;">projected if top gaps filled</div>
+  </div>
+</div>
+
+<!-- ── Crunch mode banner ──────────────────────────────────────────────────── -->
+{% if crunch_mode %}
+<div style="background:#F28B8222;border:1px solid #F28B82;border-radius:8px;padding:10px 16px;margin-bottom:12px;">
+  <span style="color:#F28B82;font-weight:700;font-size:1rem;">⚡ CRUNCH MODE</span>
+  <span style="color:#9AA0A6;font-size:0.85rem;margin-left:8px;">≤7 days left — focus on top gaps only.</span>
+</div>
+{% endif %}
+
+<!-- ── Study path banner ──────────────────────────────────────────────────── -->
+{% if study_path and (study_path.current_phase or study_path.today_action) %}
+<div style="display:flex;align-items:center;gap:10px;margin-bottom:20px;">
+  <div style="flex:1;background:#1C2B3A;border:1px solid #8AB4F833;border-radius:8px;padding:11px 16px;">
+    <span style="color:#8AB4F8;font-weight:700;font-size:0.8rem;text-transform:uppercase;letter-spacing:.07em;">🎯 {{ study_path.current_phase }}</span>
+    <span style="color:#9AA0A6;font-size:0.82rem;margin-left:10px;">Today: </span>
+    <span style="color:#E8EAED;font-size:0.88rem;">{{ study_path.today_action }}</span>
+  </div>
+  <a href="/setup" class="btn btn-sm">Update plan</a>
+</div>
+{% endif %}
+
+<!-- ── Today's Focus ──────────────────────────────────────────────────────── -->
+<div class="section-header" style="margin-bottom:10px;">Today's Focus</div>
+<div class="grid-3" style="margin-bottom:24px;">
+  {% for t in focus_topics %}
+  <div class="focus-card">
+    <span class="badge badge-{{ t._state|lower }}">{{ t._state_display }}</span>
+    <h4>{{ t._display_name }}</h4>
+    <div class="meta">{{ t._paper_label }} · {{ t.pyq_count or 0 }} past questions · {{ t._priority_label }}</div>
+    <div style="font-size:0.7rem;color:#9AA0A6;margin-top:2px;">{{ t._state_meta }}</div>
+    <div class="prog-bar-bg" style="margin-top:8px;">
+      <div class="prog-bar-fill" style="width:{{ t._mastery_pct }}%;"></div>
+    </div>
+    <div style="font-size:0.7rem;color:#9AA0A6;margin-top:4px;">{{ t._mastery_pct }}% mastered · {{ t.answers_ready or 0 }}/{{ t.total_q or 0 }} answers ready</div>
+    <div style="display:flex;gap:6px;margin-top:10px;">
+      {% if t._state != 'VERIFIED' %}
+      <form method="POST" action="/ies/topics/{{ t.topic_id }}/state" style="flex:1;">
+        <input type="hidden" name="state" value="{{ {'UNVISITED':'IN_STUDY','FLAGGED':'IN_STUDY','DECAYING':'IN_STUDY','IN_STUDY':'PARTIAL','PARTIAL':'VERIFIED'}.get(t._state, 'IN_STUDY') }}">
+        <input type="hidden" name="trigger" value="ui_focus_start">
+        <button type="submit" class="btn btn-sm" style="width:100%;">{{ t._focus_label }}</button>
+      </form>
+      <form method="POST" action="/ies/topics/{{ t.topic_id }}/state" style="flex:1;">
+        <input type="hidden" name="state" value="VERIFIED">
+        <input type="hidden" name="trigger" value="ui_focus_done">
+        <button type="submit" class="btn btn-sm btn-primary" style="width:100%;">Mark Verified</button>
+      </form>
+      {% else %}
+      <span class="btn btn-sm" style="flex:1;text-align:center;opacity:0.4;cursor:default;">Verified ✓</span>
+      {% endif %}
+    </div>
+  </div>
+  {% endfor %}
+</div>
+
+<hr>
+
+<!-- ── Paper tabs ─────────────────────────────────────────────────────────── -->
+<div id="paper-tabs">
+  <div class="tab-bar">
+    {% for paper_id, paper_label in papers %}
+    <button class="tab-btn {% if loop.first %}active{% endif %}"
+            data-tab="{{ paper_id }}"
+            onclick="switchTab('paper-tabs', '{{ paper_id }}')">
+      {{ paper_label }}
+    </button>
+    {% endfor %}
+  </div>
+
+  {% for pd in papers_data %}
+  <div id="paper-tabs-{{ pd.paper_id }}" class="tab-panel {% if loop.first %}active{% endif %}">
+    <!-- Paper coverage progress -->
+    <div class="prog-bar-bg" style="margin-bottom:6px;">
+      <div class="prog-bar-fill" style="width:{{ pd.cov_pct }}%;"></div>
+    </div>
+    <div style="font-size:0.72rem;color:#9AA0A6;margin-bottom:14px;">
+      <span style="color:{{ pd.cov_color }};font-weight:600;">{{ pd.cov_pct|round|int }}%</span>
+      mastered · {{ pd.cov_done }}/{{ pd.cov_total }} topics at ≥50%
+    </div>
+
+    <!-- Topic rows -->
+    {% for t in pd.topics %}
+    <div style="display:grid;grid-template-columns:4fr 2fr 1fr 1fr 1fr;gap:8px;align-items:center;padding:8px 0;border-bottom:1px solid #2C2C2E;">
+      <!-- Name + answers bar -->
+      <div>
+        <span class="badge badge-{{ t._state|lower }}">{{ t._state_display }}</span>
+        <span style="font-size:0.92rem;font-weight:500;margin-left:6px;">{{ t._display_name }}</span>
+        <div class="prog-bar-bg" style="margin-top:4px;">
+          <div class="prog-bar-fill" style="width:{{ (100 * (t.answers_ready or 0) / (t.total_q or 1))|round|int }}%;"></div>
+        </div>
+        <div style="font-size:0.68rem;color:#9AA0A6;margin-top:2px;">{{ t.answers_ready or 0 }}/{{ t.total_q or 0 }} answers ready</div>
+      </div>
+      <!-- Priority info -->
+      <div style="font-size:0.78rem;color:#9AA0A6;">
+        {{ t.pyq_count or 0 }} past questions ·
+        <strong style="color:#8AB4F8;">{{ t._priority_label }}</strong>
+      </div>
+      <!-- Advance button -->
+      <form method="POST" action="/ies/topics/{{ t.topic_id }}/state">
+        <input type="hidden" name="state" value="{{ t._next_state }}">
+        <input type="hidden" name="trigger" value="ui_advance">
+        <button type="submit" class="btn btn-sm"
+                style="width:100%;" {% if t._state == 'VERIFIED' %}disabled{% endif %}>
+          {{ t._btn_label }}
+        </button>
+      </form>
+      <!-- Quick verify button -->
+      <form method="POST" action="/ies/topics/{{ t.topic_id }}/state">
+        <input type="hidden" name="state" value="VERIFIED">
+        <input type="hidden" name="trigger" value="ui_verify">
+        <button type="submit" class="btn btn-sm btn-primary"
+                style="width:100%;" {% if t._state == 'VERIFIED' %}disabled{% endif %}>
+          Quick Verify
+        </button>
+      </form>
+      <!-- Reset button -->
+      <form method="POST" action="/ies/topics/{{ t.topic_id }}/state">
+        <input type="hidden" name="state" value="UNVISITED">
+        <input type="hidden" name="trigger" value="ui_reset">
+        <button type="submit" class="btn btn-sm btn-danger" style="width:100%;">Reset</button>
+      </form>
+    </div>
+    {% endfor %}
+  </div>
+  {% endfor %}
+</div>
+
+<br><hr>
+
+<!-- ── State summary ──────────────────────────────────────────────────────── -->
+<div class="section-header" style="margin-bottom:10px;">Overview</div>
+<div class="grid-6">
+  {% for s in state_summary %}
+  <div class="gem-card" style="text-align:center;border-color:{{ s.color }}33;">
+    <div style="font-size:1.8rem;font-weight:700;color:{{ s.color }};">{{ s.count }}</div>
+    <div style="font-size:0.68rem;color:#9AA0A6;text-transform:uppercase;letter-spacing:.06em;">{{ s.emoji }} {{ s.display }}</div>
+  </div>
+  {% endfor %}
+</div>
+{% endblock %}

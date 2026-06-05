@@ -4,6 +4,7 @@ import secrets
 import sqlite3
 import uuid
 from datetime import datetime, timedelta, timezone
+from functools import wraps
 from urllib.parse import urlencode
 
 import requests
@@ -16,7 +17,7 @@ GOOGLE_USERINFO_URL = "https://www.googleapis.com/oauth2/v3/userinfo"
 def _google_env() -> tuple[str, str, str]:
     client_id = os.environ.get("GOOGLE_CLIENT_ID", "")
     client_secret = os.environ.get("GOOGLE_CLIENT_SECRET", "")
-    redirect_uri = os.environ.get("OAUTH_REDIRECT_URI", "http://localhost:8501/0_Login")
+    redirect_uri = os.environ.get("OAUTH_REDIRECT_URI", "http://localhost:5000/auth/callback")
     return client_id, client_secret, redirect_uri
 
 
@@ -25,11 +26,9 @@ def is_oauth_configured() -> bool:
     return bool(client_id and client_secret)
 
 
-def build_auth_url(remember_me: bool = False) -> str:
+def build_auth_url(state: str) -> str:
+    """Build Google OAuth URL. Caller must store state in Flask session before redirecting."""
     client_id, _, redirect_uri = _google_env()
-    # Encode remember_me into the OAuth state so it survives the redirect.
-    # Format: "<csrf_hex>:<0|1>"
-    state = f"{secrets.token_hex(16)}:{'1' if remember_me else '0'}"
     params = {
         "client_id": client_id,
         "redirect_uri": redirect_uri,
@@ -88,9 +87,7 @@ def upsert_user(conn: sqlite3.Connection, google_sub: str, email: str,
 
 
 def create_session(conn: sqlite3.Connection, user_id: str, remember_me: bool = False) -> str:
-    """Create a session token. Expiry is 30 days if remember_me else 1 day.
-    Multi-device: existing sessions for this user are preserved.
-    Expired sessions across all users are pruned as housekeeping."""
+    """Create a session token. Expiry 30 days if remember_me else 1 day."""
     token = secrets.token_hex(32)
     days = 30 if remember_me else 1
     expires_at = (datetime.now(timezone.utc) + timedelta(days=days)).isoformat()
@@ -123,18 +120,18 @@ def validate_session(conn: sqlite3.Connection, token: str) -> str | None:
     return row["user_id"]
 
 
-def require_user(conn: sqlite3.Connection) -> str:
-    """
-    Return authenticated user_id. Clears session and reruns to login if not authenticated.
-    Call at the top of every page that requires login.
-    """
-    import streamlit as st
-    token = st.session_state.get("session_token")
-    user_id = validate_session(conn, token)
-    if user_id:
-        st.session_state.user_id = user_id
-        return user_id
-    conn.close()
-    st.session_state.pop("session_token", None)
-    st.session_state.pop("user_id", None)
-    st.rerun()
+def login_required(f):
+    """Decorator: redirect to /auth/login if request has no authenticated user."""
+    @wraps(f)
+    def decorated(*args, **kwargs):
+        from flask import g, redirect
+        if not getattr(g, "user_id", None):
+            return redirect("/auth/login")
+        return f(*args, **kwargs)
+    return decorated
+
+
+def require_user() -> str:
+    """Return authenticated user_id. Call inside a @login_required route."""
+    from flask import g
+    return g.user_id

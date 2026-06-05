@@ -1,0 +1,255 @@
+{% extends "base.html" %}
+{% block title %}English Practice · Exam Prep{% endblock %}
+
+{% block content %}
+<div style="max-width:780px;">
+  <h2 style="margin-bottom:4px;">✍️ English Practice</h2>
+  <p style="color:#9AA0A6;font-size:0.88rem;margin-bottom:20px;">Essay, précis, and letter writing practice with auto-scoring</p>
+
+  {% if no_content %}
+  <div class="info-box">No English practice content has been added yet.</div>
+  {% elif no_questions %}
+  <div class="info-box">No questions found for this type.</div>
+
+  {% if all_types %}
+  <div style="margin-top:16px;">
+    <label>Question Type</label>
+    <select onchange="location.href='/practice/english?type='+this.value" style="max-width:280px;">
+      {% for t in all_types %}
+      <option value="{{ t.id }}" {% if curr_type == t.id %}selected{% endif %}>{{ t.name }}</option>
+      {% endfor %}
+    </select>
+  </div>
+  {% endif %}
+
+  {% else %}
+
+  {% if error %}
+  <div class="flash-error" style="margin-bottom:16px;">{{ error }}</div>
+  {% endif %}
+
+  <!-- ── Type + Question selectors ─────────────────────────── -->
+  <div style="display:flex;gap:10px;flex-wrap:wrap;margin-bottom:16px;">
+    <div style="min-width:180px;">
+      <label>Question Type</label>
+      <select onchange="location.href='/practice/english?type='+this.value">
+        {% for t in all_types %}
+        <option value="{{ t.id }}" {% if curr_type == t.id %}selected{% endif %}>{{ t.name }}</option>
+        {% endfor %}
+      </select>
+    </div>
+    <div style="flex:1;min-width:300px;">
+      <label>Question</label>
+      <select onchange="location.href='/practice/english?type={{ curr_type }}&qid='+this.value">
+        {% for qid_opt, label in q_label_map.items() %}
+        <option value="{{ qid_opt }}" {% if curr_qid == qid_opt %}selected{% endif %}>{{ label }}</option>
+        {% endfor %}
+      </select>
+    </div>
+  </div>
+
+  <!-- ── Question card ──────────────────────────────────────── -->
+  <div class="gem-card-accent" style="margin-bottom:16px;">
+    <div style="margin-bottom:10px;">
+      <span class="chip">{{ (selected_q.source_exam or '') | upper }}</span>
+      <span class="chip" style="margin-left:6px;color:{{ diff_color }};">
+        {{ (selected_q.difficulty or 'medium') | capitalize }}
+      </span>
+      {% if selected_q.marks %}
+      <span class="chip chip-purple" style="margin-left:6px;">{{ selected_q.marks }}m</span>
+      {% endif %}
+    </div>
+    <div style="font-size:0.98rem;line-height:1.7;color:#E8EAED;white-space:pre-wrap;">{{ selected_q.prompt_text }}</div>
+  </div>
+
+  <!-- ════════════════════════════════════════════════════════ -->
+  {% if phase == "write" %}
+  <!-- ── Phase 1: Write ─────────────────────────────────────── -->
+  <form method="POST" action="/practice/english/score">
+    <input type="hidden" name="type_id" value="{{ curr_type }}">
+    <input type="hidden" name="qid" value="{{ curr_qid }}">
+
+    {% for sec, label in sec_labels.items() %}
+    {% if sec == "intro" %}
+    {% set sec_color = "#8AB4F8" %}
+    {% set sec_height = "80px" %}
+    {% elif sec == "body" %}
+    {% set sec_color = "#C084FC" %}
+    {% set sec_height = "260px" %}
+    {% else %}
+    {% set sec_color = "#81C995" %}
+    {% set sec_height = "90px" %}
+    {% endif %}
+    <div class="form-group">
+      <div class="section-header" style="color:{{ sec_color }};">{{ label }}</div>
+      <textarea name="{{ sec }}" placeholder="~{{ word_guide.get(sec, 100) }} words"
+                style="height:{{ sec_height }};resize:vertical;" maxlength="3000"></textarea>
+    </div>
+    {% endfor %}
+
+    <button type="submit" class="btn btn-primary" style="width:100%;margin-top:8px;">Score My Answer →</button>
+  </form>
+
+  <!-- ════════════════════════════════════════════════════════ -->
+  {% elif phase == "self_assess" and last %}
+  <!-- ── Phase 2: Self-assess ───────────────────────────────── -->
+  {% set auto = last.auto %}
+
+  <div class="grid-4" style="margin-bottom:20px;">
+    {% for sec_key, sec_label in sec_labels.items() %}
+    {% set sec_data = auto.sections.get(sec_key, {}) if auto and auto.sections else {} %}
+    {% set pct = sec_data.get('score_pct', 0) | round | int %}
+    {% if pct >= 70 %}{% set sc = "score-green" %}{% elif pct >= 40 %}{% set sc = "score-amber" %}{% else %}{% set sc = "score-red" %}{% endif %}
+    <div class="score-card {{ sc }}">
+      <div class="score-num">{{ pct }}%</div>
+      <div class="score-label">{{ sec_label }}</div>
+    </div>
+    {% endfor %}
+    {% set overall = auto.overall_pct | round | int if auto and auto.overall_pct else 0 %}
+    {% if overall >= 70 %}{% set oc = "score-green" %}{% elif overall >= 40 %}{% set oc = "score-amber" %}{% else %}{% set oc = "score-red" %}{% endif %}
+    <div class="score-card {{ oc }}" style="border-width:2px;">
+      <div class="score-num">{{ overall }}%</div>
+      <div class="score-label">Overall · {{ auto.grade if auto and auto.grade else '—' }}</div>
+    </div>
+  </div>
+
+  {% if auto and (auto.nailed or auto.missing) %}
+  <div class="gem-card" style="margin-bottom:16px;">
+    {% if auto.nailed %}
+    <div style="margin-bottom:10px;">
+      <div class="section-header" style="color:#81C995;margin-bottom:6px;">Nailed</div>
+      {% for kw in auto.nailed[:6] %}
+      <span class="chip chip-green">{{ kw }}</span>
+      {% endfor %}
+    </div>
+    {% endif %}
+    {% if auto.missing %}
+    <div>
+      <div class="section-header" style="color:#F28B82;margin-bottom:6px;">Missing</div>
+      {% for kw in auto.missing[:6] %}
+      <span class="chip" style="background:rgba(242,139,130,0.12);color:#F28B82;border-color:rgba(242,139,130,0.25);">{{ kw }}</span>
+      {% endfor %}
+    </div>
+    {% endif %}
+  </div>
+  {% endif %}
+
+  {% if auto and auto.sections %}
+  {% for sec_key, sec_label in sec_labels.items() %}
+  {% set sec_data = auto.sections.get(sec_key, {}) %}
+  {% if sec_data.get('hint') %}
+  <details style="margin-bottom:8px;">
+    <summary style="cursor:pointer;color:#9AA0A6;font-size:0.82rem;padding:4px 0;list-style:none;">▸ {{ sec_label }} hint</summary>
+    <div style="margin-top:6px;color:#E8EAED;font-size:0.85rem;padding:8px 12px;background:#2C2C2E;border-radius:8px;">
+      {{ sec_data.hint }}
+    </div>
+  </details>
+  {% endif %}
+  {% endfor %}
+  {% endif %}
+
+  {% if selected_q.intro_text or selected_q.body_text or selected_q.conclusion_text %}
+  <div style="margin-bottom:20px;">
+    <details {% if selected_q.intro_text %}{% endif %}>
+      <summary style="cursor:pointer;color:#8AB4F8;font-weight:600;font-size:0.88rem;padding:8px 0;list-style:none;">▸ Introduction (model)</summary>
+      <div style="margin-top:8px;padding:12px 16px;background:#2C2C2E;border-radius:8px;color:#E8EAED;font-size:0.88rem;line-height:1.7;white-space:pre-wrap;">{{ selected_q.intro_text or '—' }}</div>
+    </details>
+    <details open style="margin-top:8px;">
+      <summary style="cursor:pointer;color:#C084FC;font-weight:600;font-size:0.88rem;padding:8px 0;list-style:none;">▸ Body (model)</summary>
+      <div style="margin-top:8px;padding:12px 16px;background:#2C2C2E;border-radius:8px;color:#E8EAED;font-size:0.88rem;line-height:1.7;white-space:pre-wrap;">{{ selected_q.body_text or '—' }}</div>
+    </details>
+    <details style="margin-top:8px;">
+      <summary style="cursor:pointer;color:#81C995;font-weight:600;font-size:0.88rem;padding:8px 0;list-style:none;">▸ Conclusion (model)</summary>
+      <div style="margin-top:8px;padding:12px 16px;background:#2C2C2E;border-radius:8px;color:#E8EAED;font-size:0.88rem;line-height:1.7;white-space:pre-wrap;">{{ selected_q.conclusion_text or '—' }}</div>
+    </details>
+  </div>
+  {% endif %}
+
+  {% if criteria %}
+  <div class="gem-card">
+    <div class="section-header" style="margin-bottom:12px;">Self-Assessment</div>
+    <form method="POST" action="/practice/english/assess">
+      <input type="hidden" name="type_id" value="{{ curr_type }}">
+      <input type="hidden" name="qid" value="{{ curr_qid }}">
+      {% for c in criteria %}
+      <label style="display:block;padding:4px 0;cursor:pointer;font-size:0.88rem;color:#E8EAED;">
+        <input type="checkbox" name="check_{{ c.id }}" value="1"
+               style="width:15px;height:15px;accent-color:#8AB4F8;margin-right:8px;vertical-align:middle;">
+        {{ c.text }}
+      </label>
+      {% endfor %}
+      <button type="submit" class="btn btn-primary" style="width:100%;margin-top:16px;">Complete Assessment →</button>
+    </form>
+  </div>
+  {% else %}
+  <form method="POST" action="/practice/english/assess">
+    <input type="hidden" name="type_id" value="{{ curr_type }}">
+    <input type="hidden" name="qid" value="{{ curr_qid }}">
+    <button type="submit" class="btn btn-primary" style="width:100%;margin-top:8px;">Complete Assessment →</button>
+  </form>
+  {% endif %}
+
+  <!-- ════════════════════════════════════════════════════════ -->
+  {% elif phase == "done" and last %}
+  <!-- ── Phase 3: Done ─────────────────────────────────────── -->
+  {% set auto = last.auto %}
+  {% set sa = last.self_assess %}
+
+  <div class="grid-2" style="margin-bottom:20px;">
+    <div class="score-card {% if auto and auto.overall_pct >= 70 %}score-green{% elif auto and auto.overall_pct >= 40 %}score-amber{% else %}score-red{% endif %}">
+      <div class="score-num">{{ (auto.overall_pct | round | int) if auto and auto.overall_pct else 0 }}%</div>
+      <div class="score-label">Keyword Coverage</div>
+    </div>
+    <div class="score-card {% if sa and sa.score >= 0.7 %}score-green{% elif sa and sa.score >= 0.4 %}score-amber{% else %}score-red{% endif %}">
+      {% set total_c = criteria | length %}
+      {% set checked_c = sa.checks.values() | selectattr('==', 'equalto', true) | list | length if sa and sa.checks else 0 %}
+      <div class="score-num">{{ checked_c }}/{{ total_c }}</div>
+      <div class="score-label">Structure Quality</div>
+    </div>
+  </div>
+
+  {% if auto and auto.sections %}
+  <div id="eng-tabs" style="margin-bottom:20px;">
+    <div class="tab-bar">
+      {% for sec, label in sec_labels.items() %}
+      <button class="tab-btn {% if loop.first %}active{% endif %}"
+              data-tab="{{ sec }}" onclick="switchTab('eng-tabs','{{ sec }}')">{{ label }}</button>
+      {% endfor %}
+    </div>
+    {% for sec, label in sec_labels.items() %}
+    {% set sec_data = auto.sections.get(sec, {}) %}
+    <div id="eng-tabs-{{ sec }}" class="tab-panel {% if loop.first %}active{% endif %}">
+      {% if sec_data.get('keywords_hit') %}
+      <div style="margin-bottom:10px;">
+        <div class="section-header" style="color:#81C995;margin-bottom:6px;">Covered</div>
+        {% for kw in sec_data.keywords_hit %}
+        <span class="chip chip-green">{{ kw }}</span>
+        {% endfor %}
+      </div>
+      {% endif %}
+      {% if sec_data.get('keywords_missed') %}
+      <div>
+        <div class="section-header" style="color:#F28B82;margin-bottom:6px;">Missing</div>
+        {% for kw in sec_data.keywords_missed %}
+        <span class="chip" style="background:rgba(242,139,130,0.12);color:#F28B82;border-color:rgba(242,139,130,0.25);">{{ kw }}</span>
+        {% endfor %}
+      </div>
+      {% endif %}
+      {% if not sec_data.get('keywords_hit') and not sec_data.get('keywords_missed') %}
+      <div style="color:#9AA0A6;font-size:0.85rem;">No keyword data for this section.</div>
+      {% endif %}
+    </div>
+    {% endfor %}
+  </div>
+  {% endif %}
+
+  <div style="display:flex;gap:10px;flex-wrap:wrap;">
+    <a href="/practice/english?type={{ curr_type }}&qid={{ curr_qid }}&reset=1" class="btn">Retry</a>
+    <a href="/practice/english?type={{ curr_type }}&qid={{ next_qid }}" class="btn btn-primary">Next Question →</a>
+  </div>
+
+  {% endif %}
+  {% endif %}
+
+</div>
+{% endblock %}
