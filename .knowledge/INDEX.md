@@ -28,7 +28,7 @@ Last updated: 2026-06-06 (Session 19)
 | [BUG-013](bugs/BUG-013.md) | FIXED | HIGH | auth | CookieManager(key="main") instantiated 3x → StreamlitDuplicateElementKey with st.navigation() | — | S14 | ba83b9b |
 | [BUG-014](bugs/BUG-014.md) | FIXED | MEDIUM | auth | validate_session crashes on naive datetimes from SQLite datetime('now') vs UTC-aware Python | — | S14 | ba83b9b |
 | [BUG-015](bugs/BUG-015.md) | FIXED | LOW | auth | "Page not found" flash on cookie-restored sessions — nav rebuilt before rerun | — | S14 | ba83b9b |
-| [BUG-016](bugs/BUG-016.md) | FIXED | HIGH | template | `section.items` resolves to Python dict builtin in Jinja2 — 500 on /rbi/prep; fix: `section['items']` | — | S18 | 1384854 |
+| [BUG-016](bugs/BUG-016.md) | FIXED | HIGH | template | Jinja2 dict key `items` shadows Python builtin → 500; root fix: renamed key to `rows` in both blueprints | JINJA2-001 | S18+S20 | 1384854 |
 | [BUG-017](bugs/BUG-017.md) | FIXED | HIGH | ui | RBI tab panels are siblings of #rbi-tabs div, not children — switchTab querySelectorAll finds nothing, all panels stack | — | S18 | f68b976 |
 | [BUG-018](bugs/BUG-018.md) | FIXED | HIGH | scoring | Drill scoring always 0 — form submits full option text but code took `chosen_full[0]` (first char of sentence) vs `correct_option` letter | — | S18 | 6968d5d |
 
@@ -75,3 +75,4 @@ Cross-project patterns live at `~/.claude/knowledge/patterns/PATTERNS.md`
 | NAV-001 | Streamlit st.navigation() timing — st.switch_page to unregistered page | Any Streamlit multi-page app | BUG-001, BUG-002, BUG-003 |
 | SESSION-001 | Session state not cleared on user switch | Any Streamlit app with auth | BUG-004 |
 | DB-001 | Read-modify-write race on DB counters | Any app with concurrent writes | BUG-005 |
+| JINJA2-001 | Dict key named `items`/`keys`/`values` shadows Python builtin in Jinja2 → 500 | Any Jinja2 template | BUG-016 (recurred x2) |

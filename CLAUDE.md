@@ -26,11 +26,10 @@ After any of these task types, write synthesized records to `.knowledge/` before
 - Railway SSH: `railway ssh python scripts/X.py` (not `railway run`)
 
 ## Architecture Constraints
-- Streamlit navigation uses `st.navigation()` (1.36+ API). Auth-conditional branches.
-- **CRITICAL**: Never use `st.switch_page()` to cross nav branches. Use `st.rerun()` instead.
-  See NAV-001 pattern and BUG-001, BUG-002, BUG-003.
-- All user data is scoped by `user_id` (UUID). Never trust `get_user_id()` alone — use `require_user(conn)`.
-- DB connections: opened with `get_conn()`, must be closed. Use try/finally in pages (BUG-007 pending fix).
+- Flask app. Entry: `web/wsgi.py`. 34 routes across 14 blueprints.
+- All user data is scoped by `user_id` (UUID). Never trust session alone — use `@login_required` + `g.user_id`.
+- DB connections: `g.conn` (ies.db), `g.rbi_conn` (rbi.db), `g.upsc_conn` (upsc.db) — opened/closed by blueprint hooks.
+- **JINJA2-001**: Never name a dict key `items`, `keys`, `values`, `get`, or any Python dict method name when the dict is passed to a Jinja2 template. Dot-notation `sec.items` resolves to the Python builtin, not the key → 500. Fix at the data layer: rename the key (e.g. `rows`, `entries`). See BUG-016.
 
 ## Code Style
 - No comments unless WHY is non-obvious

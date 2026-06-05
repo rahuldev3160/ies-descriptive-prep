@@ -198,8 +198,8 @@ def rbi_dashboard():
         for row in all_rows:
             sec = row["section"]
             if sec not in _sec_map:
-                _sec_map[sec] = {"label": sec, "color": row["section_color"], "items": []}
-            _sec_map[sec]["items"].append(dict(row))
+                _sec_map[sec] = {"label": sec, "color": row["section_color"], "rows": []}
+            _sec_map[sec]["rows"].append(dict(row))
         all_key_sections = list(_sec_map.values())
     except Exception:
         pass

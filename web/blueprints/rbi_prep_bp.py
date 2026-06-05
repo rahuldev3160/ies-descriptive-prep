@@ -242,7 +242,7 @@ KEY_SECTIONS = [
     {
         "label": "LAF Corridor & Policy Rates",
         "color": "#8AB4F8",
-        "items": [
+        "rows": [
             ("Repo Rate", "5.25%", "MPC Feb 2026 kept unchanged. Cumulative 125 bps cuts since Feb 2025 (from 6.50%). MPC stance: Neutral.", False),
             ("SDF Rate", "5.00% (Repo − 25 bps)", "Standing Deposit Facility (Apr 2022). LAF floor. Banks park surplus with RBI collateral-free. Replaced reverse repo as operative floor.", False),
             ("MSF Rate", "5.50% (Repo + 25 bps)", "Marginal Standing Facility. LAF ceiling. Emergency window — banks use up to 3% of NDTL of SLR portfolio.", False),
@@ -254,7 +254,7 @@ KEY_SECTIONS = [
     {
         "label": "Reserve Ratios & PSL",
         "color": "#C084FC",
-        "items": [
+        "rows": [
             ("CRR", "4% of NDTL ⚠ verify", "% of NDTL held as cash with RBI. No interest paid. RBI cut CRR injecting ₹2.5 lakh crore in FY26. Standard level 4%.", True),
             ("SLR", "18% of NDTL ⚠ verify", "% of NDTL held in approved G-secs/gold/cash. Banks borrow under MSF against SLR.", True),
             ("Base for both CRR & SLR", "NDTL (Net Demand and Time Liabilities)", "NDTL = Demand liabilities + Time liabilities − Inter-bank liabilities.", False),
@@ -265,7 +265,7 @@ KEY_SECTIONS = [
     {
         "label": "Banking Regulation & Asset Quality",
         "color": "#F28B82",
-        "items": [
+        "rows": [
             ("NPA trigger", "90 days overdue", "Interest/installment unpaid for 90 days → Sub-Standard NPA.", False),
             ("NPA categories", "Sub-standard → Doubtful → Loss", "Sub-standard (<12 months NPA) → Doubtful (12–36 months) → Loss (>3 yrs or unrecoverable).", False),
             ("CRAR minimum (India)", "9% (Basel III global: 8%)", "RBI mandates 9%. With Capital Conservation Buffer (CCB = 2.5%) → effective minimum = 11.5%.", False),
@@ -277,7 +277,7 @@ KEY_SECTIONS = [
     {
         "label": "Payment Infrastructure",
         "color": "#81C995",
-        "items": [
+        "rows": [
             ("RTGS", "Min ₹2 lakh · Real-time · 24×7 · Operated by RBI", "Real Time Gross Settlement. Individual transaction, instant gross settlement. No upper limit.", False),
             ("NEFT", "No minimum · 48 half-hourly batches · 24×7 · Operated by RBI", "Deferred Net Settlement (DNS). Retail payments. Available 24×7 since Dec 2019.", False),
             ("NPCI operates", "UPI, IMPS, RuPay, NACH, FASTag, AePS, BBPS", "Exam trap: RTGS and NEFT are RBI; UPI/IMPS etc. are NPCI.", False),
@@ -289,7 +289,7 @@ KEY_SECTIONS = [
     {
         "label": "Fiscal Framework",
         "color": "#FDD663",
-        "items": [
+        "rows": [
             ("GFD formula", "Total Expenditure − Revenue Receipts − Non-debt Capital Receipts", "Gross Fiscal Deficit = total borrowing requirement.", False),
             ("GFD — FY26-27 BE", "4.3% of GDP · Rs 16,95,768 cr", "Down from 4.4% (FY25-26 RE) and 4.8% (FY24-25 actual).", False),
             ("Revenue Deficit — FY26-27 BE", "1.5% of GDP", "Revenue Expenditure − Revenue Receipts.", False),
@@ -303,7 +303,7 @@ KEY_SECTIONS = [
     {
         "label": "Indian Economy — Quick Facts",
         "color": "#9AA0A6",
-        "items": [
+        "rows": [
             ("GDP rank by nominal size", "4th largest globally (surpassed Japan)", "Aspiration: 3rd by early 2030s.", False),
             ("Real GDP growth FY26", "7.6% (2nd Advance Estimate, base 2022-23)", "FY25: 7.1%. FY27 projection: 6.8–7.2% (Economic Survey).", False),
             ("GDP base year", "2022-23 (newly revised from 2011-12)", "MoSPI revised base year in FY26. Earlier base was 2011-12 (from 2004-05).", False),
