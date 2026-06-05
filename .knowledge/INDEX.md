@@ -1,5 +1,5 @@
 # Knowledge Base — Descriptive Exams
-Last updated: 2026-06-05 (Session 13)
+Last updated: 2026-06-05 (Session 14)
 
 ## How to use
 - Scan this file at the start of any audit or bug-fix session before doing any analysis
@@ -25,6 +25,9 @@ Last updated: 2026-06-05 (Session 13)
 | [BUG-010](bugs/BUG-010.md) | OPEN | HIGH | data-isolation | set_topic_state() calls get_user_id() internally — wrong-user writes possible | — | S13 | — |
 | [BUG-011](bugs/BUG-011.md) | OPEN | MEDIUM | data-isolation | "rahul" fallback in get_user_id() — data written under literal string in error paths | — | S13 | — |
 | [BUG-012](bugs/BUG-012.md) | INFO | LOW | auth | 1_Model_Answers.py + 7_UPSC_Mains.py have no require_user() — may be intentional | — | S13 | — |
+| [BUG-013](bugs/BUG-013.md) | FIXED | HIGH | auth | CookieManager(key="main") instantiated 3x → StreamlitDuplicateElementKey with st.navigation() | — | S14 | ba83b9b |
+| [BUG-014](bugs/BUG-014.md) | FIXED | MEDIUM | auth | validate_session crashes on naive datetimes from SQLite datetime('now') vs UTC-aware Python | — | S14 | ba83b9b |
+| [BUG-015](bugs/BUG-015.md) | FIXED | LOW | auth | "Page not found" flash on cookie-restored sessions — nav rebuilt before rerun | — | S14 | ba83b9b |
 
 ---
 
@@ -41,6 +44,7 @@ Last updated: 2026-06-05 (Session 13)
 | ID | Date | Title | Status |
 |----|------|-------|--------|
 | [PLAN-001](plans/PLAN-001.md) | 2026-06-03 | Multi-user architecture (S10) | COMPLETE |
+| [PLAN-002](plans/PLAN-002.md) | 2026-06-05 | S14 features: persistent login + plan templates + dashboard labeling | COMPLETE |
 
 ---
 
