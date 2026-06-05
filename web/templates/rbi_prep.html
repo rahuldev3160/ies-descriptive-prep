@@ -16,8 +16,9 @@
   </div>
 </div>
 
-{# ── Tab bar ─────────────────────────────────────────────────────────────────── #}
-<div id="rbi-tabs" class="tab-bar" style="margin-bottom:28px;">
+{# ── Tab container (wrapper must contain bar + panels for switchTab to work) ── #}
+<div id="rbi-tabs">
+<div class="tab-bar" style="margin-bottom:28px;">
   <button class="tab-btn {% if tab == 'key_data' %}active{% endif %}"
           data-tab="key_data"
           onclick="switchTab('rbi-tabs','key_data')">📊 Key Data</button>
@@ -553,5 +554,6 @@
   {% endif %}
 
 </div>
+</div>{# end rbi-tabs wrapper #}
 
 {% endblock %}
