@@ -1,7 +1,74 @@
 # Descriptive Exams — Session Handoff
 
 ## Last Updated
-2026-06-05 (Session 14 — COMPLETE)
+2026-06-05 (Session 15 — COMPLETE)
+
+---
+
+## Session 15 Summary (2026-06-05)
+
+### Multi-exam dashboards + plan reduction + exam date labels
+
+**New page: `web/pages/RBI_Dashboard.py`**
+- Days to 14th June countdown (orange <7d, yellow ≤14d, blue otherwise)
+- Phase 1: questions answered / 267, accuracy %, total attempts
+- Mastery Score (weighted avg) + Exam Readiness (gap-adjusted)
+- Topics ≥50% covered metric
+- Subject coverage bars (9 subjects, weighted by topic importance)
+- Top gaps list sorted by flag_impact (weight × uncovered fraction)
+- Quick link → RBI Prep page
+- Auth: validates session against ies.db, then opens rbi.db independently
+
+**New page: `web/pages/UPSC_Dashboard.py`**
+- Days to ~22 Aug 2026 (tentative) countdown
+- Auto-initialises `gap_states` in upsc.db for any new user (same schema as IES)
+- Paper I (Theory) + Paper II (Indian Economy) tabs — same Begin Study/Quick Verify/Reset buttons as IES Dashboard
+- Model answers coverage: 908/908 (100%) metric
+- Topics Verified / In Progress / Topics Complete (%) metrics
+- Overview state counts (same 6-state grid as IES)
+
+**Dashboard.py (IES) — cross-exam hub**
+- Reads `exam_focus` from users table
+- If "rbi" or "upsc" in focus: shows `st.page_link` buttons at top → RBI/UPSC dashboards
+- Zero disruption to existing IES content
+
+**app.py — nav restructure**
+- New "Dashboards" section: IES Dashboard (default) · RBI Dashboard · UPSC Dashboard
+- IES Dashboard retains default=True (home icon)
+
+**Study plan templates: 144 → 24**
+- Dropped: `["ies","rbi"]` multi-exam subset (edge case)
+- Collapsed 3 buckets → 2: crunch (≤15d) and standard (>15d). "Intensive" removed everywhere.
+- Collapsed 3 prep levels → 2: `fresh` and `revision`. "Foundation" dropped.
+- Collapsed 4 modes → 2: `answers_only` and `full_prep`. "mcq_drill" and "mixed" dropped.
+- Changes: `scripts/generate_study_plan_templates.py`, `web/db.py`, `web/pages/8_My_Setup.py`
+- **Action needed**: re-run `python scripts/generate_study_plan_templates.py` to populate new 24 templates (~$0.03, ~30s)
+
+**Exam date labels everywhere**
+- IES: "19-21 June", RBI: "14 June", UPSC: "~Aug 2026"
+- UPSC Mains 2025 confirmed: Aug 22-31, 2025 (official). 2026 dates not announced; placeholder Aug 22 2026 used.
+- In: My Setup checkboxes, plan template prompts, dashboard subtitles
+
+**Commit:** `5a488af` — feat(s15): RBI+UPSC dashboards + plan reduction 144→24 + exam date labels
+
+### Next steps (priority order before exams)
+
+1. **Deploy S15 to Railway**: `git push origin main` → Railway auto-deploys. No schema changes needed.
+2. **Re-generate study plan templates (24 new plans)**: Run `python scripts/generate_study_plan_templates.py` with `ANTHROPIC_API_KEY` set. Old 144-template table stays intact; new keys are different so no conflicts — but old keys (intensive/foundation/mixed buckets) won't be matched anymore. Either: (a) clear the table first (`DELETE FROM study_plan_templates`), or (b) leave it and let old users fall through to AI generation.
+3. **Feedback system** (BUG-007 + new feature): Next big feature. Schema designed in PLAN-002. Needs GitHub personal access token with `issues:write`.
+4. **Fix BUG-010** before multi-user scale: `set_topic_state()` uses internal `get_user_id()` — wrong-user write risk. Pass `user_id` explicitly.
+
+### Watch for
+- UPSC Dashboard: `gap_states` for real users in upsc.db may have `user_id='rahul'` (BUG-011 fallback). If the production user's UUID is different, they'll see empty UPSC topics until they click any state button (which triggers `_init_user()`). Not a crash — just no initial state.
+- English Practice page (`11_English_Practice.py`) was added in a parallel session — already in app.py nav. Not part of S15; treat as pre-existing work.
+
+### Open bugs (unchanged from S13–S14)
+- BUG-007: Connection leaks — 12+ `st.stop()` paths bypass `conn.close()`
+- BUG-008: OAuth CSRF — state param not validated on callback
+- BUG-009: Transaction rollback silently swallows `gap_state_events`
+- BUG-010: `set_topic_state()` calls `get_user_id()` internally — wrong-user writes possible (HIGH)
+- BUG-011: `"rahul"` fallback in `get_user_id()` — MEDIUM
+- BUG-012: `1_Model_Answers.py` + `7_UPSC_Mains.py` unauthenticated — confirm if intentional
 
 ---
 
