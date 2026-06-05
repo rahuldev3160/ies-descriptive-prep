@@ -1,7 +1,49 @@
 # Descriptive Exams — Session Handoff
 
 ## Last Updated
-2026-06-06 (Session 19 — COMPLETE)
+2026-06-06 (Session 20 — COMPLETE)
+
+---
+
+## Session 20 Summary (2026-06-06)
+
+### RBI dashboard 500 — root fix
+
+- Immediate fix: `sec['items']` in `rbi_dashboard.html` (same JINJA2-001 pattern as BUG-016)
+- Root fix: renamed dict key `"items"` → `"rows"` at the **data layer** in both blueprints so dot-notation is safe for any future template
+  - `rbi_dashboard_bp.py`: `_sec_map` builder
+  - `rbi_prep_bp.py`: all 6 `KEY_SECTIONS` dicts
+  - `rbi_dashboard.html` + `rbi_prep.html`: updated to `sec['rows']` / `section['rows']`
+
+### Sidebar consolidation
+
+- Removed "Study & Practice" nav group from `base.html` (8 links → gone from sidebar)
+- Added 4 quick-link buttons to IES dashboard (`/ies/answers`, `/ies/brief`, `/ies/quiz`, `/ies/return-quiz`) so the sidebar removal doesn't leave those pages unreachable
+- RBI Priority 1/2 already had dashboard action buttons; UPSC already had "Browse Model Answers"; English already had Practice tab
+
+### Bug quality retrospective
+
+- Identified 3 failure modes in BUG-016's S18 fix: fix too narrow (template only), BUG-016.md never written, no PATTERNS.md entry
+- Fixed all three: BUG-016.md written, JINJA2-001 added to PATTERNS.md, inline guard added to CLAUDE.md
+
+### Self-maintaining pre-commit hook
+
+- `scripts/check_pre_commit.py` — reads `hook_*` frontmatter from all `.knowledge/bugs/*.md` and runs the checks automatically on every commit
+- `.git/hooks/pre-commit` — thin bash caller, never needs editing
+- BUG-016.md — added `hook_pattern`, `hook_scope`, `hook_message`, `hook_ref` fields
+- **To add a new auto-check**: open the bug record, add `hook_pattern: <regex>`. Next commit picks it up.
+
+### Commits this session
+
+- `1f3ebd7` — sidebar consolidation + IES quick links + sec.items immediate fix
+- `c3c515d` — root fix items→rows in blueprints + BUG-016.md + JINJA2-001 pattern + CLAUDE.md guard
+- `83c6061` — self-maintaining pre-commit hook (scripts/check_pre_commit.py)
+
+### Next steps
+
+1. **IES + UPSC dashboards**: Apply same "summary + expand" panel pattern as RBI dashboard
+2. **`rbi_prep_bp.py` key data from DB**: Prep page "Key Data" tab still reads `KEY_SECTIONS` Python constant — migrate to `rbi_key_data` DB table
+3. No open critical bugs. BUG-009 (gap_state_events transaction rollback) remains LOW/open.
 
 ---
 
