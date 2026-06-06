@@ -21,7 +21,12 @@ def _load_types(conn):
         "FROM english_question_types WHERE exam_id=? ORDER BY sort_order",
         (EXAM_ID,),
     ).fetchall()
-    return [dict(r) for r in rows]
+    result = []
+    for r in rows:
+        d = dict(r)
+        d["section_labels"] = json.loads(d.get("section_labels_json") or '{"intro":"Introduction","body":"Body","conclusion":"Conclusion"}')
+        result.append(d)
+    return result
 
 
 def _load_questions(conn, type_id):
@@ -129,6 +134,17 @@ def english_dashboard():
     recent = attempts[:5]
     attempt_counts = {tid: d["count"] for tid, d in by_type.items()}
 
+    model_questions = {}
+    for t in all_types:
+        qs = conn.execute(
+            "SELECT question_id, prompt_text, marks, intro_text, body_text, conclusion_text, difficulty, source_exam "
+            "FROM english_questions WHERE exam_id=? AND type_id=? "
+            "AND (intro_text IS NOT NULL OR body_text IS NOT NULL) "
+            "ORDER BY question_id",
+            (EXAM_ID, t["type_id"]),
+        ).fetchall()
+        model_questions[t["type_id"]] = [dict(q) for q in qs]
+
     return render_template(
         "english_dashboard.html",
         active_page="english_dashboard",
@@ -140,6 +156,7 @@ def english_dashboard():
         type_stats=type_stats,
         recent=recent,
         attempt_counts=attempt_counts,
+        model_questions=model_questions,
     )
 
 

@@ -46,195 +46,74 @@
   <!-- ══════════════════════════════════════════════════════════════════════ -->
   <div id="eng-dash-model" class="tab-panel active">
     <p style="color:#9AA0A6;font-size:0.85rem;margin-bottom:20px;">
-      One model answer per type. Study the structure, vocabulary level, and length — not the content verbatim.
+      Study structure, vocabulary, and length — not content verbatim. For précis and RC the source passage is shown first so you can verify the model answer against it.
     </p>
 
-    <!-- Essay -->
-    <details class="gem-card" style="margin-bottom:12px;padding:0;">
-      <summary style="cursor:pointer;padding:16px;list-style:none;display:flex;justify-content:space-between;align-items:center;">
-        <div>
-          <span style="font-weight:700;color:#FDD663;font-size:1rem;">Essay Writing</span>
-          <span class="chip chip-purple" style="margin-left:10px;">40m · 500 words</span>
-          <span class="chip" style="margin-left:6px;">RBI DEPR · IES</span>
-        </div>
-        <span style="color:#9AA0A6;font-size:0.8rem;">▾</span>
-      </summary>
-      <div style="padding:0 16px 16px;">
-        <div class="section-header" style="color:#8AB4F8;margin-bottom:6px;">Format</div>
-        <div style="color:#9AA0A6;font-size:0.85rem;margin-bottom:14px;">
-          Intro (hook + thesis, ~80w) → Body: 3–4 PEEL paragraphs (~300w) → Counterargument (~50w) → Conclusion (synthesis, ~70w). Avoid first person. Title required.
-        </div>
-        <div class="section-header" style="color:#C084FC;margin-bottom:6px;">Example Prompt</div>
-        <div style="background:#2C2C2E;border-radius:8px;padding:12px;font-size:0.88rem;color:#E8EAED;margin-bottom:14px;">
-          "Inflation targeting has served as the cornerstone of monetary policy in emerging economies. Critically examine its limitations in the Indian context."
-        </div>
-        <div class="section-header" style="color:#81C995;margin-bottom:6px;">Model Answer</div>
-        <div style="background:#1C1C1E;border-radius:8px;padding:14px;font-size:0.88rem;color:#E8EAED;line-height:1.8;">
-          <strong style="color:#FDD663;">The Limits of Inflation Targeting in India</strong><br><br>
-          Inflation targeting, adopted formally by India in 2016 under the Monetary Policy Framework Agreement, represents a paradigm shift from discretionary policymaking to rule-based central banking. While it has anchored inflationary expectations and enhanced the RBI's credibility, the framework carries structural limitations when applied to a complex, supply-driven economy like India.<br><br>
-          <strong>Supply-side dominance:</strong> Indian inflation is largely driven by food and fuel prices — components over which monetary policy has limited traction. A supply shock from a deficient monsoon can push headline CPI well above the 4% target irrespective of the policy rate. Aggressive rate hikes in such episodes suppress demand without addressing the underlying supply constraint, generating stagflationary risk.<br><br>
-          <strong>Transmission lags:</strong> India's financial system remains bank-dominated, with significant segments of the population and small enterprises operating outside formal credit channels. The transmission of repo rate changes to lending rates is slow and incomplete, reducing the precision of inflation targeting as a stabilisation tool.<br><br>
-          <strong>Growth trade-off:</strong> In a developing economy with high unemployment and infrastructure deficits, an unwavering focus on price stability can crowd out investment at critical junctures. The 2019–20 slowdown underlined the tension between meeting a 4% CPI target and supporting productive capacity expansion.<br><br>
-          Critics argue for a flexible mandate that explicitly weights output gaps. Yet, abandoning the framework risks undermining hard-won credibility. The resolution lies in complementing inflation targeting with coordinated supply-side policies — strengthening agricultural supply chains, rationalising energy price pass-through, and deepening financial inclusion to improve monetary transmission.<br><br>
-          Inflation targeting remains a necessary anchor, but not a sufficient framework. Its limitations in India are not failures of design so much as reminders that price stability and development cannot be separated in an economy still building its structural foundations.
-        </div>
+    {% for t in all_types %}
+    {% set qs = model_questions.get(t.type_id, []) %}
+    {% if qs %}
+    <div style="margin-bottom:28px;">
+      <div style="display:flex;align-items:center;gap:10px;margin-bottom:12px;padding-bottom:8px;border-bottom:1px solid #3C3C3E;">
+        <span style="font-weight:700;color:#FDD663;font-size:1rem;">{{ t.type_name }}</span>
+        <span class="chip chip-purple">{{ qs|length }} example{{ 's' if qs|length != 1 }}</span>
       </div>
-    </details>
 
-    <!-- Précis -->
-    <details class="gem-card" style="margin-bottom:12px;padding:0;">
-      <summary style="cursor:pointer;padding:16px;list-style:none;display:flex;justify-content:space-between;align-items:center;">
-        <div>
-          <span style="font-weight:700;color:#FDD663;font-size:1rem;">Précis Writing</span>
-          <span class="chip chip-purple" style="margin-left:10px;">30m · ~160 words</span>
-          <span class="chip" style="margin-left:6px;">RBI DEPR · UPSC</span>
+      {% for q in qs %}
+      {% set sec_labels = t.section_labels %}
+      <details class="gem-card" style="margin-bottom:10px;padding:0;" {% if loop.first %}open{% endif %}>
+        <summary style="cursor:pointer;padding:14px 16px;list-style:none;display:flex;justify-content:space-between;align-items:center;">
+          <div style="display:flex;align-items:center;gap:8px;flex:1;min-width:0;">
+            <span style="font-size:0.82rem;color:#9AA0A6;flex-shrink:0;">Q{{ loop.index }}</span>
+            <span style="font-size:0.85rem;color:#E8EAED;overflow:hidden;text-overflow:ellipsis;white-space:nowrap;">
+              {{ q.prompt_text[:80] }}{% if q.prompt_text|length > 80 %}…{% endif %}
+            </span>
+          </div>
+          <span style="color:#9AA0A6;font-size:0.8rem;flex-shrink:0;margin-left:8px;">▾</span>
+        </summary>
+        <div style="padding:0 16px 16px;">
+
+          <!-- Prompt / source passage -->
+          <div style="margin-bottom:16px;">
+            <div class="section-header" style="color:#9AA0A6;margin-bottom:8px;font-size:0.75rem;text-transform:uppercase;letter-spacing:.06em;">Prompt / Source Passage</div>
+            <div style="background:#2C2C2E;border-radius:8px;padding:14px;font-size:0.86rem;color:#E8EAED;line-height:1.75;white-space:pre-wrap;">{{ q.prompt_text }}</div>
+          </div>
+
+          <!-- Model answer sections -->
+          <div class="section-header" style="color:#81C995;margin-bottom:10px;font-size:0.75rem;text-transform:uppercase;letter-spacing:.06em;">Model Answer</div>
+
+          {% if q.intro_text %}
+          <div style="margin-bottom:12px;">
+            <div style="font-size:0.75rem;color:#8AB4F8;font-weight:600;margin-bottom:6px;text-transform:uppercase;letter-spacing:.05em;">
+              {{ sec_labels.get('intro', 'Introduction') }}
+            </div>
+            <div style="background:#1C1C1E;border-radius:8px;padding:12px 14px;font-size:0.88rem;color:#E8EAED;line-height:1.75;white-space:pre-wrap;">{{ q.intro_text }}</div>
+          </div>
+          {% endif %}
+
+          {% if q.body_text %}
+          <div style="margin-bottom:12px;">
+            <div style="font-size:0.75rem;color:#C084FC;font-weight:600;margin-bottom:6px;text-transform:uppercase;letter-spacing:.05em;">
+              {{ sec_labels.get('body', 'Body') }}
+            </div>
+            <div style="background:#1C1C1E;border-radius:8px;padding:12px 14px;font-size:0.88rem;color:#E8EAED;line-height:1.75;white-space:pre-wrap;">{{ q.body_text }}</div>
+          </div>
+          {% endif %}
+
+          {% if q.conclusion_text %}
+          <div style="margin-bottom:4px;">
+            <div style="font-size:0.75rem;color:#81C995;font-weight:600;margin-bottom:6px;text-transform:uppercase;letter-spacing:.05em;">
+              {{ sec_labels.get('conclusion', 'Conclusion') }}
+            </div>
+            <div style="background:#1C1C1E;border-radius:8px;padding:12px 14px;font-size:0.88rem;color:#E8EAED;line-height:1.75;white-space:pre-wrap;">{{ q.conclusion_text }}</div>
+          </div>
+          {% endif %}
+
         </div>
-        <span style="color:#9AA0A6;font-size:0.8rem;">▾</span>
-      </summary>
-      <div style="padding:0 16px 16px;">
-        <div class="section-header" style="color:#8AB4F8;margin-bottom:6px;">Format</div>
-        <div style="color:#9AA0A6;font-size:0.85rem;margin-bottom:14px;">
-          Compress source (≈500w) to exactly 1/3 length (150–170w). Give a title. Write in third person. No lifted phrases — paraphrase throughout. No personal opinion. Retain all key ideas.
-        </div>
-        <div class="section-header" style="color:#C084FC;margin-bottom:6px;">Example Prompt (source passage, abridged)</div>
-        <div style="background:#2C2C2E;border-radius:8px;padding:12px;font-size:0.85rem;color:#9AA0A6;margin-bottom:14px;line-height:1.7;">
-          "Digital public infrastructure has emerged as a transformative force in India's development story. The JAM trinity — Jan Dhan accounts, Aadhaar biometric identity, and Mobile connectivity — has enabled direct benefit transfers reaching over 300 million households... [500-word passage continues]"
-        </div>
-        <div class="section-header" style="color:#81C995;margin-bottom:6px;">Model Précis (~160 words)</div>
-        <div style="background:#1C1C1E;border-radius:8px;padding:14px;font-size:0.88rem;color:#E8EAED;line-height:1.8;">
-          <strong style="color:#FDD663;">Digital Infrastructure as a Development Lever</strong><br><br>
-          India's digital public infrastructure has become a pivotal instrument of socioeconomic transformation. The convergence of universal banking access, biometric identification, and widespread mobile connectivity has enabled targeted welfare delivery to hundreds of millions of previously underserved households, dramatically reducing leakages in subsidy programmes.<br><br>
-          The infrastructure has also catalysed private innovation. Fintech firms have built payment and credit services on open interoperability layers, expanding formal financial inclusion well beyond the reach of traditional institutions. Small enterprises have gained access to capital through digital credit assessment, accelerating formalisation of the economy.<br><br>
-          Nevertheless, structural challenges persist. Rural connectivity gaps, digital literacy deficits, and data privacy concerns limit the framework's reach and raise governance questions. Realising the full potential of digital infrastructure will require sustained public investment in connectivity, robust regulatory oversight, and citizen-centred data protection standards. The gains so far are significant but unevenly distributed.
-        </div>
-      </div>
-    </details>
-
-    <!-- Reading Comprehension -->
-    <details class="gem-card" style="margin-bottom:12px;padding:0;">
-      <summary style="cursor:pointer;padding:16px;list-style:none;display:flex;justify-content:space-between;align-items:center;">
-        <div>
-          <span style="font-weight:700;color:#FDD663;font-size:1rem;">Reading Comprehension</span>
-          <span class="chip chip-purple" style="margin-left:10px;">25m · 5 Qs</span>
-          <span class="chip" style="margin-left:6px;">RBI DEPR · UPSC</span>
-        </div>
-        <span style="color:#9AA0A6;font-size:0.8rem;">▾</span>
-      </summary>
-      <div style="padding:0 16px 16px;">
-        <div class="section-header" style="color:#8AB4F8;margin-bottom:6px;">Format</div>
-        <div style="color:#9AA0A6;font-size:0.85rem;margin-bottom:14px;">
-          Economics-themed passage (~600w). 5 questions (5m each). State your answer directly in the first sentence. Support with 2–3 sentences from the passage. Never import external knowledge. Infer only what the text supports.
-        </div>
-        <div class="section-header" style="color:#C084FC;margin-bottom:6px;">Example Question</div>
-        <div style="background:#2C2C2E;border-radius:8px;padding:12px;font-size:0.88rem;color:#E8EAED;margin-bottom:14px;">
-          "According to the passage, what are the two principal constraints on the effectiveness of monetary policy transmission in India?"
-        </div>
-        <div class="section-header" style="color:#81C995;margin-bottom:6px;">Model Answer</div>
-        <div style="background:#1C1C1E;border-radius:8px;padding:14px;font-size:0.88rem;color:#E8EAED;line-height:1.8;">
-          The passage identifies bank dominance and financial exclusion as the two principal constraints on monetary policy transmission in India.<br><br>
-          The author notes that the majority of credit in India flows through scheduled commercial banks rather than capital markets, creating a single, slow-moving channel for policy rate signals. Transmission is further impeded by the large share of the population and small businesses that operate outside the formal banking system, and therefore do not respond to changes in the policy rate at all.<br><br>
-          The passage implies that until financial deepening reduces these structural gaps, interest rate adjustments will remain a blunt instrument — effective at the margin but unable to influence the breadth of economic activity required for reliable stabilisation.
-        </div>
-      </div>
-    </details>
-
-    <!-- Letter -->
-    <details class="gem-card" style="margin-bottom:12px;padding:0;">
-      <summary style="cursor:pointer;padding:16px;list-style:none;display:flex;justify-content:space-between;align-items:center;">
-        <div>
-          <span style="font-weight:700;color:#FDD663;font-size:1rem;">Letter Writing</span>
-          <span class="chip chip-purple" style="margin-left:10px;">20m · ~250 words</span>
-          <span class="chip" style="margin-left:6px;">RBI DEPR · IES</span>
-        </div>
-        <span style="color:#9AA0A6;font-size:0.8rem;">▾</span>
-      </summary>
-      <div style="padding:0 16px 16px;">
-        <div class="section-header" style="color:#8AB4F8;margin-bottom:6px;">Format</div>
-        <div style="color:#9AA0A6;font-size:0.85rem;margin-bottom:14px;">
-          Formal letter only. Structure: Sender's address → Date → Recipient's designation + address → Subject line → Salutation (Dear Sir/Madam) → Body (3 paras) → Closing (Yours faithfully / sincerely) → Signature. 1 of 3 options.
-        </div>
-        <div class="section-header" style="color:#C084FC;margin-bottom:6px;">Example Prompt</div>
-        <div style="background:#2C2C2E;border-radius:8px;padding:12px;font-size:0.88rem;color:#E8EAED;margin-bottom:14px;">
-          "Write a formal letter to the Chief General Manager, Reserve Bank of India, recommending measures to improve credit access for micro-enterprises in semi-urban areas."
-        </div>
-        <div class="section-header" style="color:#81C995;margin-bottom:6px;">Model Answer</div>
-        <div style="background:#1C1C1E;border-radius:8px;padding:14px;font-size:0.88rem;color:#E8EAED;line-height:1.8;font-family:monospace;white-space:pre-wrap;">The Senior Research Fellow
-Institute of Economic Studies
-New Delhi – 110 001
-5 June 2026
-
-The Chief General Manager
-Department of Regulation
-Reserve Bank of India
-Mumbai – 400 001
-
-Subject: Recommendations for Improving Credit Access for Micro-Enterprises in Semi-Urban Areas
-
-Dear Sir/Madam,
-
-I write to draw attention to the persistent credit gap facing micro-enterprises operating in semi-urban India and to suggest regulatory measures that may address this structural constraint.
-
-Despite the expansion of Priority Sector Lending guidelines, field evidence indicates that micro-enterprises in semi-urban clusters face significant barriers to formal credit: absence of collateral, lack of formal accounting records, and limited proximity to bank branches. These constraints have pushed a substantial segment of productive enterprise toward informal moneylenders at significantly higher cost.
-
-I respectfully recommend that the Reserve Bank consider: (i) mandating district-level credit flow reporting disaggregated by enterprise size and location, enabling targeted monitoring; (ii) promoting cash-flow-based lending norms for enterprises with verifiable digital transaction histories; and (iii) incentivising co-lending arrangements between scheduled banks and registered NBFC-MFIs with established semi-urban reach. These measures, taken together, could meaningfully extend formal credit to underserved productive segments without compromising prudential standards.
-
-I trust these recommendations merit consideration in the Bank's forthcoming review of Priority Sector Lending norms.
-
-Yours faithfully,
-(Signature)
-Senior Research Fellow</div>
-      </div>
-    </details>
-
-    <!-- Report -->
-    <details class="gem-card" style="margin-bottom:12px;padding:0;">
-      <summary style="cursor:pointer;padding:16px;list-style:none;display:flex;justify-content:space-between;align-items:center;">
-        <div>
-          <span style="font-weight:700;color:#FDD663;font-size:1rem;">Report Writing</span>
-          <span class="chip chip-purple" style="margin-left:10px;">20m · ~300 words</span>
-          <span class="chip" style="margin-left:6px;">IES · UPSC</span>
-        </div>
-        <span style="color:#9AA0A6;font-size:0.8rem;">▾</span>
-      </summary>
-      <div style="padding:0 16px 16px;">
-        <div class="section-header" style="color:#8AB4F8;margin-bottom:6px;">Format</div>
-        <div style="color:#9AA0A6;font-size:0.85rem;margin-bottom:14px;">
-          Official format: To / From / Date / Subject (header block). Then: Objective → Findings (numbered or bulleted) → Analysis → Recommendations → Conclusion. No personal pronouns. Factual, formal tone throughout.
-        </div>
-        <div class="section-header" style="color:#C084FC;margin-bottom:6px;">Example Prompt</div>
-        <div style="background:#2C2C2E;border-radius:8px;padding:12px;font-size:0.88rem;color:#E8EAED;margin-bottom:14px;">
-          "You are an officer in the Ministry of Finance. Write a report to the Finance Secretary on the recent trend of rising household indebtedness and its implications for financial stability."
-        </div>
-        <div class="section-header" style="color:#81C995;margin-bottom:6px;">Model Answer</div>
-        <div style="background:#1C1C1E;border-radius:8px;padding:14px;font-size:0.88rem;color:#E8EAED;line-height:1.8;font-family:monospace;white-space:pre-wrap;">To      : Finance Secretary, Ministry of Finance
-From    : Deputy Secretary (Economic Analysis Division)
-Date    : 5 June 2026
-Subject : Rising Household Indebtedness — Trends and Financial Stability Implications
-
-1. OBJECTIVE
-This report examines the recent increase in household debt levels in India and assesses its implications for macroeconomic and financial stability.
-
-2. FINDINGS
-(i)  Household debt-to-GDP ratio has risen from approximately 35% in FY20 to 40% in FY24, driven primarily by consumer credit, personal loans, and housing finance.
-(ii) NBFC and fintech lending to sub-prime household segments has grown at 28% CAGR over the same period.
-(iii) Loan-to-income ratios in urban households, particularly for unsecured consumer credit, have risen to levels flagging early stress in RBI's Financial Stability Reports.
-
-3. ANALYSIS
-While a portion of the increase reflects formalisation of previously informal borrowing, the pace of unsecured retail credit growth raises systemic concern. Rising interest rates have increased debt-service burdens, potentially crowding out household consumption and productive investment. Concentration of stress in lower-income urban segments could translate into elevated NBFC NPAs if employment conditions deteriorate.
-
-4. RECOMMENDATIONS
-(i)  Direct RBI to tighten risk weights on unsecured consumer loans above a defined loan-to-income threshold.
-(ii) Commission a quarterly household debt survey disaggregated by income decile.
-(iii) Review macroprudential buffers for NBFC-consumer lenders with retail portfolios growing above 25% annually.
-
-5. CONCLUSION
-Household indebtedness, while currently manageable in aggregate, warrants proactive monitoring and targeted macroprudential intervention to prevent localised stress from amplifying into systemic risk.
-
-Submitted for consideration.
-(Signature)
-Deputy Secretary</div>
-      </div>
-    </details>
+      </details>
+      {% endfor %}
+    </div>
+    {% endif %}
+    {% endfor %}
   </div>
 
   <!-- ══════════════════════════════════════════════════════════════════════ -->
