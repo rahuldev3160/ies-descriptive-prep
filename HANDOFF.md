@@ -1,7 +1,63 @@
 # Descriptive Exams — Session Handoff
 
 ## Last Updated
-2026-06-06 (Session 21 — COMPLETE, incl. renames)
+2026-06-06 (Session 22 — COMPLETE)
+
+---
+
+## Session 22 Summary (2026-06-06) — English Content + Auto-Migration
+
+### English content batch 2 — 15 questions seeded
+
+`scripts/seed_english_batch2.py` — new questions across all 5 types:
+
+| Type | IDs | Topics |
+|---|---|---|
+| Essay (40m) | eng_essay_003–005 | Macroprudential policy (RBI), DPI/UPI/AA, Farm loan waivers |
+| Précis (30m) | eng_precis_002–004 | Fiscal consolidation/FRBM, Climate finance/green bonds, Labour informality |
+| RC (10m) | eng_rc_002–004 | IBC/CIRP delays, Demographic dividend, GST federalism |
+| Letter (20m) | eng_letter_001–003 | Monetary transmission → RBI Gov; Devolution → 16th FC; PSL reform → DFS Sec |
+| Report (20m) | eng_report_001–003 | Monetary transmission → RBI DG; CAD trends → Finance Sec; Rural FI → NABARD Chair |
+
+All with full model answers (intro/body/conclusion) + keyword schemas. Letter/report keywords include format checks (subject line, To/From header, salutation, "Yours faithfully").
+
+Total English DB state: **19 questions** — essay: 5, précis: 4, rc: 4, letter: 3, report: 3.
+
+### Production deployment issue — diagnosed and fixed
+
+Root cause: Railway persistent volume at `/app/data` keeps `data/ies.db` alive across redeploys. The "copy seed on first boot" logic in `app.py` only fires when the file is absent — so new content in `seeds/ies_seed.db` never propagates to a live production DB.
+
+Immediate fix: `railway ssh python3 scripts/seed_english_batch2.py` — patched production directly.
+
+### Auto-migration runner — no more manual ssh
+
+**New files:**
+- `scripts/migrate.py` — runner; tracks applied migrations in `_migrations` table in `data/ies.db`; exits non-zero on failure (blocks gunicorn from starting)
+- `migrations/m001_seed_english_content.py` — wraps batch1 seed_into(conn)
+- `migrations/m002_seed_english_batch2.py` — wraps batch2 seed_into(conn)
+
+**Changed files:**
+- `railway.toml` startCommand: `python3 scripts/migrate.py && gunicorn ...`
+- `scripts/seed_english_content.py` — extracted `ensure_tables(conn)` + `seed_into(conn)` (main() unchanged for local use)
+- `scripts/seed_english_batch2.py` — same refactor (private `_seed_into` → public `seed_into`)
+
+**Workflow going forward:**
+1. Write seed script with `seed_into(conn)` function
+2. Create `migrations/mNNN_description.py` with a 5-line `run(conn)` wrapper
+3. Commit + push → auto-applies on next Railway deploy
+
+### Commits this session
+- `84674b7` — feat(english): seed 15 exam-realistic questions across all 5 types
+- `7747fc8` — chore(knowledge): S22 session close — PLAN-010 + INDEX updated
+- `53e3e1b` — feat(migrations): auto-apply content seeds on every Railway deploy
+
+### Open items (P2/P3, no blocking issues)
+- Live word count counter on answer textarea (JS, client-side)
+- Model answer reveal panel after submission
+- `scoring/constants.py` + `scoring/validator.py` (PLAN-005 gap)
+- Custom domain (`nyayascribe.com`) → Railway custom domain + OAuth redirect update
+
+---
 
 ---
 
