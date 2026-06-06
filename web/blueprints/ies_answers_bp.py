@@ -69,6 +69,10 @@ def answers():
     # Collect distinct years for navigation
     years = sorted({q["year"] for q in all_questions if q["year"]}, reverse=True)
 
+    # Default to most recent year when no filter is specified
+    if not year_filter and not show_all and years:
+        year_filter = str(years[0])
+
     # Filter by year unless show_all
     if year_filter and not show_all:
         filtered_qs = [q for q in all_questions if str(q["year"]) == year_filter]

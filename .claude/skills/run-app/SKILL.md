@@ -47,7 +47,7 @@ routes = sorted(str(r) for r in app.url_map.iter_rules())
 print(f'{len(routes)} routes:')
 for r in routes: print(r)
 "
-# Expected: 34 routes
+# Expected: 31 routes
 ```
 
 ## Error triage
@@ -92,7 +92,6 @@ print('OK')
 | `GET /english/dashboard` | english_bp | Yes |
 | `GET /practice/english` | english_bp | Yes |
 | `POST /practice/english/score` | english_bp | Yes |
-| `POST /practice/english/assess` | english_bp | Yes |
 | `POST /rbi/topics/<topic>/drill` | rbi_dashboard_bp | Yes |
 | `GET /rbi/prep/drill/questions` | rbi_prep_bp | Yes |
 | `GET /progress` | progress_bp | Yes |

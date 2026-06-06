@@ -32,7 +32,7 @@ After any of these task types, write synthesized records to `.knowledge/` before
 - Railway SSH: `railway ssh python scripts/X.py` (not `railway run`)
 
 ## Architecture Constraints
-- Flask app. Entry: `web/wsgi.py`. 34 routes across 15 blueprints.
+- Flask app. Entry: `web/wsgi.py`. 31 routes across 15 blueprints.
 - All user data is scoped by `user_id` (UUID). Never trust session alone — use `@login_required` + `g.user_id`.
 - DB connections: `g.conn` (ies.db), `g.rbi_conn` (rbi.db), `g.upsc_conn` (upsc.db), `g.nyaya_conn` (nyaya.db) — opened/closed in app.py before_request/teardown_appcontext.
 - **nyaya.db is the canonical identity+event store.** Auth (users, sessions), all user_events, and product_enrollments live here. Exam data (questions, rubrics, attempts, mastery) stays in ies/rbi/upsc.db.

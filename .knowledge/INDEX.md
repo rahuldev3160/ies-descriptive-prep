@@ -1,5 +1,5 @@
 # Knowledge Base — Descriptive Exams
-Last updated: 2026-06-06 (Session 25)
+Last updated: 2026-06-06 (Session 26)
 
 ## How to use
 - Scan this file at the start of any audit or bug-fix session before doing any analysis
@@ -21,7 +21,7 @@ Last updated: 2026-06-06 (Session 25)
 | [BUG-006](bugs/BUG-006.md) | FIXED | MEDIUM | validation | Quiz accepts partial answers — any() instead of all() | — | S13 | 831479c |
 | [BUG-007](bugs/BUG-007.md) | FIXED | MEDIUM | resource | DB connection leaks — fixed by Flask g-scoped connections + teardown hooks | — | S17 | 9f842a2 |
 | [BUG-008](bugs/BUG-008.md) | FIXED | LOW | security | OAuth CSRF — state validated in Flask auth_bp callback via session["oauth_state"] | — | S17 | 9f842a2 |
-| [BUG-009](bugs/BUG-009.md) | OPEN | LOW | consistency | Transaction rollback swallows gap_state_events silently | — | S13 | — |
+| [BUG-009](bugs/BUG-009.md) | FIXED | LOW | consistency | Transaction rollback swallows gap_state_events silently — try/except + flash redirect in submit() | — | S13/S26 | — |
 | [BUG-010](bugs/BUG-010.md) | FIXED | HIGH | data-isolation | set_topic_state() now takes explicit user_id param; all routes pass g.user_id | — | S17 | 9f842a2 |
 | [BUG-011](bugs/BUG-011.md) | FIXED | MEDIUM | data-isolation | "rahul" fallback gone — Flask context always has g.user_id or returns 401 | — | S17 | 9f842a2 |
 | [BUG-012](bugs/BUG-012.md) | FIXED | LOW | auth | All Flask routes use @login_required — no open pages remaining | — | S17 | 9f842a2 |

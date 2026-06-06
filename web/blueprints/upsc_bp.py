@@ -123,6 +123,10 @@ def mains():
         set(q["year"] for q in display_qs if q["year"]), reverse=True
     )
 
+    # Default to most recent year when no year is specified
+    if sel_year is None and not show_all and available_years:
+        sel_year = available_years[0]
+
     filtered_qs = (
         [q for q in display_qs if q["year"] == sel_year] if sel_year else display_qs
     )

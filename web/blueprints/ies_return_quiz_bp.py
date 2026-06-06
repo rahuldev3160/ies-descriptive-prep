@@ -5,7 +5,7 @@ from pathlib import Path
 
 sys.path.insert(0, str(Path(__file__).parent.parent))
 
-from flask import Blueprint, g, redirect, render_template, request, session, url_for
+from flask import Blueprint, current_app, g, redirect, render_template, request, session, url_for
 from auth import login_required
 from db import (
     EXAM_ID, get_conn, get_mcq_questions, get_topics, get_true_readiness,
@@ -150,7 +150,15 @@ def submit():
         return redirect(url_for("ies_return_quiz.return_quiz", paper=paper, topic=topic_id))
 
     # Grade
-    result = submit_return_quiz(conn, topic_id, answers, session_id, user_id=g.user_id)
+    try:
+        result = submit_return_quiz(conn, topic_id, answers, session_id, user_id=g.user_id)
+    except Exception as e:
+        current_app.logger.error(
+            "submit_return_quiz failed user=%s topic=%s: %s", g.user_id, topic_id, e, exc_info=True
+        )
+        session["rq_error"] = "Something went wrong saving your quiz — please try again."
+        return redirect(url_for("ies_return_quiz.return_quiz", paper=paper, topic=topic_id))
+
     if result:
         log_event(conn, "return_quiz_submitted", entity_type="topic", entity_id=topic_id,
                   exam_id=EXAM_ID,
