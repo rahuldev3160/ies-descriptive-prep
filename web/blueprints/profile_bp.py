@@ -1,8 +1,11 @@
 import json
+import sqlite3
 import sys
 from pathlib import Path
 
 sys.path.insert(0, str(Path(__file__).parent.parent))
+
+_DATA = Path(__file__).parent.parent.parent / "data"
 
 from flask import Blueprint, flash, g, redirect, render_template, request, session, url_for
 from auth import login_required
@@ -55,13 +58,47 @@ def profile_page():
         (user_id,),
     ).fetchone()
 
-    answers_graded = conn.execute(
+    ies_answers = conn.execute(
         "SELECT COUNT(*) FROM descriptive_attempts WHERE user_id=?", (user_id,)
     ).fetchone()[0]
 
-    mcqs_attempted = conn.execute(
+    upsc_answers = 0
+    upsc_mcqs = 0
+    upsc_db = _DATA / "upsc.db"
+    if upsc_db.exists():
+        try:
+            _upsc = sqlite3.connect(str(upsc_db), check_same_thread=False)
+            _upsc.row_factory = sqlite3.Row
+            upsc_answers = _upsc.execute(
+                "SELECT COUNT(*) FROM descriptive_attempts WHERE user_id=?", (user_id,)
+            ).fetchone()[0]
+            upsc_mcqs = _upsc.execute(
+                "SELECT COUNT(*) FROM return_quiz_attempts WHERE user_id=?", (user_id,)
+            ).fetchone()[0]
+            _upsc.close()
+        except Exception:
+            pass
+
+    answers_graded = ies_answers + upsc_answers
+
+    ies_mcqs = conn.execute(
         "SELECT COUNT(*) FROM return_quiz_attempts WHERE user_id=?", (user_id,)
     ).fetchone()[0]
+
+    rbi_mcqs = 0
+    rbi_db = _DATA / "rbi.db"
+    if rbi_db.exists():
+        try:
+            _rbi = sqlite3.connect(str(rbi_db), check_same_thread=False)
+            _rbi.row_factory = sqlite3.Row
+            rbi_mcqs = _rbi.execute(
+                "SELECT COUNT(*) FROM rbi_attempts WHERE user_id=?", (user_id,)
+            ).fetchone()[0]
+            _rbi.close()
+        except Exception:
+            pass
+
+    mcqs_attempted = ies_mcqs + rbi_mcqs + upsc_mcqs
 
     exam_focus_list = []
     if user and user["exam_focus"]:

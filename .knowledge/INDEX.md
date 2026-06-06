@@ -1,5 +1,5 @@
 # Knowledge Base — Descriptive Exams
-Last updated: 2026-06-06 (Session 26)
+Last updated: 2026-06-06 (Session 28)
 
 ## How to use
 - Scan this file at the start of any audit or bug-fix session before doing any analysis
@@ -33,6 +33,9 @@ Last updated: 2026-06-06 (Session 26)
 | [BUG-018](bugs/BUG-018.md) | FIXED | HIGH | scoring | Drill scoring always 0 — form submits full option text but code took `chosen_full[0]` (first char of sentence) vs `correct_option` letter | — | S18 | 6968d5d |
 | BUG-019 | FIXED | CRITICAL | data-loss | RBI drill `drill_submit()` called `save_attempt(answer_given="")` when user skipped — SQLite `CHECK(answer_given IN('A','B','C','D'))` raised, bare `except` swallowed it silently; 4/5 of Shubhang's answers lost. Fix: pre-validate all answers before any saves, redirect with flash error if any unanswered. | — | S24 | 389ff67 |
 | BUG-020 | FIXED | CRITICAL | navigation | Topic→paper mismatch: set_state/upsc_topic_state redirected with `?topic=` but no `?paper=`; receiving pages defaulted to ge_01/upsc_p1 and returned 0 questions for 23/30 IES topics and all UPSC Paper II topics. Also: ies_quiz by-topic mode showed incoherent dropdown. Fix: DB lookup before redirect + auto-detect paper on receive. | — | S27 | 96f308e |
+| [BUG-021](bugs/BUG-021.md) | FIXED | MEDIUM | data-sync | Profile "MCQs Attempted" always 0 — queried `return_quiz_attempts` in ies.db only; RBI MCQs in `rbi_attempts`/rbi.db and blueprint-scoped `g.rbi_conn` not available on /profile route. Fix: open short-lived direct connections per DB in profile_bp. | SYNC-001 | S28 | TBD |
+| [BUG-022](bugs/BUG-022.md) | FIXED | HIGH | data-sync | Progress page "Time per page" permanently stale — `get_time_breakdown` read ies.db `user_events` with `event_type='page_time'`, but all writes since S25 go to nyaya.db as `event_type='page_view'`. Double mismatch: wrong DB + wrong event type. Fix: use `get_nyaya_conn()` + filter `page_view`. | SYNC-001 | S28 | TBD |
+| [BUG-023](bugs/BUG-023.md) | FIXED | MEDIUM | data-sync | Profile "Answers Graded" undercounts — only queries IES `descriptive_attempts` in ies.db; UPSC `descriptive_attempts` in upsc.db ignored. Fix: open direct upsc.db connection in profile_bp and sum. | SYNC-001 | S28 | TBD |
 
 ---
 
@@ -83,3 +86,4 @@ Cross-project patterns live at `~/.claude/knowledge/patterns/PATTERNS.md`
 | SESSION-001 | Session state not cleared on user switch | Any Streamlit app with auth | BUG-004 |
 | DB-001 | Read-modify-write race on DB counters | Any app with concurrent writes | BUG-005 |
 | JINJA2-001 | Dict key named `items`/`keys`/`values` shadows Python builtin in Jinja2 → 500 | Any Jinja2 template | BUG-016 (recurred x2) |
+| SYNC-001 | Blueprint-scoped `g.*_conn` not available outside that blueprint's routes — cross-DB aggregates must open short-lived direct connections | Any route that reads from multiple .db files | BUG-021 |

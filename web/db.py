@@ -208,11 +208,12 @@ def save_onboarding(conn, user_id: str, exam_focus: list, exam_date: str,
 def get_time_breakdown(conn, user_id: str, days: int = 1) -> list[dict]:
     """Time-per-page for the last N days, ordered by total seconds descending."""
     try:
-        rows = conn.execute(
+        nc = get_nyaya_conn()
+        rows = nc.execute(
             """SELECT entity_id AS page_name,
                       SUM(CAST(json_extract(payload, '$.duration_s') AS INTEGER)) AS total_seconds
                FROM user_events
-               WHERE user_id=? AND event_type='page_time'
+               WHERE user_id=? AND event_type='page_view'
                  AND date(created_at) >= date('now', ?)
                GROUP BY entity_id
                ORDER BY total_seconds DESC""",
