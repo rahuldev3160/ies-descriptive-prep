@@ -111,8 +111,20 @@ def mains():
     topic_opts = {t["topic_id"]: t["topic_name"] for t in topics}
     default_topic = topics[0]["topic_id"] if topics else None
     topic_id = request.args.get("topic", default_topic)
-    if topic_id not in topic_opts:
-        topic_id = default_topic
+
+    # If topic_id given but not in current paper, auto-detect the correct paper
+    if topic_id and topic_id not in topic_opts:
+        row = g.upsc_conn.execute(
+            "SELECT paper_id FROM topics WHERE topic_id=? AND exam_id=? AND topic_level='topic'",
+            (topic_id, _EXAM_ID),
+        ).fetchone()
+        if row:
+            paper = row["paper_id"]
+            topics = _get_topics(g.upsc_conn, paper)
+            topic_opts = {t["topic_id"]: t["topic_name"] for t in topics}
+            default_topic = topics[0]["topic_id"] if topics else None
+        else:
+            topic_id = default_topic
 
     questions_all = _get_questions(g.upsc_conn, topic_id, paper) if topic_id else []
     has_ans = [q for q in questions_all if q["answer_id"]]

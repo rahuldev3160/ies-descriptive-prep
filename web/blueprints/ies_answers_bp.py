@@ -58,6 +58,16 @@ def answers():
 
     all_topics = get_topics(conn, paper_id=paper)
 
+    # If topic_id given but doesn't exist in current paper, auto-detect the correct paper
+    if topic_id and not any(t["topic_id"] == topic_id for t in all_topics):
+        row = conn.execute(
+            "SELECT paper_id FROM topics WHERE topic_id=? AND exam_id=? AND topic_level='topic'",
+            (topic_id, EXAM_ID),
+        ).fetchone()
+        if row:
+            paper = row["paper_id"]
+            all_topics = get_topics(conn, paper_id=paper)
+
     if not topic_id and all_topics:
         topic_id = all_topics[0]["topic_id"]
 

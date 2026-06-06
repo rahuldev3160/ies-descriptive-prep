@@ -85,6 +85,16 @@ def quiz():
     elif mode == "by-topic":
         topics_list = get_topics(conn, selected_paper)
         topic_opts = {t["topic_id"]: t["topic_name"] for t in topics_list}
+        # If topic from a different paper was requested, auto-switch paper so dropdown is coherent
+        if selected_topic and selected_topic not in topic_opts:
+            row = conn.execute(
+                "SELECT paper_id FROM topics WHERE topic_id=? AND exam_id=? AND topic_level='topic'",
+                (selected_topic, EXAM_ID),
+            ).fetchone()
+            if row:
+                selected_paper = row["paper_id"]
+                topics_list = get_topics(conn, selected_paper)
+                topic_opts = {t["topic_id"]: t["topic_name"] for t in topics_list}
         if not selected_topic and topics_list:
             selected_topic = topics_list[0]["topic_id"]
         qs = sorted(

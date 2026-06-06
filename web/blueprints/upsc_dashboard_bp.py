@@ -243,5 +243,10 @@ def upsc_topic_state(topic_id):
     if new_state in VALID and g.upsc_conn:
         _set_state(g.upsc_conn, g.user_id, topic_id, new_state)
     if new_state == "IN_STUDY":
-        return redirect(url_for("upsc.mains") + f"?topic={topic_id}")
+        paper_row = g.upsc_conn.execute(
+            "SELECT paper_id FROM topics WHERE topic_id=? AND exam_id=? AND topic_level='topic'",
+            (topic_id, UPSC_EXAM_ID),
+        ).fetchone() if g.upsc_conn else None
+        paper_param = f"&paper={paper_row['paper_id']}" if paper_row else ""
+        return redirect(url_for("upsc.mains") + f"?topic={topic_id}{paper_param}")
     return redirect(url_for("upsc_dashboard.upsc_dashboard_page") + "#topics")
