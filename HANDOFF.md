@@ -1,7 +1,44 @@
 # Descriptive Exams — Session Handoff
 
 ## Last Updated
-2026-06-06 (Session 23 — COMPLETE)
+2026-06-06 (Session 25 — COMPLETE)
+
+---
+
+## Session 25 Summary (2026-06-06) — nyaya.db: canonical identity + event store
+
+### What shipped (commit 9a26646)
+
+**nyaya.db is live.** It is the 4th DB — the single source of truth for user identity, auth sessions, behavioural events, and product enrollments across all NYAYA products.
+
+Phase 1 fixes:
+- `session_id` bug in `log_event()` was using `user_id` as fallback → events from different sessions were indistinguishable
+- `track_page_time()` had `uid == USER_ID` guard blocking all authenticated prod users
+- `rbi.db` had `DEFAULT 'rahul'` on 3 user_id columns → m011 recreated the 3 tables without it
+
+Phase 2 routing changes:
+- `g.nyaya_conn` opened per request in `app.py`; closed in `teardown_appcontext`
+- `validate_session`, `upsert_user`, `create_session`, logout DELETE → all use `g.nyaya_conn`
+- `log_event()` ignores `conn` arg; writes to nyaya.db internally via `get_nyaya_conn()`
+- `save_onboarding()` + `get_study_path()` write/read nyaya.db as canonical profile source
+- `dashboard_bp` + `progress_bp` read user profile fields from nyaya.db
+- `feedback_bp` replaces impossible cross-DB JOIN with two-query Python merge
+- `setup_bp` reads old_row config from nyaya.db before saving
+
+### Key new pattern: Cross-DB lookup (feedback_bp.py)
+SQLite cannot JOIN across .db files. For any query that needs ies/rbi/upsc data + user display info:
+1. Query exam DB for rows
+2. Query nyaya.db for user_ids IN (…)
+3. Python dict merge
+
+### Next session — Phase 3 items (see PLAN-013.md)
+1. Add `phone_number` to nyaya.db users → fully migrate profile_bp.py to nyaya_conn
+2. Streak tracking: `streak_current`, `streak_longest`, `last_practice_date` on users
+3. `first_ai_eval_at` / `activation_completed` (aha moment tracking)
+4. Wire `quiz_session_completed` events in rbi_prep_bp + drop rbi_sessions table (0 rows bug)
+5. Progress aggregation query: accuracy trend, syllabus %, days-until-exam
+
+**Deploy:** `git push` — m012 will auto-run on Railway, create nyaya.db from seed, copy ies.db users/sessions/events.
 
 ---
 
