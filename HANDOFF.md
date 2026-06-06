@@ -38,7 +38,7 @@ SQLite cannot JOIN across .db files. For any query that needs ies/rbi/upsc data 
 4. Wire `quiz_session_completed` events in rbi_prep_bp + drop rbi_sessions table (0 rows bug)
 5. Progress aggregation query: accuracy trend, syllabus %, days-until-exam
 
-**Deploy:** `git push` — m012 will auto-run on Railway, create nyaya.db from seed, copy ies.db users/sessions/events.
+**Deploy:** PUSHED ✅ (`389ff67..6fe77be`) — Railway deploying now. m012 will auto-run, create nyaya.db from seed, copy ies.db users/sessions/events.
 
 ---
 
