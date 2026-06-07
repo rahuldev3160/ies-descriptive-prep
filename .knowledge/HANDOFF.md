@@ -1,6 +1,51 @@
 # HANDOFF — Descriptive Exams
 
-Last updated: 2026-06-07 (Session 33)
+Last updated: 2026-06-07 (Session 34)
+
+---
+
+## Session 34 — PLAN-014 Implementation (Phases 4, 1, 2, 3, 8, 9)
+
+### What was done
+
+1. **AUDIT-004.md created** — missing from S33 session close; written with all 8 problem classes, exact file:line locations, DB schema state. Session-close memory rule updated with Step 0 gate (verify files exist before committing).
+
+2. **Phase 4** — `profile_bp.py` reads users from `nyaya.db` (was ies.db). `m017` adds `phone_number` column to nyaya users.
+
+3. **Phase 1a** — `m018` INSERT OR REPLACE for all 41 `rbi_key_data` rows; `m019` INSERT OR REPLACE for `english_question_types`. Kills INSERT OR IGNORE drift for RBI key facts and English types.
+
+4. **Phase 1b** — Removed `_run_rbi_migrations()` call from `create_app()` in app.py; removed `_ensure_types_seeded(conn)` call from english_bp.py. Migrations own the seeding now.
+
+5. **Phase 3a** — `m020` fixes IES `exam_configurations.exam_date` from '2026-06-17' → '2026-06-19'. `m021` creates `exam_configurations` table in rbi.db with RBI DEPR date 2026-06-14.
+
+6. **Phase 3b** — Exam dates read from `exam_configurations` with COALESCE fallback in `db.py` (`is_crunch_mode()`), `progress_bp.py` (`_get_exam_dates()`), `upsc_dashboard_bp.py`. `_EXAM_DATES`, `EXAM_DATE`, `UPSC_DATE` constants removed.
+
+7. **Phase 2** — `KEY_SECTIONS` (75-line literal) and `BUCKETS` (~400 lines) deleted from `rbi_prep_bp.py`. Replaced with `_load_key_sections(conn)` and `_load_buckets(conn)` DB queries. Pre-check confirmed 41 rows in rbi_key_data. `m022` seeded 18 missing tier-2 questions (external_sector, intl_finance, nbfc_regulation) needed by new DB queries.
+
+8. **Phase 8** — `compute_base_scores.py` accepts `--exam` flag; run against `upsc_eco_opt` → 16 UPSC topics now have real priority scores.
+
+9. **Phase 9** — `ingest_pyq.py`, `generate_rubrics.py`, `generate_answers.py` made exam-agnostic with `--exam` flag. `docs/INGESTION_RUNBOOK.md` written.
+
+10. **Post-deploy hotfixes:**
+    - `dashboard_bp.py` imported `EXAM_DATE` (removed by Phase 3) → startup crash. Fixed by reading from `exam_configurations` with fallback.
+    - `m023` fixes UPSC exam date in Railway DB ('2026-09-15' → '2026-08-22') — S33 fix was local-only.
+
+### Key decisions
+
+- **DECIDE-S34-01**: Phases 5, 6, 7 deferred to S35 (English DB, shared DB helpers, migration gap audit).
+- **DECIDE-S34-02**: All phases deployed in single Railway deploy — safe because `scripts/migrate.py` runs before gunicorn starts.
+- **DECIDE-S34-03**: Phase 2 agent seeded missing MCQs directly to `data/rbi.db`; wrapped in m022 migration to ensure Railway gets the rows.
+- **DECIDE-S34-04**: Any DB fix done outside a migration file is invisible to Railway — always write a migration.
+
+### Migrations added this session
+
+m017 (nyaya: phone_number) · m018 (rbi: rbi_key_data OR REPLACE) · m019 (ies: english_types OR REPLACE) · m020 (ies: exam_date fix) · m021 (rbi: exam_configurations) · m022 (rbi: 18 missing tier-2 MCQs) · m023 (upsc: exam_date fix)
+
+### S35 start point
+
+1. **Phase 5** — `web/rbi_db.py` + `web/upsc_db.py`: extract inline sqlite3 calls from RBI/UPSC blueprints; consolidate duplicate `g.upsc_conn` open/close from both UPSC blueprints.
+2. **Phase 6** — `migrations/m024_create_english_db.py` (DB="english"): create schema + copy data from ies.db; update `web/app.py` to open `g.english_conn`; update `english_bp.py` to use it; add `seeds/english_seed.db`.
+3. **Phase 7** — Migration gap audit: git log + seed DB check to document what happened at m009–m011 slots (already exist); add deploy reproducibility check (warn if `_migrations` row count < m*.py file count).
 
 ---
 
