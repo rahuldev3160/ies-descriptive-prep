@@ -302,7 +302,8 @@ KEY_SECTIONS = [
         "label": "Indian Economy — Quick Facts",
         "color": "#9AA0A6",
         "rows": [
-            ("GDP rank by nominal size", "4th largest globally (surpassed Japan)", "Aspiration: 3rd by early 2030s.", False),
+            ("GDP rank by nominal size", "6th globally (IMF 2025)", "Ahead: USA, China, Germany, Japan, UK. Aspiration: 3rd by early 2030s.", False),
+            ("GDP rank by PPP", "3rd globally (IMF 2025)", "Ahead: USA & China.", False),
             ("Real GDP growth FY26", "7.6% (2nd Advance Estimate, base 2022-23)", "FY25: 7.1%. FY27 projection: 6.8–7.2% (Economic Survey).", False),
             ("GDP base year", "2022-23 (newly revised from 2011-12)", "MoSPI revised base year in FY26. Earlier base was 2011-12 (from 2004-05).", False),
             ("Headline CPI — FY26 (Apr–Dec)", "1.7% · Core CPI: 4.3% (2.9% excl. gold/silver)", "Sharp disinflation from food prices.", False),
@@ -466,8 +467,8 @@ BUCKETS = {
         "qs": [
             {"id": "ie_1", "q": "India is currently the _____ largest economy by nominal GDP:",
              "opts": ["A) 3rd largest", "B) 4th largest", "C) 5th largest", "D) 6th largest"],
-             "correct": "B) 4th largest",
-             "exp": "India surpassed Japan to become the 4th largest economy by nominal GDP. Target: 3rd by early 2030s. Verify ranking before exam as it may change."},
+             "correct": "D) 6th largest",
+             "exp": "India is the 6th largest economy by nominal GDP (IMF 2025) — behind USA, China, Germany, Japan, and UK. By PPP, India ranks 3rd (after USA & China)."},
             {"id": "ie_2", "q": "India's services sector contributes approximately what share of GVA?",
              "opts": ["A) About 30%", "B) About 40%", "C) About 50%", "D) Over 55%"],
              "correct": "D) Over 55%",

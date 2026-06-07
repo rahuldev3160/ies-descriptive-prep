@@ -130,15 +130,16 @@ _RBI_KEY_DATA_SEED = [
     ("fis_07","Fiscal Framework","#FDD663",5,"FRBM / debt anchor","GFD ≤ 3% · Debt: 50% ± 1% by 2031","Centre at 4.3%. 16th FC recommends 3.5% by 2030-31.",0,0,7),
     ("fis_08","Fiscal Framework","#FDD663",5,"Interest payments burden","26% of expenditure · 40% of revenue","₹14.04 lakh crore in FY26-27 BE.",0,0,8),
     # Indian Economy
-    ("ine_01","Indian Economy — Quick Facts","#9AA0A6",6,"GDP rank by nominal size","4th globally (surpassed Japan)","Aspiration: 3rd by early 2030s.",0,0,1),
-    ("ine_02","Indian Economy — Quick Facts","#9AA0A6",6,"Real GDP growth FY26","7.6% (2nd Advance Estimate)","FY25: 7.1%. FY27 projection: 6.8–7.2% (Economic Survey). Base: 2022-23.",0,1,2),
-    ("ine_03","Indian Economy — Quick Facts","#9AA0A6",6,"GDP base year","2022-23 (revised from 2011-12)","MoSPI revised base year in FY26.",0,0,3),
-    ("ine_04","Indian Economy — Quick Facts","#9AA0A6",6,"Headline CPI — FY26","1.7% · Core CPI: 4.3%","Sharp disinflation from food prices.",0,0,4),
-    ("ine_05","Indian Economy — Quick Facts","#9AA0A6",6,"CPI base year","2024 (revised from 2012)","RBI targets CPI Combined at 4% ± 2% under FITF.",0,0,5),
-    ("ine_06","Indian Economy — Quick Facts","#9AA0A6",6,"MPC inflation target","4% ± 2% (2%–6%) · FITF","FITF was effective until March 31, 2026. Verify if renewed.",1,0,6),
-    ("ine_07","Indian Economy — Quick Facts","#9AA0A6",6,"Gross NPA ratio","2.2% (Sep 2025) — multi-decade low","Peak was 11.2% (March 2018). Bank credit growth: ~11.4% YoY.",0,0,7),
-    ("ine_08","Indian Economy — Quick Facts","#9AA0A6",6,"RBI surplus transfer","₹2.68 lakh crore (FY25 — record)","27% higher than FY24 transfer. Under revised ECF (2025 review).",0,0,8),
-    ("ine_09","Indian Economy — Quick Facts","#9AA0A6",6,"FI-Index (RBI)","67 in 2025 (↑24.3% since 2021)","Scale 0-100. Access (35%), Usage (45%), Quality (20%). Published annually in July.",0,0,9),
+    ("ine_01","Indian Economy — Quick Facts","#9AA0A6",6,"GDP rank by nominal size","6th globally (IMF 2025)","Ahead: USA, China, Germany, Japan, UK. Aspiration: 3rd by early 2030s.",0,0,1),
+    ("ine_01b","Indian Economy — Quick Facts","#9AA0A6",6,"GDP rank by PPP","3rd globally (IMF 2025)","Ahead: USA & China.",0,0,2),
+    ("ine_02","Indian Economy — Quick Facts","#9AA0A6",6,"Real GDP growth FY26","7.6% (2nd Advance Estimate)","FY25: 7.1%. FY27 projection: 6.8–7.2% (Economic Survey). Base: 2022-23.",0,1,3),
+    ("ine_03","Indian Economy — Quick Facts","#9AA0A6",6,"GDP base year","2022-23 (revised from 2011-12)","MoSPI revised base year in FY26.",0,0,4),
+    ("ine_04","Indian Economy — Quick Facts","#9AA0A6",6,"Headline CPI — FY26","1.7% · Core CPI: 4.3%","Sharp disinflation from food prices.",0,0,5),
+    ("ine_05","Indian Economy — Quick Facts","#9AA0A6",6,"CPI base year","2024 (revised from 2012)","RBI targets CPI Combined at 4% ± 2% under FITF.",0,0,6),
+    ("ine_06","Indian Economy — Quick Facts","#9AA0A6",6,"MPC inflation target","4% ± 2% (2%–6%) · FITF","FITF was effective until March 31, 2026. Verify if renewed.",1,0,7),
+    ("ine_07","Indian Economy — Quick Facts","#9AA0A6",6,"Gross NPA ratio","2.2% (Sep 2025) — multi-decade low","Peak was 11.2% (March 2018). Bank credit growth: ~11.4% YoY.",0,0,8),
+    ("ine_08","Indian Economy — Quick Facts","#9AA0A6",6,"RBI surplus transfer","₹2.68 lakh crore (FY25 — record)","27% higher than FY24 transfer. Under revised ECF (2025 review).",0,0,9),
+    ("ine_09","Indian Economy — Quick Facts","#9AA0A6",6,"FI-Index (RBI)","67 in 2025 (↑24.3% since 2021)","Scale 0-100. Access (35%), Usage (45%), Quality (20%). Published annually in July.",0,0,10),
 ]
 
 
