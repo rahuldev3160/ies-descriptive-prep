@@ -68,6 +68,7 @@ Last updated: 2026-06-07 (Session 32)
 | [PLAN-011](plans/PLAN-011.md) | 2026-06-06 | S23: Multi-DB migrations (m003–m008), remove keyword scoring, DB-driven model answers, new essay Qs | COMPLETE |
 | PLAN-012 | 2026-06-06 | S24: Essay quality overhaul — UPSC open-canvas style, m009+m010, seed DB sync, auto-migration | COMPLETE |
 | [PLAN-013](plans/PLAN-013.md) | 2026-06-06 | S25: nyaya.db — 4th canonical DB for identity+events; Phase 1+2 complete (commit 9a26646) | PHASE 2 COMPLETE |
+| [PLAN-014](plans/PLAN-014.md) | 2026-06-07 | S33: Single-source architecture refactor — kill INSERT OR IGNORE drift, eliminate KEY_SECTIONS/BUCKETS, centralise metadata, English to own DB | PLANNED → S34 |
 
 ---
 

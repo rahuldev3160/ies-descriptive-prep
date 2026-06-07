@@ -1,6 +1,6 @@
 # HANDOFF — Descriptive Exams
 
-Last updated: 2026-06-07 (Session 31)
+Last updated: 2026-06-07 (Session 33)
 
 ---
 
@@ -302,3 +302,78 @@ Resume here in S33:
 
 - Seed DB sync: any future `m0XX` that uses `UPDATE` must also be applied to `seeds/ies_seed.db` explicitly (the migration runner only tracks `data/*.db`)
 - `_run_content_migrations()` adds ~100ms to app cold start — acceptable for now; if startup time becomes an issue, add a filesystem-level lock check
+
+---
+
+## Session 33 — Architecture Audit + Data Fix Deployment
+
+### What was done
+
+**1. GDP rank data fix — local + production**
+- Corrected `ine_01` (GDP rank by nominal): "4th globally (surpassed Japan)" → "6th globally (IMF 2025)"
+- Note now lists leading nations: USA, China, Germany, Japan, UK
+- Added new `ine_01b` row: GDP rank by PPP = "3rd globally (IMF 2025)", note: "Ahead: USA & China"
+- MCQ `ie_1` answer corrected: "B) 4th largest" → "D) 6th largest" + updated explanation
+- `KEY_SECTIONS` in `rbi_prep_bp.py` updated to match
+- Updated both `data/rbi.db` (local) and `seeds/upsc_seed.db` — but **rbi_key_data in production was INSERT OR IGNORE frozen**
+- Deployed `scripts/fix_rbi_gdp_rank.py` via Railway SSH to UPDATE the live production row
+- Commit: `3d5ca61` + `7010521`
+
+**2. UPSC exam date corrected**
+- `data/upsc.db` + `seeds/upsc_seed.db`: `exam_date = '2026-08-22'` (was '2026-09-15' in DB, 24 days wrong)
+- Python constant `UPSC_DATE = "2026-08-22"` in `upsc_dashboard_bp.py` was already correct — DB was the stale copy
+
+**3. Full architecture audit — 4 parallel agents**
+- Agent scope: RBI / IES / UPSC / English+shared flows
+- Findings synthesised into PLAN-014 (see plans/)
+
+**4. Architecture diagnosis + plan (PLAN-014)**
+- Root cause of GDP bug identified as the broader INSERT OR IGNORE drift problem
+- Mapped all 4 copies of RBI data (seed list, rbi_key_data DB, KEY_SECTIONS Python, BUCKETS Python)
+- Identified 8 problem classes across all exam domains (see PLAN-014)
+- Full 9-phase implementation plan written with per-phase deployment risk analysis
+- English content isolation decision: move to dedicated `english.db` (exam-agnostic, not coupled to ies.db)
+
+### Key decisions
+
+- **DECIDE-S33-01**: English content (`english_questions`, `english_question_types`, `english_attempts`) moves to a dedicated `english.db`. English practice is exam-agnostic and should not be coupled to the IES connection (`g.conn`).
+- **DECIDE-S33-02**: All content-row updates use `INSERT OR REPLACE` going forward. `INSERT OR IGNORE` is only correct for schema init rows that must never change. Any file that uses `INSERT OR IGNORE` for content that can change is a bug.
+- **DECIDE-S33-03**: Phase deploy order to avoid live crashes: Phase 0 (done) → Phase 4 → Phase 1 → Phase 3 → Phase 2 → Phase 6 → Phase 5 → Phase 7 → Phase 8 → Phase 9. Phase 2 (remove KEY_SECTIONS/BUCKETS) requires DB verified populated before Python fallback is removed.
+- **DECIDE-S33-04**: `profile_bp.py` reads `users` from `g.nyaya_conn` — this is Phase 4, confirmed safe to ship standalone as it fixes an active bug (null user rows for post-S25 users).
+
+---
+
+## Exact Next Step
+
+Resume here in **S34 — Architecture Refactor Phase 4 → Phase 1**:
+
+### Phase 4 (start here, safest, fixes active bug)
+- `web/blueprints/profile_bp.py` lines 55–59: replace `conn.execute("SELECT ... FROM users ...")` with `nyaya_conn.execute(...)`
+- Use `g.nyaya_conn` (already available in every request via app.py before_request)
+- Test: profile page loads for a user registered after S25
+
+### Phase 1 — Kill INSERT OR IGNORE drift
+1. Write `migrations/m015_update_rbi_key_data.py` (DB = "rbi"):
+   - `INSERT OR REPLACE` all rows from `_RBI_KEY_DATA_SEED` in app.py — not INSERT OR IGNORE
+   - After m015 confirmed deployed on Railway, remove the boot-time `_run_rbi_migrations()` function from app.py
+2. Write `migrations/m016_seed_english_types.py` (DB = "ies"):
+   - One-time seed of `english_question_types` from `QUESTION_TYPES_SEED` using INSERT OR REPLACE
+   - Remove `_ensure_types_seeded()` from `english_bp.py`
+3. In `db.py:submit_return_quiz()` — remove fallback literals 0.80/0.50; raise if exam_configurations read fails
+
+### Phase 2 (after Phase 1 confirmed live)
+- Replace `KEY_SECTIONS` in `rbi_prep_bp.py` with DB query: `SELECT * FROM rbi_key_data ORDER BY section_sort, sort_order`
+- Audit `BUCKETS` vs `rbi_questions` — confirm same questions; add any gaps to DB via migration
+- Replace `BUCKETS` with DB queries grouped by topic
+
+### PLAN-014 full checklist
+See `.knowledge/plans/PLAN-014.md` for the complete 9-phase checklist with per-phase risk analysis.
+
+---
+
+## Watch For
+
+- **INSERT OR IGNORE trap**: Any future migration or seed script that uses `INSERT OR IGNORE` for content rows (rates, facts, labels, dates) that can change — change to `INSERT OR REPLACE`. INSERT OR IGNORE is only safe for schema rows that are set once and never updated.
+- **Production DB updates**: Until Phase 1 is deployed, any change to `_RBI_KEY_DATA_SEED` in app.py must also be applied via Railway SSH `UPDATE` on production `data/rbi.db`. The seed list and DB can diverge silently.
+- **English DB migration**: When Phase 6 runs, Railway volume must have `data/english.db` on the same persistent volume as other DBs. Verify volume config before deploying.
+- **Phase 2 gate**: Do NOT remove `KEY_SECTIONS` from `rbi_prep_bp.py` until `rbi_key_data` DB is verified to have all rows. Run a row count check against the Python list before switching.
