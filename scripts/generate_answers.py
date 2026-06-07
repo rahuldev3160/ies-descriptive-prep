@@ -1,11 +1,11 @@
 """
 Stage 5: Generate model answers for all PYQs via Sonnet Batch API.
-Run: python3 scripts/generate_answers.py [--paper ge_04]
+Run: python3 scripts/generate_answers.py [--exam ies_2026|upsc_eco_opt|rbi_depr] [--paper ge_04]
 
 Reads pyq_questions + question_rubrics, generates structured model answers.
 For GE-03/GE-04: augments prompts with relevant Economic Survey / Budget
 chunks from Devthorium ChromaDB.
-Saves batch_id to data/answers_batch.txt for restart safety.
+Saves batch_id to data/{exam_id}_answers_batch.txt for restart safety.
 """
 import argparse
 import json
@@ -21,23 +21,25 @@ import anthropic
 import chromadb
 from sentence_transformers import SentenceTransformer
 
-DB_PATH = Path(__file__).parent.parent / "data" / "ies.db"
-BATCH_ID_FILE = Path(__file__).parent.parent / "data" / "answers_batch.txt"
+EXAM_DB_MAP = {
+    "ies_2026": "ies.db",
+    "upsc_eco_opt": "upsc.db",
+    "rbi_depr": "rbi.db",
+}
 CACHE_DIR = Path(__file__).parent.parent / "cache" / "answer_batch_results"
-EXAM_ID = "ies_2026"
 CHROMA_PATH = Path.home() / "Desktop" / "Claude Projects" / "Devthorium" / "vector_store"
 
-SYSTEM_PROMPT = """You are an expert IES (Indian Economic Service) exam answer writer.
+SYSTEM_PROMPT = """You are an expert economics exam answer writer.
 Your task: produce a structured model answer that would score full marks.
 
-Writing standards for IES:
+Writing standards:
 - Intro: define core concepts, state the scope of the answer
 - Body: analytical depth, use diagrams/graphs/bullet points where they add clarity, include data + schemes
 - Conclusion: policy implications, way forward, evaluative statement
 - Use the rubric points as a checklist — ensure each is addressed
 - Include relevant government schemes, committees, economic data
 - Diagrams must be textually described with axes, curves, key points labeled
-- Keep to the word limit; IES values precision over padding
+- Keep to the word limit; precision over padding
 
 Return ONLY valid JSON (no markdown, no explanation):
 {
@@ -76,8 +78,8 @@ def get_wc_guide(marks):
     return WC_GUIDE[(7, 12)]
 
 
-def get_connection() -> sqlite3.Connection:
-    conn = sqlite3.connect(DB_PATH)
+def get_connection(db_path: Path) -> sqlite3.Connection:
+    conn = sqlite3.connect(db_path)
     conn.execute("PRAGMA foreign_keys=ON")
     return conn
 
@@ -90,7 +92,7 @@ def load_api_key() -> str:
     raise ValueError("ANTHROPIC_API_KEY not found in Devthorium .env")
 
 
-def load_pending(conn: sqlite3.Connection, paper_filter=None) -> list[dict]:
+def load_pending(conn: sqlite3.Connection, exam_id: str, paper_filter=None) -> list[dict]:
     paper_clause = f"AND q.paper_id = '{paper_filter}'" if paper_filter else ""
     rows = conn.execute(f"""
         SELECT q.question_id, q.exam_id, q.question_text, q.marks,
@@ -101,7 +103,7 @@ def load_pending(conn: sqlite3.Connection, paper_filter=None) -> list[dict]:
         LEFT JOIN model_answers ma ON q.question_id = ma.question_id AND q.exam_id = ma.exam_id
         WHERE q.exam_id = ? AND ma.question_id IS NULL {paper_clause}
         ORDER BY q.paper_id, q.marks DESC
-    """, (EXAM_ID,)).fetchall()
+    """, (exam_id,)).fetchall()
 
     return [
         {
@@ -239,14 +241,13 @@ def _fetch_and_cache_results(client: anthropic.Anthropic, batch_id: str) -> list
                 f.write(json.dumps(rec) + "\n")
                 records.append(rec)
     except Exception:
-        # Delete partial file so next run re-fetches from scratch
         cache_file.unlink(missing_ok=True)
         raise
     print(f"  Cached {len(records)} results locally.")
     return records
 
 
-def insert_answers(conn: sqlite3.Connection, client: anthropic.Anthropic, batch_id: str) -> tuple[int, int]:
+def insert_answers(conn: sqlite3.Connection, client: anthropic.Anthropic, batch_id: str, exam_id: str) -> tuple[int, int]:
     inserted = 0
     errors = 0
 
@@ -281,7 +282,7 @@ def insert_answers(conn: sqlite3.Connection, client: anthropic.Anthropic, batch_
                  generator_model, generated_at, version)
             VALUES (?,?,?,?,?,?,?,?,?,?,?,?,?,?,?,?,'claude-sonnet-4-6',datetime('now'),1)
         """, (
-            answer_id, qid, EXAM_ID,
+            answer_id, qid, exam_id,
             ans.get("intro_text", ""),
             ans.get("body_text", ""),
             ans.get("conclusion_text", ""),
@@ -302,12 +303,12 @@ def insert_answers(conn: sqlite3.Connection, client: anthropic.Anthropic, batch_
     return inserted, errors
 
 
-def verify(conn: sqlite3.Connection) -> None:
+def verify(conn: sqlite3.Connection, exam_id: str) -> None:
     total_q = conn.execute(
-        "SELECT COUNT(*) FROM pyq_questions WHERE exam_id=?", (EXAM_ID,)
+        "SELECT COUNT(*) FROM pyq_questions WHERE exam_id=?", (exam_id,)
     ).fetchone()[0]
     total_a = conn.execute(
-        "SELECT COUNT(*) FROM model_answers WHERE exam_id=?", (EXAM_ID,)
+        "SELECT COUNT(*) FROM model_answers WHERE exam_id=?", (exam_id,)
     ).fetchone()[0]
 
     by_paper = conn.execute("""
@@ -316,11 +317,11 @@ def verify(conn: sqlite3.Connection) -> None:
         LEFT JOIN model_answers a ON q.question_id=a.question_id AND q.exam_id=a.exam_id
         WHERE q.exam_id=?
         GROUP BY q.paper_id ORDER BY q.paper_id
-    """, (EXAM_ID,)).fetchall()
+    """, (exam_id,)).fetchall()
 
     with_diag = conn.execute(
         "SELECT COUNT(*) FROM model_answers WHERE exam_id=? AND diagram_mode='described'",
-        (EXAM_ID,)
+        (exam_id,)
     ).fetchone()[0]
 
     print("\n── Stage 5 Sense Check ──────────────────────────")
@@ -334,23 +335,33 @@ def verify(conn: sqlite3.Connection) -> None:
 
 
 if __name__ == "__main__":
-    parser = argparse.ArgumentParser()
+    parser = argparse.ArgumentParser(description="Generate model answers via Sonnet Batch API")
+    parser.add_argument(
+        "--exam",
+        default="ies_2026",
+        choices=list(EXAM_DB_MAP.keys()),
+        help="Exam ID (default: ies_2026)",
+    )
     parser.add_argument("--paper", help="Restrict to a single paper e.g. ge_04")
     args = parser.parse_args()
 
+    exam_id = args.exam
+    db_path = Path(__file__).parent.parent / "data" / EXAM_DB_MAP[exam_id]
+    batch_id_file = Path(__file__).parent.parent / "data" / f"{exam_id}_answers_batch.txt"
+
     api_key = load_api_key()
     client = anthropic.Anthropic(api_key=api_key)
-    conn = get_connection()
+    conn = get_connection(db_path)
 
-    if BATCH_ID_FILE.exists():
-        batch_id = BATCH_ID_FILE.read_text().strip()
+    if batch_id_file.exists():
+        batch_id = batch_id_file.read_text().strip()
         batch = client.messages.batches.retrieve(batch_id)
         print(f"Resuming batch {batch_id} (status: {batch.processing_status})")
     else:
-        questions = load_pending(conn, args.paper)
+        questions = load_pending(conn, exam_id, args.paper)
         if not questions:
             print("All questions already have answers.")
-            verify(conn)
+            verify(conn, exam_id)
             conn.close()
             raise SystemExit(0)
 
@@ -366,7 +377,7 @@ if __name__ == "__main__":
 
         batch = client.messages.batches.create(requests=requests)
         batch_id = batch.id
-        BATCH_ID_FILE.write_text(batch_id)
+        batch_id_file.write_text(batch_id)
         print(f"  Batch submitted: {batch_id} ({len(requests)} requests)")
 
     print("Waiting for batch (polls every 60s)...")
@@ -382,11 +393,11 @@ if __name__ == "__main__":
         time.sleep(60)
 
     print("Processing results...")
-    inserted, errors = insert_answers(conn, client, batch_id)
+    inserted, errors = insert_answers(conn, client, batch_id, exam_id)
     print(f"  Inserted: {inserted} | Errors: {errors}")
 
-    if errors == 0 and BATCH_ID_FILE.exists():
-        BATCH_ID_FILE.unlink()
+    if errors == 0 and batch_id_file.exists():
+        batch_id_file.unlink()
 
-    verify(conn)
+    verify(conn, exam_id)
     conn.close()

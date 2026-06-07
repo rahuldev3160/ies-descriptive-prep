@@ -1,11 +1,12 @@
 """
-Stage 3: Parse IES PYQ PDFs → pyq_questions table.
-Run: python3 scripts/ingest_pyq.py
+Stage 3: Parse PYQ PDFs → pyq_questions table.
+Run: python3 scripts/ingest_pyq.py [--exam ies_2026|upsc_eco_opt|rbi_depr] --pdf <path>
 
-Parses GE-01 to GE-04 topic-compiled PDFs from ecoholics.in.
+Parses GE-01 to GE-04 topic-compiled PDFs from ecoholics.in (IES default).
 Uses structural section detection (topic headers in PDF).
 Deduplicates via SHA-256 question_hash.
 """
+import argparse
 import hashlib
 import re
 import sqlite3
@@ -15,9 +16,12 @@ from pathlib import Path
 sys.path.insert(0, str(Path(__file__).parent))
 from parsers.digital_pdf import extract_text
 
-DB_PATH = Path(__file__).parent.parent / "data" / "ies.db"
+EXAM_DB_MAP = {
+    "ies_2026": "ies.db",
+    "upsc_eco_opt": "upsc.db",
+    "rbi_depr": "rbi.db",
+}
 PYQ_DIR = Path.home() / "Desktop" / "UPSC" / "IES"
-EXAM_ID = "ies_2026"
 
 # Exact topic names from PDF TOCs → topic_id, scoped per paper to avoid cross-paper collisions
 # (e.g. "Inflation" appears inside GE-02's employment section header)
@@ -180,7 +184,7 @@ def parse_questions(section_text: str, paper_id: str, topic_id: str) -> list[dic
     return questions
 
 
-def ingest_paper(conn: sqlite3.Connection, paper_id: str, pdf_path: Path) -> int:
+def ingest_paper(conn: sqlite3.Connection, paper_id: str, pdf_path: Path, exam_id: str) -> int:
     print(f"  Parsing {pdf_path.name}...", end=" ")
     text = extract_text(str(pdf_path))
     sections = extract_sections(text, paper_id)
@@ -202,7 +206,7 @@ def ingest_paper(conn: sqlite3.Connection, paper_id: str, pdf_path: Path) -> int
         """,
             (
                 qid,
-                EXAM_ID,
+                exam_id,
                 q["paper_id"],
                 q["year"],
                 q["question_text"],
@@ -221,14 +225,14 @@ def ingest_paper(conn: sqlite3.Connection, paper_id: str, pdf_path: Path) -> int
     return inserted
 
 
-def verify(conn: sqlite3.Connection) -> None:
+def verify(conn: sqlite3.Connection, exam_id: str) -> None:
     print("\n── Stage 3 Sense Check ──────────────────────────")
 
     by_paper = conn.execute("""
         SELECT paper_id, COUNT(*) as cnt
         FROM pyq_questions WHERE exam_id=?
         GROUP BY paper_id ORDER BY paper_id
-    """, (EXAM_ID,)).fetchall()
+    """, (exam_id,)).fetchall()
 
     print("Questions by paper:")
     total = 0
@@ -240,7 +244,7 @@ def verify(conn: sqlite3.Connection) -> None:
     year_dist = conn.execute("""
         SELECT year, COUNT(*) FROM pyq_questions
         WHERE exam_id=? GROUP BY year ORDER BY year DESC
-    """, (EXAM_ID,)).fetchall()
+    """, (exam_id,)).fetchall()
 
     print("\nYear distribution (recent 5):")
     for yr, cnt in year_dist[:5]:
@@ -248,12 +252,12 @@ def verify(conn: sqlite3.Connection) -> None:
 
     no_topic = conn.execute(
         "SELECT COUNT(*) FROM pyq_questions WHERE exam_id=? AND topic_id IS NULL",
-        (EXAM_ID,)
+        (exam_id,)
     ).fetchone()[0]
 
     no_year = conn.execute(
         "SELECT COUNT(*) FROM pyq_questions WHERE exam_id=? AND year IS NULL",
-        (EXAM_ID,)
+        (exam_id,)
     ).fetchone()[0]
 
     dups = conn.execute("""
@@ -261,41 +265,58 @@ def verify(conn: sqlite3.Connection) -> None:
             SELECT question_hash FROM pyq_questions WHERE exam_id=?
             GROUP BY question_hash HAVING COUNT(*) > 1
         )
-    """, (EXAM_ID,)).fetchone()[0]
+    """, (exam_id,)).fetchone()[0]
 
     topic_coverage = conn.execute("""
         SELECT COUNT(DISTINCT topic_id) FROM pyq_questions WHERE exam_id=?
-    """, (EXAM_ID,)).fetchone()[0]
+    """, (exam_id,)).fetchone()[0]
 
-    print(f"\nTopics with at least 1 question : {topic_coverage}/30")
+    print(f"\nTopics with at least 1 question : {topic_coverage}")
     print(f"Questions without topic_id      : {no_topic}")
     print(f"Questions without year          : {no_year}")
     print(f"Duplicate hashes                : {dups}")
 
-    assert total > 900, f"Expected 900+ questions, got {total}"
+    assert total > 0, f"No questions ingested for {exam_id}"
     assert no_topic == 0, f"{no_topic} questions missing topic_id"
     assert no_year == 0, f"{no_year} questions missing year"
     assert dups == 0, f"{dups} duplicate question hashes"
-    assert topic_coverage == 30, f"Only {topic_coverage}/30 topics covered"
 
     print("\n✓ All sanity checks passed")
     print("─────────────────────────────────────────────────\n")
 
 
 if __name__ == "__main__":
-    if not DB_PATH.exists():
-        print("DB not found. Run init_db.py first.")
+    parser = argparse.ArgumentParser(description="Ingest PYQ PDFs into pyq_questions table")
+    parser.add_argument(
+        "--exam",
+        default="ies_2026",
+        choices=list(EXAM_DB_MAP.keys()),
+        help="Exam ID (default: ies_2026)",
+    )
+    parser.add_argument("--pdf", help="Path to a single PDF to ingest (overrides default PAPER_FILES)")
+    args = parser.parse_args()
+
+    exam_id = args.exam
+    db_path = Path(__file__).parent.parent / "data" / EXAM_DB_MAP[exam_id]
+
+    if not db_path.exists():
+        print(f"DB not found: {db_path}. Run init_db.py first.")
         raise SystemExit(1)
 
-    conn = sqlite3.connect(DB_PATH)
+    conn = sqlite3.connect(db_path)
     conn.execute("PRAGMA foreign_keys=ON")
 
-    print("Ingesting PYQ papers...")
-    for paper_id, pdf_path in PAPER_FILES.items():
-        if not pdf_path.exists():
-            print(f"  MISSING: {pdf_path}")
-            continue
-        ingest_paper(conn, paper_id, pdf_path)
+    print(f"Ingesting PYQ papers for {exam_id}...")
+    if args.pdf:
+        pdf_path = Path(args.pdf)
+        paper_id = pdf_path.stem.lower()
+        ingest_paper(conn, paper_id, pdf_path, exam_id)
+    else:
+        for paper_id, pdf_path in PAPER_FILES.items():
+            if not pdf_path.exists():
+                print(f"  MISSING: {pdf_path}")
+                continue
+            ingest_paper(conn, paper_id, pdf_path, exam_id)
 
-    verify(conn)
+    verify(conn, exam_id)
     conn.close()

@@ -1,11 +1,12 @@
 """
 Stage 4: Extract marking rubrics for all PYQs via Haiku Batch API.
-Run: python3 scripts/generate_rubrics.py
+Run: python3 scripts/generate_rubrics.py [--exam ies_2026|upsc_eco_opt|rbi_depr]
 
 Reads pyq_questions, sends each to Haiku (batch), stores rubric_points JSON
 in question_rubrics table. Skips questions already in question_rubrics.
-Saves batch_id to data/rubrics_batch.txt so the script is safe to restart.
+Saves batch_id to data/{exam_id}_rubrics_batch.txt so the script is safe to restart.
 """
+import argparse
 import json
 import os
 import sqlite3
@@ -14,12 +15,14 @@ from pathlib import Path
 
 import anthropic
 
-DB_PATH = Path(__file__).parent.parent / "data" / "ies.db"
-BATCH_ID_FILE = Path(__file__).parent.parent / "data" / "rubrics_batch.txt"
-EXAM_ID = "ies_2026"
+EXAM_DB_MAP = {
+    "ies_2026": "ies.db",
+    "upsc_eco_opt": "upsc.db",
+    "rbi_depr": "rbi.db",
+}
 
-SYSTEM_PROMPT = """You are an IES (Indian Economic Service) exam rubric extractor.
-Given an IES economics question with its marks, extract a concise marking rubric.
+SYSTEM_PROMPT = """You are an economics exam rubric extractor.
+Given an economics question with its marks, extract a concise marking rubric.
 
 Return ONLY valid JSON in this exact format (no markdown, no explanation):
 {
@@ -40,20 +43,20 @@ Rules:
 - key_terms: 4-8 economics terms that a good answer must include"""
 
 
-def get_connection() -> sqlite3.Connection:
-    conn = sqlite3.connect(DB_PATH)
+def get_connection(db_path: Path) -> sqlite3.Connection:
+    conn = sqlite3.connect(db_path)
     conn.execute("PRAGMA foreign_keys=ON")
     return conn
 
 
-def load_pending_questions(conn: sqlite3.Connection) -> list[dict]:
+def load_pending_questions(conn: sqlite3.Connection, exam_id: str) -> list[dict]:
     rows = conn.execute("""
         SELECT q.question_id, q.exam_id, q.question_text, q.marks, q.paper_id, q.topic_id
         FROM pyq_questions q
         LEFT JOIN question_rubrics r ON q.question_id = r.question_id AND q.exam_id = r.exam_id
         WHERE q.exam_id = ? AND r.question_id IS NULL
         ORDER BY q.paper_id, q.question_id
-    """, (EXAM_ID,)).fetchall()
+    """, (exam_id,)).fetchall()
 
     return [
         {
@@ -85,10 +88,10 @@ def build_batch_requests(questions: list[dict]) -> list[dict]:
     return requests
 
 
-def submit_batch(client: anthropic.Anthropic, requests: list[dict]) -> str:
+def submit_batch(client: anthropic.Anthropic, requests: list[dict], batch_id_file: Path) -> str:
     batch = client.messages.batches.create(requests=requests)
     print(f"  Batch submitted: {batch.id} ({len(requests)} requests)")
-    BATCH_ID_FILE.write_text(batch.id)
+    batch_id_file.write_text(batch.id)
     return batch.id
 
 
@@ -108,7 +111,6 @@ def wait_for_batch(client: anthropic.Anthropic, batch_id: str) -> None:
 
 def parse_rubric(raw_text: str):
     raw_text = raw_text.strip()
-    # Strip markdown fences if present
     if raw_text.startswith("```"):
         raw_text = raw_text.split("```")[1]
         if raw_text.startswith("json"):
@@ -119,7 +121,7 @@ def parse_rubric(raw_text: str):
         return None
 
 
-def insert_rubrics(conn: sqlite3.Connection, client: anthropic.Anthropic, batch_id: str) -> tuple[int, int]:
+def insert_rubrics(conn: sqlite3.Connection, client: anthropic.Anthropic, batch_id: str, exam_id: str) -> tuple[int, int]:
     inserted = 0
     errors = 0
 
@@ -149,22 +151,22 @@ def insert_rubrics(conn: sqlite3.Connection, client: anthropic.Anthropic, batch_
                 (question_id, exam_id, rubric_points, key_terms,
                  diagram_expected, diagram_type, extractor_model, extracted_at)
             VALUES (?, ?, ?, ?, ?, ?, 'claude-haiku-4-5-20251001', datetime('now'))
-        """, (qid, EXAM_ID, rubric_points, key_terms, diagram_expected, diagram_type))
+        """, (qid, exam_id, rubric_points, key_terms, diagram_expected, diagram_type))
         inserted += 1
 
     conn.commit()
     return inserted, errors
 
 
-def verify(conn: sqlite3.Connection) -> None:
+def verify(conn: sqlite3.Connection, exam_id: str) -> None:
     total_q = conn.execute(
-        "SELECT COUNT(*) FROM pyq_questions WHERE exam_id=?", (EXAM_ID,)
+        "SELECT COUNT(*) FROM pyq_questions WHERE exam_id=?", (exam_id,)
     ).fetchone()[0]
     total_r = conn.execute(
-        "SELECT COUNT(*) FROM question_rubrics WHERE exam_id=?", (EXAM_ID,)
+        "SELECT COUNT(*) FROM question_rubrics WHERE exam_id=?", (exam_id,)
     ).fetchone()[0]
     with_diagram = conn.execute(
-        "SELECT COUNT(*) FROM question_rubrics WHERE exam_id=? AND diagram_expected=1", (EXAM_ID,)
+        "SELECT COUNT(*) FROM question_rubrics WHERE exam_id=? AND diagram_expected=1", (exam_id,)
     ).fetchone()[0]
 
     print("\n── Stage 4 Sense Check ──────────────────────────")
@@ -179,54 +181,62 @@ def verify(conn: sqlite3.Connection) -> None:
 
 
 if __name__ == "__main__":
-    if not DB_PATH.exists():
-        print("DB not found. Run init_db.py first.")
+    parser = argparse.ArgumentParser(description="Generate rubrics via Haiku Batch API")
+    parser.add_argument(
+        "--exam",
+        default="ies_2026",
+        choices=list(EXAM_DB_MAP.keys()),
+        help="Exam ID (default: ies_2026)",
+    )
+    args = parser.parse_args()
+
+    exam_id = args.exam
+    db_path = Path(__file__).parent.parent / "data" / EXAM_DB_MAP[exam_id]
+    batch_id_file = Path(__file__).parent.parent / "data" / f"{exam_id}_rubrics_batch.txt"
+
+    if not db_path.exists():
+        print(f"DB not found: {db_path}. Run init_db.py first.")
         raise SystemExit(1)
 
-    api_key = os.environ.get("ANTHROPIC_API_KEY") or Path(
-        Path.home() / ".claude" / ".github_token"
-    ).read_text().strip() if False else None
-
-    # Load API key from Devthorium .env
-    env_path = Path.home() / "Desktop" / "Claude Projects" / "Devthorium" / ".env"
-    for line in env_path.read_text().splitlines():
-        if line.startswith("ANTHROPIC_API_KEY="):
-            api_key = line.split("=", 1)[1].strip()
-            break
+    api_key = os.environ.get("ANTHROPIC_API_KEY")
+    if not api_key:
+        env_path = Path.home() / "Desktop" / "Claude Projects" / "Devthorium" / ".env"
+        for line in env_path.read_text().splitlines():
+            if line.startswith("ANTHROPIC_API_KEY="):
+                api_key = line.split("=", 1)[1].strip()
+                break
 
     if not api_key:
         print("ANTHROPIC_API_KEY not found")
         raise SystemExit(1)
 
     client = anthropic.Anthropic(api_key=api_key)
-    conn = get_connection()
+    conn = get_connection(db_path)
 
-    # Check if resuming an existing batch
-    if BATCH_ID_FILE.exists():
-        batch_id = BATCH_ID_FILE.read_text().strip()
+    if batch_id_file.exists():
+        batch_id = batch_id_file.read_text().strip()
         batch = client.messages.batches.retrieve(batch_id)
         print(f"Resuming batch {batch_id} (status: {batch.processing_status})")
     else:
-        questions = load_pending_questions(conn)
+        questions = load_pending_questions(conn, exam_id)
         if not questions:
             print("All questions already have rubrics. Running verify...")
-            verify(conn)
+            verify(conn, exam_id)
             conn.close()
             raise SystemExit(0)
 
         print(f"Submitting {len(questions)} questions to Haiku batch API...")
         requests = build_batch_requests(questions)
-        batch_id = submit_batch(client, requests)
+        batch_id = submit_batch(client, requests, batch_id_file)
 
     wait_for_batch(client, batch_id)
 
     print("Processing results...")
-    inserted, errors = insert_rubrics(conn, client, batch_id)
+    inserted, errors = insert_rubrics(conn, client, batch_id, exam_id)
     print(f"  Inserted: {inserted} | Errors: {errors}")
 
-    # Clean up batch id file on success
-    if errors == 0 and BATCH_ID_FILE.exists():
-        BATCH_ID_FILE.unlink()
+    if errors == 0 and batch_id_file.exists():
+        batch_id_file.unlink()
 
-    verify(conn)
+    verify(conn, exam_id)
     conn.close()
