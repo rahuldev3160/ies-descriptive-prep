@@ -1,5 +1,5 @@
 # Knowledge Base — Descriptive Exams
-Last updated: 2026-06-08 (Session 35)
+Last updated: 2026-06-08 (Session 35 continued)
 
 ## How to use
 - Scan this file at the start of any audit or bug-fix session before doing any analysis
@@ -50,6 +50,7 @@ Last updated: 2026-06-08 (Session 35)
 | [AUDIT-003](audits/AUDIT-003.md) | 2026-06-07 | auth+event recording flow — full journey trace | inline | 4 | 3 | 1 (BUG-D: daemon thread writes, LOW) |
 | [AUDIT-004](audits/AUDIT-004.md) | 2026-06-07 | Data flow architecture — all 4 exam domains (RBI, IES, UPSC, English+shared) | 4 parallel | 8 problem classes, 2 live bugs | 2 fixed same session | 6 open → PLAN-014 |
 | [AUDIT-005](audits/AUDIT-005.md) | 2026-06-08 | Mobile layout regressions — all 4 issues (login tiny, sidebar shows, nav disappears, zoom-out) | inline | 6 root causes | 6 fixed (commit ca37f51) | 0 open |
+| [AUDIT-006](audits/AUDIT-006.md) | 2026-06-08 | Mobile UI polish — button text overflow, mid-word breaks in stat cards, grid collapse strategy | inline | 5 root causes | 5 fixed (commit 7f405e9) | 0 open |
 
 ---
 
