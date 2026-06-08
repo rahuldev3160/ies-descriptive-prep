@@ -92,7 +92,7 @@
   <hr>
   <div style="margin-top:16px;">
     {% for _ in range(6) %}
-    <div style="display:grid;grid-template-columns:4fr 2fr 1fr 1fr 1fr 1fr;gap:8px;align-items:center;padding:10px 0;border-bottom:1px solid #2C2C2E;">
+    <div class="topic-row">
       <div>
         <div style="display:flex;align-items:center;gap:6px;">
           <span class="skel skel-badge"></span>
@@ -171,7 +171,7 @@
 
     <!-- Topic rows -->
     {% for t in pd.topics %}
-    <div style="display:grid;grid-template-columns:4fr 2fr 1fr 1fr 1fr 1fr;gap:8px;align-items:center;padding:8px 0;border-bottom:1px solid #2C2C2E;">
+    <div class="topic-row">
       <!-- Name + answers bar -->
       <div>
         <span class="badge badge-{{ t._state|lower }}">{{ t._state_display }}</span>

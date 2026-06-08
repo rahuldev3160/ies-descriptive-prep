@@ -305,8 +305,14 @@ body.sidebar-collapsed .sidebar-toggle { margin-left: 0; }
 }
 @media (max-width: 600px) {
     .sidebar { display: none; }
-    .main-content { margin-left: 0; }
+    .main-content { margin-left: 0; padding: 1rem 1rem 5rem; }
     .grid-2, .grid-3, .grid-4, .grid-6 { grid-template-columns: 1fr; }
+    .btn { min-height: 44px; }
+    .btn-sm { min-height: 36px; padding: 6px 10px; }
+}
+@media (max-width: 480px) {
+    .main-content { padding: 0.75rem 0.75rem 5rem; }
+    h2 { font-size: 1.2rem; }
 }
 
 /* ── Tabs ────────────────────────────────────────────────────── */
@@ -464,3 +470,110 @@ details.expand-section[open] > summary { color: #C084FC; }
 .dashboard-content  { transition: opacity 0.25s ease; }
 body.page-loading .dashboard-skeleton { display: block; }
 body.page-loading .dashboard-content  { opacity: 0; height: 0; overflow: hidden; pointer-events: none; }
+
+/* ── Topic table row ─────────────────────────────────────────── */
+.topic-row {
+    display: grid;
+    grid-template-columns: 4fr 2fr 1fr 1fr 1fr 1fr;
+    gap: 8px;
+    align-items: center;
+    padding: 8px 0;
+    border-bottom: 1px solid #2C2C2E;
+}
+@media (max-width: 600px) {
+    .topic-row {
+        grid-template-columns: repeat(4, 1fr);
+        gap: 6px;
+        padding: 12px 0;
+    }
+    .topic-row > *:first-child,
+    .topic-row > *:nth-child(2) { grid-column: 1 / -1; }
+}
+
+/* ── Quiz filter selects ─────────────────────────────────────── */
+.quiz-select { width: auto; padding: 8px 12px; background: #2C2C2E; border: 1px solid #3A3A3C; border-radius: 8px; color: #E8EAED; font-family: inherit; font-size: 0.88rem; }
+.quiz-q-wrap { flex: 2; min-width: 300px; }
+@media (max-width: 600px) {
+    .quiz-select { width: 100%; }
+    .quiz-q-wrap { min-width: 0; flex: 1 1 100%; }
+}
+
+/* ── Mobile bottom nav ───────────────────────────────────────── */
+.mobile-nav { display: none; }
+.mobile-more-overlay { display: none; }
+
+@media (max-width: 600px) {
+    .mobile-nav {
+        display: flex;
+        position: fixed;
+        bottom: 0;
+        left: 0;
+        right: 0;
+        height: 56px;
+        background: #1C1C1E;
+        border-top: 1px solid #3A3A3C;
+        z-index: 200;
+        padding-bottom: env(safe-area-inset-bottom);
+    }
+    .mobile-nav-item {
+        flex: 1;
+        display: flex;
+        flex-direction: column;
+        align-items: center;
+        justify-content: center;
+        gap: 2px;
+        color: #6E6E73;
+        text-decoration: none;
+        background: none;
+        border: none;
+        cursor: pointer;
+        padding: 6px 0;
+        transition: color 0.15s;
+        font-family: inherit;
+        min-height: 44px;
+    }
+    .mobile-nav-item:hover, .mobile-nav-item.active { color: #8AB4F8; }
+    .mobile-nav-icon { font-size: 1.2rem; line-height: 1; }
+    .mobile-nav-label { font-size: 0.58rem; font-weight: 600; letter-spacing: 0.03em; text-transform: uppercase; }
+
+    .mobile-more-overlay {
+        display: none;
+        position: fixed;
+        inset: 0;
+        background: rgba(0,0,0,0.55);
+        z-index: 300;
+    }
+    .mobile-more-overlay.open { display: block; }
+    .mobile-more-sheet {
+        position: absolute;
+        bottom: 56px;
+        left: 0;
+        right: 0;
+        background: #2C2C2E;
+        border: 1px solid #3A3A3C;
+        border-bottom: none;
+        border-radius: 16px 16px 0 0;
+        padding: 12px 0 8px;
+    }
+    .mobile-more-title {
+        font-size: 0.62rem;
+        font-weight: 700;
+        letter-spacing: 0.1em;
+        text-transform: uppercase;
+        color: #6E6E73;
+        padding: 0 16px 8px;
+    }
+    .mobile-more-item {
+        display: flex;
+        align-items: center;
+        padding: 13px 16px;
+        color: #9AA0A6;
+        text-decoration: none;
+        font-size: 0.9rem;
+        border-bottom: 1px solid rgba(58,58,60,0.4);
+        min-height: 44px;
+        transition: background 0.1s, color 0.1s;
+    }
+    .mobile-more-item:last-child { border-bottom: none; }
+    .mobile-more-item:hover, .mobile-more-item.active { background: rgba(138,180,248,0.08); color: #E8EAED; }
+}
