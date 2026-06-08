@@ -136,3 +136,33 @@ gunicorn --chdir web 'wsgi:app' --bind 0.0.0.0:$PORT --workers 2 --timeout 120
 ```
 
 OAuth redirect URI already updated to `/auth/callback` in Google Cloud Console (done S18). `FLASK_SECRET_KEY` and `OAUTH_REDIRECT_URI` set as Railway env vars.
+
+## Mobile layout debugging (CSS-MOB-001)
+
+**Symptom:** sidebar shows + mobile nav hidden + content zoomed out — all at once on some pages.
+
+**Root cause:** Flex `min-width: auto` on `.main-content` lets child elements expand
+the layout viewport past 600px on Samsung Internet → ALL media queries stop firing.
+
+**Diagnostic:** Does the broken page have any `min-width > 150px` on a flex child?
+
+**Fix pattern:**
+```css
+.main-content { min-width: 0; }          /* flex gotcha */
+.app-layout { width: 100%; overflow-x: hidden; }  /* outer containment */
+```
+
+**Cache-bust + inline critical CSS** (always pair with layout fixes):
+```html
+<link rel="stylesheet" href="style.css?v=N">   <!-- bump N each deploy -->
+<style>
+@media (max-width: 600px) {
+    .sidebar { display: none !important; }
+    .main-content { margin-left: 0 !important; }
+    .mobile-nav { display: flex !important; }
+}
+</style>
+```
+
+See `~/.claude/knowledge/patterns/CSS-MOB-001-flex-min-width-viewport.md` for full pattern.
+Current CSS version: `?v=4` (bump to `?v=5` on next mobile CSS change).

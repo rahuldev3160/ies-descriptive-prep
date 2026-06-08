@@ -1,5 +1,5 @@
 # Knowledge Base — Descriptive Exams
-Last updated: 2026-06-07 (Session 34)
+Last updated: 2026-06-08 (Session 35)
 
 ## How to use
 - Scan this file at the start of any audit or bug-fix session before doing any analysis
@@ -49,6 +49,7 @@ Last updated: 2026-06-07 (Session 34)
 | [AUDIT-002](audits/AUDIT-002.md) | 2026-06-06 | performance/lag/multi-user | 4 parallel | 9 RC | 8 | 1 (RC-8 deferred) |
 | [AUDIT-003](audits/AUDIT-003.md) | 2026-06-07 | auth+event recording flow — full journey trace | inline | 4 | 3 | 1 (BUG-D: daemon thread writes, LOW) |
 | [AUDIT-004](audits/AUDIT-004.md) | 2026-06-07 | Data flow architecture — all 4 exam domains (RBI, IES, UPSC, English+shared) | 4 parallel | 8 problem classes, 2 live bugs | 2 fixed same session | 6 open → PLAN-014 |
+| [AUDIT-005](audits/AUDIT-005.md) | 2026-06-08 | Mobile layout regressions — all 4 issues (login tiny, sidebar shows, nav disappears, zoom-out) | inline | 6 root causes | 6 fixed (commit ca37f51) | 0 open |
 
 ---
 
@@ -69,7 +70,8 @@ Last updated: 2026-06-07 (Session 34)
 | [PLAN-011](plans/PLAN-011.md) | 2026-06-06 | S23: Multi-DB migrations (m003–m008), remove keyword scoring, DB-driven model answers, new essay Qs | COMPLETE |
 | PLAN-012 | 2026-06-06 | S24: Essay quality overhaul — UPSC open-canvas style, m009+m010, seed DB sync, auto-migration | COMPLETE |
 | [PLAN-013](plans/PLAN-013.md) | 2026-06-06 | S25: nyaya.db — 4th canonical DB for identity+events; Phase 1+2 complete (commit 9a26646) | PHASE 2 COMPLETE |
-| [PLAN-014](plans/PLAN-014.md) | 2026-06-07 | S33: Single-source architecture refactor — kill INSERT OR IGNORE drift, eliminate KEY_SECTIONS/BUCKETS, centralise metadata, English to own DB | PLANNED → S34 |
+| [PLAN-014](plans/PLAN-014.md) | 2026-06-07 | S33: Single-source architecture refactor — kill INSERT OR IGNORE drift, eliminate KEY_SECTIONS/BUCKETS, centralise metadata, English to own DB | PHASES 4+1+2+3+8+9 COMPLETE (S34) |
+| PLAN-015 | 2026-06-08 | S35: Mobile-first UI — bottom tab nav, responsive grids, sidebar DOM removal, full-screen login, CSS-MOB-001 fix | COMPLETE (commit ca37f51) |
 
 ---
 
@@ -92,3 +94,4 @@ Cross-project patterns live at `~/.claude/knowledge/patterns/PATTERNS.md`
 | DB-001 | Read-modify-write race on DB counters | Any app with concurrent writes | BUG-005 |
 | JINJA2-001 | Dict key named `items`/`keys`/`values` shadows Python builtin in Jinja2 → 500 | Any Jinja2 template | BUG-016 (recurred x2) |
 | SYNC-001 | Blueprint-scoped `g.*_conn` not available outside that blueprint's routes — cross-DB aggregates must open short-lived direct connections | Any route that reads from multiple .db files | BUG-021 |
+| CSS-MOB-001 | Flex `min-width:auto` expands layout viewport past 600px breakpoint on Samsung Internet — ALL mobile media queries fail at once. Fix: `min-width:0` on flex items + inline critical CSS with `!important` + `style.css?v=N` cache-bust | Any responsive Flask/web app | AUDIT-005 |
