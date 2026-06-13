@@ -58,9 +58,8 @@
     <div class="nav-group">
         <div class="nav-group-label nav-text">Track &amp; Account</div>
         <a href="/progress"         class="nav-link {% if active_page == 'progress' %}active{% endif %}">📈 <span class="nav-text">My Progress</span></a>
-        <a href="/progress/review"  class="nav-link {% if active_page == 'answer_review' %}active{% endif %}">⭐ <span class="nav-text">Answer Review</span></a>
         <a href="/feedback"         class="nav-link {% if active_page == 'feedback' %}active{% endif %}">💬 <span class="nav-text">Feedback</span></a>
-        <a href="/setup"            class="nav-link {% if active_page == 'setup' %}active{% endif %}">📋 <span class="nav-text">My Plan</span></a>
+        <a href="/setup"            class="nav-link {% if active_page == 'setup' %}active{% endif %}">📋 <span class="nav-text">Study Plan</span></a>
         <a href="/profile"          class="nav-link {% if active_page == 'profile' %}active{% endif %}">👤 <span class="nav-text">Profile</span></a>
         <a href="/auth/logout"      class="nav-link">🚪 <span class="nav-text">Sign Out</span></a>
     </div>
@@ -87,15 +86,15 @@
 <nav class="mobile-nav" id="mobile-nav">
     <a href="/dashboard" class="mobile-nav-item {% if active_page == 'dashboard' %}active{% endif %}">
         <span class="mobile-nav-icon">🏠</span>
-        <span class="mobile-nav-label">IES</span>
+        <span class="mobile-nav-label">IES Prep</span>
     </a>
     <a href="/rbi" class="mobile-nav-item {% if active_page == 'rbi_dashboard' %}active{% endif %}">
         <span class="mobile-nav-icon">🏦</span>
-        <span class="mobile-nav-label">RBI</span>
+        <span class="mobile-nav-label">RBI Prep</span>
     </a>
-    <a href="/upsc" class="mobile-nav-item {% if active_page == 'upsc_dashboard' %}active{% endif %}">
-        <span class="mobile-nav-icon">🎓</span>
-        <span class="mobile-nav-label">UPSC</span>
+    <a href="/rbi/prep?tab=phase1_drill&amp;mode=smart&amp;start=1" class="mobile-nav-item">
+        <span class="mobile-nav-icon">⚡</span>
+        <span class="mobile-nav-label">Quick Drill</span>
     </a>
     <a href="/progress" class="mobile-nav-item {% if active_page == 'progress' %}active{% endif %}">
         <span class="mobile-nav-icon">📈</span>
@@ -112,9 +111,8 @@
     <div class="mobile-more-sheet" onclick="event.stopPropagation()">
         <div class="mobile-more-title">More</div>
         <a href="/english/dashboard" class="mobile-more-item {% if active_page == 'english_dashboard' %}active{% endif %}">✏️ English</a>
-        <a href="/progress/review"   class="mobile-more-item {% if active_page == 'answer_review' %}active{% endif %}">⭐ Answer Review</a>
         <a href="/feedback"          class="mobile-more-item {% if active_page == 'feedback' %}active{% endif %}">💬 Feedback</a>
-        <a href="/setup"             class="mobile-more-item {% if active_page == 'setup' %}active{% endif %}">📋 My Plan</a>
+        <a href="/setup"             class="mobile-more-item {% if active_page == 'setup' %}active{% endif %}">📋 Study Plan</a>
         <a href="/profile"           class="mobile-more-item {% if active_page == 'profile' %}active{% endif %}">👤 Profile</a>
         <a href="/auth/logout"       class="mobile-more-item">🚪 Sign Out</a>
     </div>

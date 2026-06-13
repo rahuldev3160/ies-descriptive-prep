@@ -361,6 +361,20 @@ def create_app() -> Flask:
     @app.route("/")
     def index():
         if getattr(g, "user_id", None):
+            import json as _json
+            try:
+                row = g.nyaya_conn.execute(
+                    "SELECT exam_focus FROM users WHERE user_id=?", (g.user_id,)
+                ).fetchone()
+                if row and row["exam_focus"]:
+                    focus = _json.loads(row["exam_focus"])
+                    if "ies" not in focus:
+                        if "rbi" in focus:
+                            return redirect("/rbi")
+                        if "upsc" in focus:
+                            return redirect("/upsc")
+            except Exception:
+                pass
             return redirect("/dashboard")
         return redirect("/auth/login")
 

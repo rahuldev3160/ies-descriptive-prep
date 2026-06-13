@@ -201,10 +201,20 @@ def setup_page():
         except Exception:
             pass
 
-        return redirect(url_for("setup.setup_page"))
+        _dest = {"rbi": "/rbi", "ies": "/dashboard", "upsc": "/upsc"}
+        primary = exam_focus[0] if exam_focus else "ies"
+        return redirect(_dest.get(primary, "/dashboard") + "?welcome=1")
 
     existing = get_study_path(conn, user_id)
     redo = request.args.get("redo") == "1"
+
+    nyaya_conn2 = get_nyaya_conn()
+    focus_row = nyaya_conn2.execute(
+        "SELECT exam_focus FROM users WHERE user_id=?", (user_id,)
+    ).fetchone()
+    _dest = {"rbi": "/rbi", "ies": "/dashboard", "upsc": "/upsc"}
+    _focus = json.loads(focus_row["exam_focus"]) if focus_row and focus_row["exam_focus"] else ["ies"]
+    primary_exam_url = _dest.get(_focus[0], "/dashboard")
 
     return render_template(
         "setup.html",
@@ -212,4 +222,5 @@ def setup_page():
         plan=existing,
         show_form=(not existing or redo),
         exam_labels=EXAM_LABELS,
+        primary_exam_url=primary_exam_url,
     )

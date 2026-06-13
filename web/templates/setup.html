@@ -78,7 +78,10 @@
   </div>
   {% endif %}
 
-  <a href="/setup?redo=1" class="btn" style="font-size:0.82rem;">Update my preferences</a>
+  <a href="{{ primary_exam_url }}" class="btn btn-primary" style="width:100%;padding:14px 20px;font-size:1rem;font-weight:700;margin-bottom:12px;">
+    Start Studying →
+  </a>
+  <a href="/setup?redo=1" class="btn" style="font-size:0.82rem;">⚙️ Change Setup</a>
 
   {% else %}
 
@@ -118,7 +121,7 @@
       </label>
     </div>
 
-    <button type="submit" class="btn btn-primary" style="width:100%;">Generate My Study Path →</button>
+    <button type="submit" class="btn btn-primary" style="width:100%;">Set Up My Plan →</button>
   </form>
 
   {% endif %}

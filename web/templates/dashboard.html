@@ -2,6 +2,12 @@
 {% block title %}Dashboard · IES 2026{% endblock %}
 
 {% block content %}
+{% if request.args.get('welcome') == '1' %}
+<div style="background:rgba(129,201,149,0.1);border:1px solid rgba(129,201,149,0.3);border-radius:10px;padding:14px 18px;margin-bottom:20px;">
+  <div style="color:#81C995;font-weight:700;margin-bottom:4px;">You're all set ✓</div>
+  <div style="color:#E8EAED;font-size:0.88rem;">Your study plan is ready. Take your first quiz below to activate your progress tracking.</div>
+</div>
+{% endif %}
 {% if onboarding_incomplete %}
 <div id="setup-banner" style="background:rgba(253,214,99,0.08);border:1px solid rgba(253,214,99,0.35);border-radius:8px;padding:10px 16px;margin-bottom:16px;display:flex;align-items:center;justify-content:space-between;gap:12px;">
   <span style="color:#FDD663;font-size:0.88rem;">⚙️ Your study plan isn't personalised yet — takes 30 seconds. <a href="/setup" style="color:#FDD663;font-weight:700;text-decoration:underline;">Set up now →</a></span>
@@ -47,20 +53,31 @@
 </div>
 
 <!-- ── Primary actions ─────────────────────────────────────────────────────── -->
-<div style="display:flex;gap:12px;flex-wrap:wrap;margin-bottom:10px;align-items:stretch;">
-  <a href="/ies/quiz" class="btn btn-primary"
-     style="flex:1;min-width:160px;text-align:center;padding:14px 20px;font-size:1rem;font-weight:700;">
-    ✏️ IES Descriptive Quiz
+{% if micro_mcq == 0 and micro_descriptive == 0 %}
+<div class="gem-card" style="border:1px solid rgba(138,180,248,0.4);margin-bottom:20px;">
+  <div style="color:#8AB4F8;font-weight:700;margin-bottom:8px;">👋 Start here</div>
+  <div style="color:#E8EAED;margin-bottom:12px;font-size:0.92rem;">Take a quick 5-question quiz on your top priority topic to see where you stand.</div>
+  {% if focus_topics %}
+  <a href="/ies/return-quiz?paper={{ focus_topics[0].paper_id }}&amp;topic={{ focus_topics[0].topic_id }}"
+     class="btn btn-primary" style="width:100%;padding:12px 20px;font-size:0.95rem;font-weight:700;">
+    📋 Test Myself on {{ focus_topics[0].topic_id | replace('_', ' ') | title }} →
   </a>
-  <a href="/ies/return-quiz" class="btn btn-primary"
-     style="flex:1;min-width:160px;text-align:center;padding:14px 20px;font-size:1rem;font-weight:700;border-color:rgba(192,132,252,0.4);color:#C084FC;background:rgba(192,132,252,0.1);">
-    📋 IES MCQ Quiz
+  {% else %}
+  <a href="/ies/return-quiz" class="btn btn-primary" style="width:100%;padding:12px 20px;font-size:0.95rem;font-weight:700;">
+    📋 Test Myself →
   </a>
+  {% endif %}
 </div>
+{% endif %}
+<a href="/ies/return-quiz" class="btn btn-primary"
+   style="display:block;width:100%;text-align:center;padding:14px 20px;font-size:1rem;font-weight:700;margin-bottom:10px;box-sizing:border-box;">
+  📋 Test Myself — MCQ
+</a>
 <!-- ── Reference tools ────────────────────────────────────────────────────── -->
 <div style="display:flex;gap:8px;flex-wrap:wrap;margin-bottom:18px;">
-  <a href="/ies/answers" class="btn btn-sm">📖 PYQ Answers</a>
-  <a href="/ies/brief" class="btn btn-sm">📄 Study Brief</a>
+  <a href="/ies/quiz" class="btn btn-sm">✏️ Write an Answer</a>
+  <a href="/ies/answers{% if focus_topics %}?paper={{ focus_topics[0].paper_id }}&amp;topic={{ focus_topics[0].topic_id }}{% endif %}" class="btn btn-sm">📖 Model Answers</a>
+  <a href="/ies/brief" class="btn btn-sm">📄 Topic Summaries</a>
 </div>
 
 <!-- ── Crunch mode banner ──────────────────────────────────────────────────── -->

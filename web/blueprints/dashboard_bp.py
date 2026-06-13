@@ -58,7 +58,7 @@ _NEXT_STATE = {
 }
 
 _FOCUS_LABEL = {
-    "UNVISITED": "Begin Study",
+    "UNVISITED": "→ Begin Topic",
     "FLAGGED":   "Resume",
     "DECAYING":  "Resume",
     "IN_STUDY":  "Mark Partial",
